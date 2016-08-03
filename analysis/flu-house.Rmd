@@ -1,0 +1,165 @@
+---
+title: "Household members"
+output:
+  html_document:
+    fig_caption: yes
+    fig_height: 3
+    fig_width: 6
+    highlight: tango
+    keep_md: yes
+    theme: cosmo
+    toc: yes
+    toc_depth: 4
+fontsize: 10pt
+---
+
+This report contains survey data analysis for household members.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T, warning = F, message = F, tidy = F, size = "small")
+rm(list = ls(all.names = TRUE))
+
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+load("clean/cleaning2.RData")
+```
+
+All household members.
+
+```{r}
+# select respondent's education, race, income, location + household data
+data_hhm1 <- data2 %>%
+  select(c(PPEDUCAT, PPETHM, PPINCIMP, ppreg9, PPSTATEN, 374:375, 407:417)) %>%
+  filter(!is.na(HHM1_AGE))
+data_hhm2 <- data2 %>%
+  select(c(PPEDUCAT, PPETHM, PPINCIMP, ppreg9, PPSTATEN, 405:406, 418:428)) %>%
+  filter(!is.na(HHM2_AGE))
+
+# all ages histogram
+with(data_hhm1, hist(HHM1_AGE))
+with(data_hhm2, hist(HHM2_AGE))
+
+```
+
+Household children.
+- includes respondent's education, race, income, location
+- join/merge hhm1 and hhm2 into single dataframe
+
+```{r}
+# subset children < age 18
+child1 <- data_hhm1 %>%
+  filter(HHM1_AGE < 18)
+child2 <- data_hhm2 %>%
+  filter(HHM2_AGE < 18)
+
+# count total number of children <18 years
+child1 %>%
+  group_by(HHM1_AGE) %>%
+  summarise(n = n()) %>%
+  summarise(sum(n))
+child2 %>%
+  group_by(HHM2_AGE) %>%
+  summarise(n = n()) %>%
+  summarise(sum(n))
+
+# append dataframes, rename columns to be the same
+nam <- c("PPEDUCAT", "PPETHM", "PPINCIMP", "ppreg9", "PPSTATEN", "age", "name", "gender",
+         "Q36", "Q36_Codes", "Q37", "Q37_Codes", "Q38", "Q38_Codes",
+         "Q39", "Q40", "Q41", "Q42")
+names(child1) <- nam
+names(child2) <- nam
+
+children <- rbind(child1, child2)
+
+rm(data_hhm1, data_hhm2, child1, child2)
+```
+
+Total number of children = 270 + 260 = 530
+
+```{r}
+# age histogram
+with(children, hist(age))
+```
+
+
+
+
+# Survey questions
+### Q35. What is the gender of this member of the household?
+
+
+```{r}
+with(children, summary(gender))
+
+```
+
+### Q36. On average, how many days per week does this member of your household work or attend day care or school outside of your home?
+
+```{r}
+with(children, hist(Q36))
+with(children, summary(Q36))
+
+```
+
+### Q37. On average, how many days per week does this member of your household participate in social activities outside of your home?
+
+```{r}
+with(children, hist(Q37))
+with(children, summary(Q37))
+
+```
+
+### Q38. On average, how many days per week does this member of your household use public transportation?
+
+```{r}
+with(children, hist(Q38))
+with(children, summary(Q38))
+
+```
+
+### Q39. How frequently does this member of your household visit a doctor's office for wellness appointments?
+
+```{r}
+with(children, summary(Q39))
+with(children, barplot(table(Q39)))
+
+```
+
+### Q40. How frequently does this member of the household get sick in a typical year?
+
+```{r}
+with(children, summary(Q40))
+with(children, barplot(table(Q40)))
+
+```
+
+
+### Q41. How many times has this member of your household had influenza or another respiratory illness in the last two years?
+
+
+```{r}
+with(children, summary(Q41))
+with(children, barplot(table(Q41)))
+
+```
+
+
+### Q42. Does this member of your household get an annual influenza vaccine?
+
+
+```{r}
+with(children, summary(Q42))
+with(children, barplot(table(Q42)))
+
+# vaccine by age
+with(children, table(age, Q42))
+
+# regroup variables
+
+
+```
+
+
+

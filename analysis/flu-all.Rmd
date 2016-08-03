@@ -1,0 +1,684 @@
+---
+title: "flu-all"
+output:
+  html_document:
+    css: reports/style.css
+    fig_height: 3
+    fig_width: 6
+    highlight: tango
+    keep_md: yes
+    theme: cosmo
+    toc: yes
+---
+
+# Unweighted survey data
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T, warning = F, message = F, tidy = F, size = "small")
+rm(list = ls(all.names = TRUE))
+
+library(dplyr); library(tidyr); library(ggplot2)
+library(knitr); library(gmodels); library(prettyR); library(epitools)
+load("clean/cleaning2.RData")
+load("clean/plotting1.RData")
+
+data <- data2
+names(data) <- old_name
+names(data2) <- new_name
+```
+
+## Q1. Before receiving this survey, did you know influenza is different from the stomach flu?
+
+### Ways to make tables
+
+```{r Q1}
+## Q1 table by gender
+
+kable(with(data2, addmargins(table(PPGENDER, Q1))))  # formatted table
+
+# using epitools::odds ratio with males as ref
+(or <- oddsratio(with(data2, table(PPGENDER, Q2)), rev = "columns"))  # not sick, sick
+
+# xtab gives OR (need to flip columns) and proportions
+xtab(PPGENDER ~ Q1, data2)
+
+# CrossTable gives pretty joint freqs, conditional %, marginal prop
+with(data2, CrossTable(PPGENDER, Q1, prop.chisq = F))
+
+# plot
+g1 + geom_bar(mapping = aes(x = Q1, fill = Q1),
+              position = position_dodge()) + facet_wrap(~PPGENDER)
+```
+
+#### by demographic variables
+
+```{r}
+## by age group
+(or <- oddsratio(with(data2, table(ppagecat, Q1)), rev = "columns"))
+
+## by education
+(or1 <- oddsratio(with(data2, table(PPEDUCAT, Q1)), rev = "columns"))
+
+g1 + geom_bar(mapping = aes(x = PPEDUCAT, fill = Q1),
+              position = position_stack())
+g1 + geom_bar(mapping = aes(x = PPEDUCAT, fill = Q1),
+              position = position_fill()) 
+
+## ETHNICITY
+(or2 <- oddsratio(with(data2, table(PPETHM, Q1)), rev = "columns"))
+g1 + geom_bar(mapping = aes(x = PPETHM, fill = Q1),
+              position = position_dodge())
+
+## INCOME
+(or3 <- oddsratio(with(data2, table(PPINCIMP, Q1)), rev = "columns"))
+g1 + geom_bar(mapping = aes(x = PPINCIMP, fill = Q1),
+              position = position_dodge()) + coord_flip()
+
+```
+
+
+## Q2. Have you had an illness with influenza-like symptoms since August 2015?
+
+
+```{r Q2}
+
+## PPGENDER
+xtab(PPGENDER ~ Q2, data2)
+# facet plot
+g2 + geom_bar(mapping = aes(x = Q2, fill = Q2), position = position_dodge()) + facet_wrap(~PPGENDER)
+
+
+## PPETHM
+xtab(PPETHM ~ Q2, data2)
+g2 + geom_bar(mapping = aes(x = Q2, fill = PPETHM), position = position_dodge())
+
+
+## PPINCIMP
+xtab(PPINCIMP ~ Q2, data2)
+g2 + geom_bar(mapping = aes(x = Q2, fill = PPINCIMP), position = position_dodge())
+
+```
+
+
+## Q3. Has any other person in your household had an illness with influenza like symptoms since August 2015?
+
+
+```{r Q3}
+with(data2, table(Q3))
+
+# plot
+g3 + geom_bar(mapping = aes(x = Q3, fill = Q3))
+
+
+# PPGENDER
+with(data2, table(PPGENDER, Q3))
+# plot with facet
+g3 + geom_bar(mapping = aes(x = Q3, fill = Q3), position = position_dodge()) + facet_wrap(~PPGENDER)
+
+# PPETHM
+with(data2, table(PPETHM, Q3))
+# plot
+g3 + geom_bar(mapping = aes(x = Q3, fill = PPETHM), position = position_dodge())
+
+# PPINCIMP
+with(data2, table(PPINCIMP, Q3))
+# plot
+g3 + geom_bar(mapping = aes(x = Q3, fill = PPINCIMP), position = position_dodge())
+```
+
+
+## Q4. Does your job require you to have a lot of contact with the public?
+
+
+```{r Q4}
+# + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+with(data2, table(Q4))
+
+# plot
+g4 + geom_bar(mapping = aes(x = Q4, fill = Q4))
+
+
+# PPGENDER
+with(data2, table(PPGENDER, Q4))
+# plot with facet
+g4 + geom_bar(mapping = aes(x = Q4, fill = Q4), position = position_dodge()) + facet_wrap(~PPGENDER)
+
+# PPETHM
+with(data2, table(PPETHM, Q4))
+# plot
+g4 + geom_bar(mapping = aes(x = Q4, fill = PPETHM), position = position_dodge())
+
+# PPINCIMP
+with(data2, table(PPINCIMP, Q4))
+# plot
+g4 + geom_bar(mapping = aes(x = Q4, fill = PPINCIMP), position = position_dodge())
+
+```
+
+
+## Q5. Do you have a car that you can use to travel to work?
+
+
+```{r Q5}
+with(data2, table(Q5))
+
+# plot
+g5 + geom_bar(mapping = aes(x = Q5, fill = Q5))
+
+
+# PPGENDER
+with(data2, table(PPGENDER, Q5))
+# plot with facet
+g5 + geom_bar(mapping = aes(x = Q5, fill = Q5), position = position_dodge()) + facet_wrap(~PPGENDER)
+
+# PPETHM
+with(data2, table(PPETHM, Q5))
+# plot
+g5 + geom_bar(mapping = aes(x = Q5, fill = PPETHM), position = position_dodge())
+
+# PPINCIMP
+with(data2, table(PPINCIMP, Q5))
+# plot
+g5 + geom_bar(mapping = aes(x = Q5, fill = PPINCIMP), position = position_dodge())
+```
+
+
+## Q6. Do you regularly use public transportation?
+
+
+```{r}
+with(data2, table(Q6))
+
+# plot g6 <- ggplot(data2[!is.na(data2$Q6), ])
+g6 + geom_bar(mapping = aes(x = Q6, fill = Q6))
+
+
+# PPGENDER
+with(data2, table(PPGENDER, Q6))
+# plot with facet
+g6 + geom_bar(mapping = aes(x = Q6, fill = Q6), position = position_dodge()) + facet_wrap(~PPGENDER)
+
+# PPETHM
+with(data2, table(PPETHM, Q6))
+# plot
+g6 + geom_bar(mapping = aes(x = Q6, fill = PPETHM), position = position_dodge())
+
+# PPINCIMP
+with(data2, table(PPINCIMP, Q6))
+# plot
+g6 + geom_bar(mapping = aes(x = Q6, fill = PPINCIMP), position = position_dodge())
+```
+
+
+## Q7. What types of public transportation do you regularly use?
+
+
+```{r}
+# make long data
+q7_long <- data2 %>%
+  gather(Q7_q, Q7_r, Q7_1_Bus:Q7_7_Other) %>%
+    summarise(n = count())
+
+with(q7_long, table(Q7_q, Q7_r))
+
+q7_long %>%
+  group_by(Q7_q, Q7_r, PPGENDER, PPETHM, PPINCIMP, ppagecat) %>%
+  summarise(n = count())
+
+# flip coordinates
+ggplot(q7[!is.na(q7$Q7_r), ], aes(x = Q7_r, y = n, fill = Q7_r)) +
+  geom_bar(stat = 'identity', position = position_dodge()) + facet_wrap(~Q7_q) + coord_flip()
+
+# testing plot
+ggplot(q7[!is.na(q7$Q7_r), ], aes(x = Q7_r, y = n, fill = Q7_r)) +
+  geom_bar(stat = 'identity') +
+  facet_grid(Q7_q ~ PPGENDER)
+
+
+# by gender
+with(q7_long, table(PPGENDER, Q7_q, Q7_r))
+
+ggplot(q7[!is.na(q7$Q7_r), ], aes(x = Q7_r, y = n, fill = PPGENDER)) +
+  geom_bar(stat = 'identity', position = position_dodge()) + facet_wrap(~Q7_q)
+
+# by ethnicity
+with(q7_long, table(PPETHM, Q7_q, Q7_r))
+
+ggplot(q7[!is.na(q7$Q7_r), ], aes(x = Q7_r, y = n, fill = PPETHM)) +
+  geom_bar(stat = 'identity', position = position_dodge()) + facet_wrap(~Q7_q)
+
+# by income
+with(q7_long, table(PPINCIMP, Q7_q, Q7_r ))
+
+ggplot(q7[!is.na(q7$Q7_r), ], aes(x = Q7_r, y = n, fill = PPINCIMP)) +
+  geom_bar(stat = 'identity', position = position_dodge()) + facet_wrap(~Q7_q)
+
+
+```
+
+
+## Q8. For what types of activities do you regularly use public transportation?
+
+
+```{r}
+q8_long <- data2 %>%
+  gather("Q8_q", "Q8_r", starts_with("Q8_"), -contains("otherText"), -contains("Refused"))
+
+with(q8_long, table(Q8_q, Q8_r))
+q8 <- q8_long %>%
+  count(Q8_q, Q8_r)
+
+
+# PPGENDER
+with(q8_long, table(PPGENDER, Q8_q, Q8_r))
+q8 <- q8_long %>%
+  group_by(PPGENDER, Q8_q, Q8_r) %>%
+  count(PPGENDER, Q8_q, Q8_r)
+
+# PPETHM
+with(q8_long, table(PPETHM, Q8_q, Q8_r))
+
+
+# PPINCIMP
+with(q8_long, table(PPINCIMP, Q8_q, Q8_r))
+
+```
+
+
+## Q9. Do other members of your household regularly use public transportation?
+
+
+```{r}
+with(data2, table(Q9))
+
+```
+
+
+## Q10. What types of public transportation do other members of your household regularly use?
+
+
+```{r}
+#Q10 <- data2 %>%
+#  select(CaseID, PPGENDER, PPAGE, PPEDUC, PPETHM, PPINCIMP, PPWORK, #Q10_1_Bus:Q10_9_Refused) %>%
+#  gather("Q10_q", "Q10_r", Q10_1_Bus:Q10_8_Other)
+
+
+q10_long <- data2 %>%
+  gather("Q10_q", "Q10_r", starts_with("Q10_"), -contains("Text"), -contains("Refused"), na.rm = TRUE)
+
+with(q10_long, table(Q10_q, Q10_r))
+q10 <- q10_long %>%
+  count(Q10_q, Q10_r)
+
+
+# PPGENDER
+with(q10_long, table(PPGENDER, Q10_q, Q10_r))
+q10 <- q10_long %>%
+  group_by(PPGENDER, Q10_q, Q10_r) %>%
+  count(PPGENDER, Q10_q, Q10_r)
+
+# PPETHM
+with(q10_long, table(PPETHM, Q10_q, Q10_r))
+
+
+# PPINCIMP
+with(q10_long, table(PPINCIMP, Q10_q, Q10_r))
+
+```
+
+
+### Q11. How do you rate your risk of getting influenza if you visited each of the following locations?
+
+
+```{r}
+q11_long <- data2 %>%
+  gather("Q11_q", "Q11_r", starts_with("Q11_"), -contains("Text"), -contains("Refused"), na.rm = TRUE)
+
+
+with(q11_long, table(Q11_q, Q11_r))
+q11 <- q11_long %>%
+  count(Q11_q, Q11_r)
+
+ggplot(q11[!is.na(q11$Q11_r), ], aes(x = Q11_r, y = n, fill = Q11_r)) +
+  geom_bar(stat = 'identity', position = position_dodge()) + facet_wrap(~Q11_q) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# by gender
+with(q11_long, table(PPGENDER, Q11_r, Q11_q))
+q11 <- q11_long %>%
+  group_by(PPGENDER, Q11_q, Q11_r) %>%
+  count(PPGENDER, Q11_q, Q11_r)
+
+ggplot(q11[!is.na(q11$Q11_r), ], aes(x = Q11_r, y = n, fill = PPGENDER)) +
+  geom_bar(stat = 'identity', position = position_dodge()) + facet_wrap(~Q11_q) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+# by ethnicity
+with(q11_long, table(PPETHM, Q11_r, Q11_q))
+q11 <- q11_long %>%
+  group_by(PPETHM, Q11_q, Q11_r) %>%
+  count(PPETHM, Q11_q, Q11_r)
+
+ggplot(q11[!is.na(q11$Q11_r), ], aes(x = Q11_r, y = n, fill = PPETHM)) +
+  geom_bar(stat = 'identity', position = position_dodge()) + facet_wrap(~Q11_q) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+# by income
+with(q11_long, table(PPINCIMP, Q11_q, Q11_r))
+q11 <- q11_long %>%
+  group_by(PPINCIMP, Q11_q, Q11_r) %>%
+  count(PPINCIMP, Q11_q, Q11_r)
+
+ggplot(q11[!is.na(q11$Q11_r), ], aes(x = Q11_r, y = n, fill = PPINCIMP)) +
+  geom_bar(stat = 'identity', position = position_dodge()) + facet_wrap(~Q11_q) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+
+
+### Q12. Which of the following actions do you take to avoid getting sick?
+
+```{r}
+Q12 <- data2 %>%
+  select(PPGENDER, PPAGE, PPEDUC, PPETHM, PPINCIMP, PPWORK, 75:91) %>%
+  gather("q", "r", 7:21)
+
+with(Q12, table(q, r))
+q12 <- Q12 %>%
+  count(q, r)
+
+```
+
+### Q13. Do you get the flu vaccine?
+
+```{r}
+with(data2, table(Q13))
+ggplot(data2[!is.na(data2$Q13), ]) + geom_bar(mapping = aes(x = Q13, fill = Q13), position = position_dodge())
+
+
+# by gender
+with(data2, table(Q13, PPGENDER))
+q13 <- data2 %>%
+  count(Q13, PPGENDER)
+
+ggplot(q13[!is.na(q13$Q13), ], aes(x = Q13, y = n, fill = PPGENDER)) +
+  geom_bar(stat = 'identity', position = position_dodge())
+
+
+# by eth
+with(data2, table(Q13, PPINCIMP))
+q13 <- data2 %>%
+  count(Q13, PPINCIMP)
+
+ggplot(q13[!is.na(q13$Q13), ], aes(x = Q13, y = n, fill = PPINCIMP)) +
+  geom_bar(stat = 'identity', position = position_dodge())
+
+
+```
+
+
+### Q14. How much do you pay to get an influenza vaccine?
+
+```{r}
+with(data2, table(Q14))
+ggplot(data2[!is.na(data2$Q14), ]) + geom_bar(mapping = aes(x = Q14, fill = Q14), position = position_dodge())
+
+
+# by gender
+with(data2, by(Q14, PPGENDER, summary))
+
+```
+
+### Q15. Are you more likely to get a vaccine if others around you get a vaccine?
+```{r}
+with(data2, table(Q15))
+
+ggplot(data2[!is.na(data2$Q15), ]) + geom_bar(mapping = aes(x = Q15, fill = Q15), position = position_dodge())
+
+#
+with(data2, table(Q15, PPGENDER))
+#
+with(data2, table(Q15, PPETHM))
+#
+with(data2, table(PPINCIMP, Q15))
+```
+
+### Q16. Are you more likely to get a vaccine if others around you do not get a vaccine?
+
+```{r}
+with(data2, table(Q16))
+ggplot(data2[!is.na(data2$Q16), ]) + geom_bar(mapping = aes(x = Q16, fill = Q16), position = position_dodge())
+
+#
+with(data2, table(Q16, PPGENDER))
+#
+with(data2, table(Q16, PPETHM))
+#
+with(data2, table(PPINCIMP, Q16))
+
+```
+
+### Q17. Do you get a vaccine to protect yourself, protect others, or protect yourself and others?
+
+```{r}
+with(data2, table(Q17))
+ggplot(data2[!is.na(data2$Q17), ]) + geom_bar(mapping = aes(x = Q17, fill = Q17), position = position_dodge())
+
+#
+with(data2, table(Q17, PPGENDER))
+#
+with(data2, table(Q17, PPETHM))
+#
+with(data2, table(PPINCIMP, Q17))
+
+```
+
+
+
+### Q18. What are the reasons you would not get an influenza vaccine?
+
+```{r}
+Q18 <- data2 %>%
+  select(PPGENDER, PPAGE, PPEDUC, PPETHM, PPINCIMP, PPWORK, 97:108) %>%
+  gather("q", "r", 7:Q18_10_Other)
+
+with(Q18, table(q, r))
+q18 <- Q18 %>%
+  count(q, r)
+```
+
+### Q19. Do you have health insurance?
+
+```{r}
+with(data2, table(Q19))
+ggplot(data2[!is.na(data2$Q19), ]) + geom_bar(mapping = aes(x = Q19, fill = Q19), position = position_dodge())
+
+#
+with(data2, table(Q19, PPGENDER))
+#
+with(data2, table(Q19, PPETHM))
+#
+with(data2, table(PPINCIMP, Q19))
+```
+
+### Q20. How effective do you think the influenza vaccine is in protecting people from becoming sick with influenza?
+
+```{r}
+with(data2, table(Q20))
+ggplot(data2[!is.na(data2$Q20), ]) + geom_bar(mapping = aes(x = Q20, fill = Q20), position = position_dodge())
+
+
+#
+with(data2, table(Q20, PPGENDER))
+#
+with(data2, table(Q20, PPETHM))
+#
+with(data2, table(PPINCIMP, Q20))
+
+```
+
+### Q21. Are influenza vaccines covered by your health insurance?
+
+```{r}
+with(data2, table(Q21))
+ggplot(data2[!is.na(data2$Q21), ]) + geom_bar(mapping = aes(x = Q21, fill = Q21), position = position_dodge())
+
+#
+with(data2, table(Q21, PPGENDER))
+#
+with(data2, table(Q21, PPETHM))
+#
+with(data2, table(PPINCIMP, Q21))
+
+```
+
+### Q22. Do you do any of the following when you have influenza symptoms?
+
+```{r}
+Q22 <- data2 %>%
+  select(PPGENDER, PPAGE, PPEDUC, PPETHM, PPINCIMP, PPWORK, 112:122) %>%
+  gather("q", "r", 7:Q22_9_Other)
+
+with(Q22, table(q, r))
+q22 <- Q22 %>%
+  count(q, r)
+
+```
+
+### Q23. Which of the following actions do you take when you have influenza symptoms to avoid someone else from getting sick?
+
+```{r}
+Q23 <- data2 %>%
+  select(PPGENDER, PPAGE, PPEDUC, PPETHM, PPINCIMP, PPWORK, 123:Q23_11_Other) %>%
+  gather("q", "r", 7:Q23_11_Other)
+
+with(Q23, table(q, r))
+q23 <- Q23 %>%
+  count(q, r)
+
+```
+
+### Q24. What sources of information do you recall hearing or seeing about influenza outbreaks? 
+
+```{r}
+Q24 <- data2 %>%
+  select(PPGENDER, PPAGE, PPEDUC, PPETHM, PPINCIMP, PPWORK, 137:Q24_7_Refused) %>%
+  gather("q", "r", 7:Q24_6_Other)
+
+with(Q24, table(q, r))
+q24 <- Q24 %>%
+  count(q, r)
+```
+
+### Q25. If you received information from the news, internet or other public media that there was an influenza outbreak in your community would you do any of the following?
+
+```{r}
+Q25 <- data2 %>%
+  select(PPGENDER, PPAGE, PPEDUC, PPETHM, PPINCIMP, PPWORK, 145:Q25_11_Other) %>%
+  gather("q", "r", 7:Q25_11_Other)
+
+with(Q25, table(q, r))
+q25 <- Q25 %>%
+  count(q, r)
+
+```
+
+### Q26. Does your household have children?
+
+```{r}
+with(data2, table(Q26))
+ggplot(data2[!is.na(data2$Q26), ]) + geom_bar(mapping = aes(x = Q26, fill = Q26), position = position_dodge())
+
+```
+
+### Q27. What actions do you take when a child in your household has influenza symptoms?
+
+```{r}
+Q27 <- data2 %>%
+  select(PPGENDER, PPAGE, PPEDUC, PPETHM, PPINCIMP, PPWORK, 159:Q27_4_Other) %>%
+  gather("q", "r", 7:Q27_4_Other)
+
+with(Q27, table(q, r))
+q27 <- Q27 %>%
+  count(q, r)
+```
+
+### Q28. Are you a single parent?
+
+```{r}
+with(data2, table(Q28))
+ggplot(data2[!is.na(data2$Q28), ]) + geom_bar(mapping = aes(x = Q28, fill = Q28), position = position_dodge())
+
+```
+
+### Q29. How do you care for a sick child?
+
+```{r}
+Q29 <- data2 %>%
+  select(PPGENDER, PPAGE, PPEDUC, PPETHM, PPINCIMP, PPWORK, 166:Q29_6_Other) %>%
+  gather("q", "r", 7:Q29_6_Other)
+
+with(Q29, table(q, r))
+q29 <- Q29 %>%
+  count(q, r)
+```
+
+### Q30. How do you care for a sick child?
+
+```{r}
+Q30 <- data2 %>%
+  select(PPGENDER, PPAGE, PPEDUC, PPETHM, PPINCIMP, PPWORK, 174:Q30_6_Other) %>%
+  gather("q", "r", 7:Q30_6_Other)
+
+with(Q30, table(q, r))
+q30 <- Q30 %>%
+  count(q, r)
+
+```
+
+### Q31. How many hours of screen time (time spent watching television, a computer, smartphone, iPad, etc.) do you spend each day on average when you are not sick? Enter 0 if none
+
+```{r}
+with(data2, summary(Q31))
+
+# by gender
+with(data2, by(Q31, PPGENDER, summary))
+#
+with(data2, by(Q31, PPETHM, summary))
+#
+with(data2, by(Q31, PPINCIMP, summary))
+
+```
+
+### Q32. How many hours of screen time do you spend each day on average when you are sick? Enter 0 if none
+
+```{r}
+with(data2, summary(Q32))
+
+# by gender
+with(data2, by(Q32, PPGENDER, summary))
+#
+with(data2, by(Q32, PPETHM, summary))
+#
+with(data2, by(Q32, PPINCIMP, summary))
+
+```
+
+### Q33. How many people, including yourself, reside in your household?
+
+```{r}
+with(data2, summary(Q33))
+
+# by gender
+with(data2, by(Q33, PPGENDER, summary))
+#
+with(data2, by(Q31, PPETHM, summary))
+#
+with(data2, by(Q31, PPINCIMP, summary))
+
+```
+
+

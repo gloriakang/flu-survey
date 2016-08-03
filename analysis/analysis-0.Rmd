@@ -1,0 +1,106 @@
+---
+title: "Analysis-0"
+output: 
+  html_document:
+    fig_height: 3
+    fig_width: 6
+    css: reports/default.css
+    highlight: default
+    keep_md: yes
+    theme: cosmo
+    toc: yes
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T, warning = F, message = F, tidy = F, size = "small")
+rm(list = ls(all.names = TRUE))
+library(rmarkdown); library(dplyr); library(ggplot2)
+library(survey)
+```
+
+## Univariate & bivariate analysis
+
+```{r load-data}
+## Load data and recoded variables.
+
+load("clean/cleaning2.RData")
+load("clean/recoding1.RData")
+df <- datar  # datar contains recoded variables
+#tail(df)
+```
+
+```{r survey-object}
+## create survey object
+options(digits = 4)
+options(survey.lonely.psu = "adjust")
+des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight) == F, ])
+```
+
+## Plots
+Need to make univariate and bivariate plots of weighted survey data.
+
+```{r q1}
+# counts
+as.data.frame(svytable(~Q1 + PPGENDER, design = des, round = T))
+
+# proportion
+svyby(~Q1, ~PPGENDER, design = des, FUN = svymean, na.rm = T)
+
+# plot
+plot(svytable(~Q1 + PPGENDER, des))
+```
+
+## Q1.
+
+```{r}
+# fix this...
+#xi <- c("PPGENDER", "PPNET", "PPWORK")
+#svytable(~Q1 + xi, design = des, round = T)
+
+# count dataframe
+q1 <- as.data.frame(svytable(
+  ~Q1 + PPGENDER + PPETHM + PPEDUCAT + ppagecat + PPINCIMP + PPWORK + PPNET,
+  design = des, round = T))
+
+# generic ggplot
+ggplot(q1, aes(Q1, Freq)) +
+  aes(fill = PPGENDER) + 
+  geom_bar(stat = 'identity', position = position_dodge())
+
+
+# make ggplot object
+g1 <- ggplot(q1, aes(Q1, Freq))
+
+# other plots
+g1 + aes(fill = PPETHM) + 
+  geom_bar(stat = 'identity', position = position_dodge())
+
+g1 + aes(fill = PPEDUCAT) + 
+  geom_bar(stat = 'identity', position = position_dodge())
+
+g1 + aes(fill = PPWORK) + 
+  geom_bar(stat = 'identity', position = position_dodge())
+
+```
+
+
+
+```{r, eval=FALSE, include=FALSE}
+## testing ##
+
+Titanic1 <- data.frame(Titanic)
+p <- ggplot(Titanic1, aes(weight=Freq)) +
+            ylab("") + ylim(0,2250)
+cs <- p + aes(Class) + geom_bar(fill="blue")
+sx <- p + aes(Sex) + geom_bar(fill="green")
+ag <- p + aes(Age) + geom_bar(fill="tan2")
+su <- p + aes(Survived) + geom_bar(fill="red")
+grid.arrange(cs, sx, ag, su, nrow=1, widths=c(3, 2, 2, 2))
+
+
+```
+
+
+
+
