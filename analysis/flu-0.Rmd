@@ -1,5 +1,5 @@
 ---
-title: "flu-0"
+title: "Bivariate and multivariate analyses"
 output: 
   html_document:
     fig_height: 3
@@ -11,8 +11,6 @@ output:
     toc: yes
     toc_depth: 2
 ---
-
-### Bivariate and multivariate analyses
   
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = T, warning = F, message = F, tidy = F, size = "small")

@@ -1,9 +1,9 @@
 ---
-title: "Analysis-0"
+title: "Univariate and bivariate analysis"
 output: 
   html_document:
     fig_height: 3
-    fig_width: 6
+    fig_width: 7
     css: reports/default.css
     highlight: default
     keep_md: yes
@@ -15,80 +15,135 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = T, warning = F, message = F, tidy = F, size = "small")
 rm(list = ls(all.names = TRUE))
-library(rmarkdown); library(dplyr); library(ggplot2)
-library(survey)
+library(rmarkdown); library(dplyr); library(ggplot2); library(survey);
+library(gridExtra)
 ```
-
-## Univariate & bivariate analysis
 
 ```{r load-data}
 ## Load data variables.
 
 load("data/cleaning2.RData")
 load("data/recoding.RData")  # load "datar"
-df <- datar  # datar contains recoded variables
-#tail(df)
+df <- datar  # contains recoded variables
 ```
 
-```{r survey-object}
-## create survey object
+```{r des}
+## Create survey object.
+
 options(digits = 4)
 options(survey.lonely.psu = "adjust")
 des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight) == F, ])
 ```
 
-## Plots
-Need to make univariate and bivariate plots of weighted survey data.
+Example of Q1 by gender.
 
-```{r q1}
-# counts
-as.data.frame(svytable(~Q1 + PPGENDER, design = des, round = T))
+```{r example}
+## Example of Q1 by gender.
 
-# proportion
-svyby(~Q1, ~PPGENDER, design = des, FUN = svymean, na.rm = T)
+as.data.frame(svytable(~Q1 + PPGENDER, design = des, round = T))  # freq table
+svyby(~Q1, ~PPGENDER, design = des, FUN = svymean, na.rm = T)  # contingency %
+plot(svytable(~Q1 + PPGENDER, des))  # default survey plot
 
-# plot
-plot(svytable(~Q1 + PPGENDER, des))
+# generic ggplot
+# ggplot(data.frame.here, aes(Q1, Freq, fill = PPGENDER) + geom_bar(stat = 'identity', position = position_dodge())
 ```
 
 ## Q1.
 
-```{r}
-# fix this...
-#xi <- c("PPGENDER", "PPNET", "PPWORK")
-#svytable(~Q1 + xi, design = des, round = T)
+### By demographic variables:
+gender, ethnicity, age, education, income, employment, marital status, metro location, region, house type, head of household, rent status, state, internet availability
 
-# count dataframe
+```{r q1}
+
+# save freq table as data.frame
 q1 <- as.data.frame(svytable(
-  ~Q1 + PPGENDER + PPETHM + PPEDUCAT + ppagecat + PPINCIMP + PPWORK + PPNET,
-  design = des, round = T))
-
-# generic ggplot
-ggplot(q1, aes(Q1, Freq)) +
-  aes(fill = PPGENDER) + 
-  geom_bar(stat = 'identity', position = position_dodge())
-
+  ~Q1 + PPGENDER + PPETHM + ppagect4, design = des, round = T))
 
 # make ggplot object
-g1 <- ggplot(q1, aes(Q1, Freq))
-
-# other plots
-g1 + aes(fill = PPETHM) + 
+g1 <- ggplot(q1)
+g1 + aes(Q1, Freq, fill = PPGENDER) + 
   geom_bar(stat = 'identity', position = position_dodge())
-
-g1 + aes(fill = PPEDUCAT) + 
+g1 + aes(Q1, Freq, fill = PPETHM) + 
   geom_bar(stat = 'identity', position = position_dodge())
+g1 + aes(Q1, Freq, fill = ppagect4) + 
+  geom_bar(stat = 'identity', position = position_stack())
 
-g1 + aes(fill = PPWORK) + 
-  geom_bar(stat = 'identity', position = position_dodge())
+```
+
+### Examine the % of US adults sick with ILI last year by sex, ethnicity, and age. Do a survey-corrected chi-square test for independence.
+
+```{r}
+## % of US adults sick last year with ILI by sex
+sex <- svyby(formula = ~Q2, by = ~PPGENDER, design = des, FUN = svymean, na.rm = T)
+svychisq(~Q2 + PPGENDER, design = des)
+
+qplot(x = sex$PPGENDER, y = sex$Q2Yes, data = sex, xlab = "sex", ylab = "% sick") + geom_errorbar(aes(x = PPGENDER, ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2No), width = .25) + ggtitle(label = "% of adults sick last year with ILI by sex")
+
+
+## % of US adults sick last year with ILI by ethnicity
+eth <- svyby(formula = ~Q2, by = ~PPETHM, design = des, FUN = svymean, na.rm = T)
+svychisq(~Q2 + PPETHM, design = des)
+
+qplot(x = eth$PPETHM, y = eth$Q2Yes, data = eth, xlab = "ethnicity", ylab = "% sick") + geom_errorbar(aes(x = PPETHM, ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2No), width = .25) + ggtitle(label = "% of adults sick last year with ILI by ethnicity")
+
+
+## % of US adults sick last year with ILI by age
+age <- svyby(formula = ~Q2, by = ~ppagecat, design = des, FUN = svymean, na.rm = T)
+svychisq(~Q2 + ppagecat, design = des)
+
+qplot(x = age$ppagecat, y = age$Q2Yes, data = age, xlab = "age", ylab = "% sick") + geom_errorbar(aes(x = ppagecat, ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2No), width = .25) + ggtitle(label = "% of adults sick last year with ILI by age")
+
+```
+
+```{r}
+## testing plots ##
+qtest <- as.data.frame(svytable(
+  ~Q1 + PPGENDER + PPETHM + ppagect4, design = des, round = T))
+
+p <- ggplot(qtest, aes(weight = Freq)) + ylab("") #+ ylim(0, 1000)
+
+p + aes(PPGENDER, fill = Q1) + geom_bar(position = "dodge")
+p + aes(PPETHM, fill = Q1) + geom_bar(position = "dodge")
+p + aes(ppagect4, fill = Q1) + geom_bar(position = "dodge")
+
+
+with(qtest, sum(Q1))
+
+#p + aes(PPGENDER, fill = Q1) + geom_bar(position = "dodge") + geom_text(aes(y = Freq, label = weight))
+
+
+#grid.arrange(gsex, geth, gage, nrow = 2)
 
 ```
 
 
-
 ```{r, eval=FALSE, include=FALSE}
 ## testing ##
+qtest <- as.data.frame(svytable(
+  ~Q1 + PPGENDER + PPETHM + ppagect4, design = des, round = T))
 
+p <- ggplot(qtest, aes(weight = Freq)) + ylab("") + ylim(0, 2168)
+se <- p + aes(PPGENDER, fill = Q1) + geom_bar(position = position_dodge())
+et <- p + aes(PPETHM, fill = Q1) + geom_bar(position = position_dodge())
+ag <- p + aes(ppagect4, fill = Q1) + geom_bar(position = position_dodge())
+
+grid.arrange(se, et, ag, nrow = 2)
+
+
+# unweighted plots
+q <- ggplot(df[!is.na(df$Q1), ]) #+ ylim(0, 1000)
+
+with(df, table(PPGENDER))
+q + geom_bar(aes(PPGENDER))
+
+with(df, table(PPGENDER, Q1))
+q + geom_bar(aes(PPGENDER, fill = Q1), position = "dodge") 
+
+with(df, table(ppagect4))
+q + geom_bar(aes(ppagect4))
+
+
+## example ##
 Titanic1 <- data.frame(Titanic)
 p <- ggplot(Titanic1, aes(weight=Freq)) +
             ylab("") + ylim(0,2250)
@@ -97,7 +152,6 @@ sx <- p + aes(Sex) + geom_bar(fill="green")
 ag <- p + aes(Age) + geom_bar(fill="tan2")
 su <- p + aes(Survived) + geom_bar(fill="red")
 grid.arrange(cs, sx, ag, su, nrow=1, widths=c(3, 2, 2, 2))
-
 
 ```
 
