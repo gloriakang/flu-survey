@@ -1,14 +1,14 @@
 # Data cleaning part 2
-# re-order factor levels, apply new names, save as data2
-# output = cleaning2.Rdata
+# re-order factors and levels, apply new names
 
 rm(list = ls(all.names = TRUE))
-
 library(car)
-load("clean/cleaning1.RData")
 
-# new data frame
-dataf <- data
+# load column names and data
+source("code/data_cleaning1.R")
+
+data <- dat  # to match rest of the code
+dataf <- dat  # new dataframe for factors
 
 ############### list and sort demographic factors ################
 
@@ -19,7 +19,6 @@ levels(dataf$ppagecat)
 # age cat 4
 summary(dataf$ppagect4)
 levels(dataf$ppagect4)
-
 
 # education cat 14
 summary(dataf$PPEDUC)
@@ -271,6 +270,7 @@ dataf$Q30_5 <- factor(data$Q30_5, levels = always.lab)
 dataf$Q30_6 <- factor(data$Q30_6, levels = always.lab)
 levels(dataf$Q30_1)
 
+## household section
 #View(dataf[188:288])
 
 dataf$Q39 <- factor(data$Q39, levels = c("Never", "Less than once per year", "Once per year", "More than once per year", "Don_t know"))
@@ -300,9 +300,12 @@ levels(dataf$Q50)
 
 
 ## save
-# data = original, data2 = re-ordered factors
-data2 <- dataf
-save(data2, new_name, old_name, file = "clean/cleaning2.RData")
+# re-name temporary "data" back to "dat" to signify original data
+dat <- data
+rm(data)
+
+
+save(dat, dataf, new_name, old_name, file = "data/cleaning2.RData")
 
 
 

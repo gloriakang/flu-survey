@@ -22,10 +22,10 @@ library(survey)
 ## Univariate & bivariate analysis
 
 ```{r load-data}
-## Load data and recoded variables.
+## Load data variables.
 
-load("clean/cleaning2.RData")
-load("clean/recoding1.RData")
+load("data/cleaning2.RData")
+load("data/recoding.RData")  # load "datar"
 df <- datar  # datar contains recoded variables
 #tail(df)
 ```

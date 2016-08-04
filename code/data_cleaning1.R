@@ -1,15 +1,14 @@
 # Data cleaning part 1
-# read original data, create list of names for multi-column questions
-# output: cleaning1.RData (data, new_name, old_name)
+# create new column names for multi-column questions
 
 rm(list = ls(all.names = TRUE))
 library(dplyr)
 
 ## load surveydata.csv
-data <- read.csv("data/surveydata.csv", na = c("#NULL!", "", "Refused", "NA"))
+dat <- read.csv("data/surveydata.csv", na = c("#NULL!", "", "Refused", "NA"))
 
 ## rename sub-columns
-data_rename <- data %>%
+data_rename <- dat %>%
   # Q7
   rename("Q7_1_Bus" = Q7_1,
          "Q7_2_Carpool" = Q7_2,
@@ -139,12 +138,11 @@ data_rename <- data %>%
          "Q30_5_Take.the.child.to.a.relative.or.friends" = Q30_5,
          "Q30_6_Other" = Q30_6)
 
-
 # save lists of names
-old_name <- names(data)
+old_name <- names(dat)
 new_name <- names(data_rename)
 
-save(data, old_name, new_name, file = "clean/cleaning1.RData")
+rm(data_rename)
 
-
+#save(dat, old_name, new_name, file = "data/cleaning1.RData")
 
