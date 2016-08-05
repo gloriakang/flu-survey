@@ -2,7 +2,6 @@
 title: "flu-all"
 output:
   html_document:
-    css: reports/style.css
     fig_height: 3
     fig_width: 6
     highlight: tango
@@ -19,12 +18,9 @@ rm(list = ls(all.names = TRUE))
 
 library(dplyr); library(tidyr); library(ggplot2)
 library(knitr); library(gmodels); library(prettyR); library(epitools)
-load("clean/cleaning2.RData")
-load("clean/plotting1.RData")
+load("~/git/flu-survey/data/cleaning2.RData")
 
-data <- data2
-names(data) <- old_name
-names(data2) <- new_name
+data2 <- dataf
 ```
 
 ## Q1. Before receiving this survey, did you know influenza is different from the stomach flu?
@@ -46,8 +42,8 @@ xtab(PPGENDER ~ Q1, data2)
 with(data2, CrossTable(PPGENDER, Q1, prop.chisq = F))
 
 # plot
-g1 + geom_bar(mapping = aes(x = Q1, fill = Q1),
-              position = position_dodge()) + facet_wrap(~PPGENDER)
+#g1 + geom_bar(mapping = aes(x = Q1, fill = Q1),
+#              position = position_dodge()) + facet_wrap(~PPGENDER)
 ```
 
 #### by demographic variables
@@ -59,26 +55,33 @@ g1 + geom_bar(mapping = aes(x = Q1, fill = Q1),
 ## by education
 (or1 <- oddsratio(with(data2, table(PPEDUCAT, Q1)), rev = "columns"))
 
-g1 + geom_bar(mapping = aes(x = PPEDUCAT, fill = Q1),
-              position = position_stack())
-g1 + geom_bar(mapping = aes(x = PPEDUCAT, fill = Q1),
-              position = position_fill()) 
+#g1 + geom_bar(mapping = aes(x = PPEDUCAT, fill = Q1),
+#              position = position_stack())
+#g1 + geom_bar(mapping = aes(x = PPEDUCAT, fill = Q1),
+#              position = position_fill()) 
 
 ## ETHNICITY
 (or2 <- oddsratio(with(data2, table(PPETHM, Q1)), rev = "columns"))
-g1 + geom_bar(mapping = aes(x = PPETHM, fill = Q1),
-              position = position_dodge())
+#g1 + geom_bar(mapping = aes(x = PPETHM, fill = Q1),
+#              position = position_dodge())
 
 ## INCOME
 (or3 <- oddsratio(with(data2, table(PPINCIMP, Q1)), rev = "columns"))
-g1 + geom_bar(mapping = aes(x = PPINCIMP, fill = Q1),
-              position = position_dodge()) + coord_flip()
+#g1 + geom_bar(mapping = aes(x = PPINCIMP, fill = Q1),
+#              position = position_dodge()) + coord_flip()
 
 ```
 
 
-## Q2. Have you had an illness with influenza-like symptoms since August 2015?
 
+
+
+
+
+
+
+
+## Q2. Have you had an illness with influenza-like symptoms since August 2015?
 
 ```{r Q2}
 

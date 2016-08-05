@@ -4,7 +4,6 @@ output:
   html_document:
     fig_height: 3
     fig_width: 6
-    css: reports/default.css
     highlight: default
     keep_md: yes
     theme: cosmo
@@ -25,11 +24,11 @@ library(survey); library(car); library(memisc)
 ```{r load-data}
 ## Load data and recoded variables.
 
-load("cleaning2.RData")
+load("~/git/flu-survey/data/cleaning2.RData")
 data <- dataf
 
 #source(recoding.R)
-load("data/recoding1.RData")
+load("~/git/flu-survey/data/recoding.RData")
 df <- datar  # datar contains recoded variables
 #tail(df)
 ```

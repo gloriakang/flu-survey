@@ -23,16 +23,20 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 
-load("clean/cleaning2.RData")
+load("~/git/flu-survey/data/cleaning2.RData")
 ```
 
 All household members.
 
 ```{r}
+data2 <- dat
+names(dat[407:417])
+
 # select respondent's education, race, income, location + household data
 data_hhm1 <- data2 %>%
   select(c(PPEDUCAT, PPETHM, PPINCIMP, ppreg9, PPSTATEN, 374:375, 407:417)) %>%
   filter(!is.na(HHM1_AGE))
+
 data_hhm2 <- data2 %>%
   select(c(PPEDUCAT, PPETHM, PPINCIMP, ppreg9, PPSTATEN, 405:406, 418:428)) %>%
   filter(!is.na(HHM2_AGE))
