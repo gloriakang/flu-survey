@@ -1,16 +1,14 @@
 ---
-title: "Univariate and bivariate analysis"
+title: "analysis-0"
 output: 
   html_document:
     fig_height: 3
-    fig_width: 7
-    css: reports/default.css
-    highlight: default
     keep_md: yes
-    theme: cosmo
     toc: yes
     toc_depth: 2
 ---
+
+# Univariate and bivariate analysis
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = T, warning = F, message = F, tidy = F, size = "small")
@@ -35,7 +33,7 @@ options(survey.lonely.psu = "adjust")
 des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight) == F, ])
 ```
 
-Example of Q1 by gender.
+### Example of Q1 by gender.
 
 ```{r example}
 ## Example of Q1 by gender.
@@ -79,82 +77,74 @@ svychisq(~Q2 + PPGENDER, design = des)
 
 qplot(x = sex$PPGENDER, y = sex$Q2Yes, data = sex, xlab = "sex", ylab = "% sick") + geom_errorbar(aes(x = PPGENDER, ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2No), width = .25) + ggtitle(label = "% of adults sick last year with ILI by sex")
 
-
 ## % of US adults sick last year with ILI by ethnicity
 eth <- svyby(formula = ~Q2, by = ~PPETHM, design = des, FUN = svymean, na.rm = T)
 svychisq(~Q2 + PPETHM, design = des)
 
 qplot(x = eth$PPETHM, y = eth$Q2Yes, data = eth, xlab = "ethnicity", ylab = "% sick") + geom_errorbar(aes(x = PPETHM, ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2No), width = .25) + ggtitle(label = "% of adults sick last year with ILI by ethnicity")
 
-
 ## % of US adults sick last year with ILI by age
 age <- svyby(formula = ~Q2, by = ~ppagecat, design = des, FUN = svymean, na.rm = T)
 svychisq(~Q2 + ppagecat, design = des)
 
 qplot(x = age$ppagecat, y = age$Q2Yes, data = age, xlab = "age", ylab = "% sick") + geom_errorbar(aes(x = ppagecat, ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2No), width = .25) + ggtitle(label = "% of adults sick last year with ILI by age")
-
 ```
 
+### Simple weighted plots.
+
 ```{r}
-## testing plots ##
+## weighted bivariate plots with svytable
 qtest <- as.data.frame(svytable(
   ~Q1 + PPGENDER + PPETHM + ppagect4, design = des, round = T))
 
-p <- ggplot(qtest, aes(weight = Freq)) + ylab("") #+ ylim(0, 1000)
+p <- ggplot(qtest, aes(weight = Freq))
 
-p + aes(PPGENDER, fill = Q1) + geom_bar(position = "dodge")
-p + aes(PPETHM, fill = Q1) + geom_bar(position = "dodge")
-p + aes(ppagect4, fill = Q1) + geom_bar(position = "dodge")
+#svytable(~Q1 + PPGENDER, des, round = T)
+a <- p + aes(PPGENDER, fill = Q1) + geom_bar(position = "dodge")
+
+#svytable(~Q1 + PPETHM, des, round = T)
+b <- p + aes(PPETHM, fill = Q1) + geom_bar(position = "dodge")
+
+#svytable(~Q1 + ppagect4, des, round = T)
+c <- p + aes(ppagect4, fill = Q1) + geom_bar(position = "dodge")
+
+grid.arrange(a, b, c, nrow = 2)
+```
+
+### Compare weighted plots to unweighted plots.
+
+```{r}
+## unweighted plots
+q <- ggplot(df[!is.na(df$Q1), ])
+
+with(df, table(PPGENDER, Q1))
+a <- q + geom_bar(aes(PPGENDER, fill = Q1), position = "dodge")
+
+with(df, table(PPETHM, Q1))
+b <- q + geom_bar(aes(Q1, fill = PPETHM), position = "dodge")
+
+with(df, table(ppagect4, Q1))
+c <- q + geom_bar(aes(Q1, fill = ppagect4), position = "dodge")
+
+grid.arrange(a, b, c, nrow = 2)
+```
 
 
-with(qtest, sum(Q1))
 
-#p + aes(PPGENDER, fill = Q1) + geom_bar(position = "dodge") + geom_text(aes(y = Freq, label = weight))
+## Testing.
 
+```{r, eval=FALSE, include=FALSE}
+## testing ##
 
-#grid.arrange(gsex, geth, gage, nrow = 2)
 
 ```
 
 
 ```{r, eval=FALSE, include=FALSE}
-## testing ##
-qtest <- as.data.frame(svytable(
-  ~Q1 + PPGENDER + PPETHM + ppagect4, design = des, round = T))
-
-p <- ggplot(qtest, aes(weight = Freq)) + ylab("") + ylim(0, 2168)
-se <- p + aes(PPGENDER, fill = Q1) + geom_bar(position = position_dodge())
-et <- p + aes(PPETHM, fill = Q1) + geom_bar(position = position_dodge())
-ag <- p + aes(ppagect4, fill = Q1) + geom_bar(position = position_dodge())
-
-grid.arrange(se, et, ag, nrow = 2)
-
-
-# unweighted plots
-q <- ggplot(df[!is.na(df$Q1), ]) #+ ylim(0, 1000)
-
-with(df, table(PPGENDER))
-q + geom_bar(aes(PPGENDER))
-
-with(df, table(PPGENDER, Q1))
-q + geom_bar(aes(PPGENDER, fill = Q1), position = "dodge") 
-
-with(df, table(ppagect4))
-q + geom_bar(aes(ppagect4))
-
-
 ## example ##
-Titanic1 <- data.frame(Titanic)
-p <- ggplot(Titanic1, aes(weight=Freq)) +
-            ylab("") + ylim(0,2250)
-cs <- p + aes(Class) + geom_bar(fill="blue")
-sx <- p + aes(Sex) + geom_bar(fill="green")
-ag <- p + aes(Age) + geom_bar(fill="tan2")
-su <- p + aes(Survived) + geom_bar(fill="red")
-grid.arrange(cs, sx, ag, su, nrow=1, widths=c(3, 2, 2, 2))
+
 
 ```
-
 
 
 
