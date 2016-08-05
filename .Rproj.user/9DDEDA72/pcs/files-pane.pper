@@ -1,0 +1,13 @@
+{
+    "path" : "~/git/flu-survey/data",
+    "sortOrder" : [
+        {
+            "ascending" : true,
+            "columnIndex" : 1
+        },
+        {
+            "ascending" : true,
+            "columnIndex" : 2
+        }
+    ]
+}
