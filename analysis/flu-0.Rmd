@@ -25,11 +25,11 @@ library(survey); library(car); library(memisc)
 ```{r load-data}
 ## Load data and recoded variables.
 
-load("clean/cleaning2.RData")
+load("cleaning2.RData")
 data <- dataf
 
 #source(recoding.R)
-load("clean/recoding1.RData")
+load("data/recoding1.RData")
 df <- datar  # datar contains recoded variables
 #tail(df)
 ```
