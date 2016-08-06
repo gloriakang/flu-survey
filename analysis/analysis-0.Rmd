@@ -38,8 +38,9 @@ des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight) == F, ]
 ```{r example}
 ## Example of Q1 by gender.
 
-as.data.frame(svytable(~Q1 + PPGENDER, design = des, round = T))  # freq table
-svyby(~Q1, ~PPGENDER, design = des, FUN = svymean, na.rm = T)  # contingency %
+as.data.frame(svytable(~Q1 + PPGENDER, design = des, round = T))  # weighted counts
+svyby(~Q1, ~Q1+PPGENDER, des, unwtd.count)  # unweighted counts
+svyby(~Q1, ~PPGENDER, design = des, FUN = svymean, na.rm = T)  # weighted %
 plot(svytable(~Q1 + PPGENDER, des))  # default survey plot
 
 # generic ggplot

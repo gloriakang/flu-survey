@@ -54,15 +54,15 @@ with(data, addmargins(table(Q1, PPGENDER)))
 # weighted Q1
 svytable(~Q1 + PPGENDER, design = des, round = T)
 
+# another unweighted table
+svyby(~Q1, ~Q1+PPGENDER, des, unwtd.count)
+
 # unweighted prop
 (u <- with(data, prop.table(table(Q1, PPGENDER), margin = 2))*100)  
 # weighted prop
 (w <- prop.table(svytable(~Q1 + PPGENDER, design = des), margin = 2)*100)
 
 # figure out how to plot weighted survey designs
-#g1 <- ggplot(data2[!is.na(data2$Q1), ]) + theme(text = element_text(size = 10), axis.text.x = element_text(angle = 45, hjust = 1))
-#g1 + geom_bar(mapping = aes(x = Q1, fill = Q1),
-#              position = position_dodge()) + facet_wrap(~PPGENDER)
 
 # table above with standard errors
 svyby(formula = ~Q1, by = ~PPGENDER, design = des, FUN = svymean, na.rm = T)
