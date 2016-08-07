@@ -1,51 +1,14 @@
----
-title: "analysis-0"
-output: 
-  html_document:
-    keep_md: yes
-    toc: yes
-    toc_depth: 2
----
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = T, warning = F, message = F, tidy = F, size = "small")
-rm(list = ls(all.names = TRUE))
-library(rmarkdown); library(dplyr); library(ggplot2); library(survey);
-library(gridExtra)
-```
-
-```{r, include=F}
-## Load data variables.
-
-load("~/git/flu-survey/data/cleaning2.RData")
-load("~/git/flu-survey/data/recoding.RData")  # load "datar"
-df <- datar  # contains recoded variables
-```
-
-```{r, eval=FALSE, include=FALSE}
-## Do not run
-# income
-income.map <- c(rep("under $10k", 3),
-                rep("$10k to $25k", 4),
-                rep("$25k to $50k", 4),
-                rep("$50k to $75k", 2),
-                rep("$75k to $100k", 2),
-                rep("$100k to $150k", 2),
-                rep("over $150k", 2))
-# datar$income <- code(data2$PPINCIMP, income.map, "under $10k")
-
-# marital staus
-marital.map <- c("single", "partnered", "partnered", "single", "single", "single")
-# datar$marital <- code(data2$PPMARIT, marital.map, "single")
-
-# work status
-work.map <- c(rep("unemployed", 5),
-              rep("employed", 2))
-# datar$work <- code(data2$PPWORK, work.map, "unemployed")
-```
+# analysis-0
 
 
-```{r des}
+
+
+
+
+
+
+
+```r
 ## Create survey object.
 
 options(digits = 4)
@@ -56,7 +19,8 @@ des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight) == F, ]
 
 ## Q1. Before receiving this survey, did you know influenza is different from the stomach flu?
 
-```{r}
+
+```r
 q1 <- as.data.frame(svytable(
   ~Q1 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
@@ -85,13 +49,21 @@ wo <- p + aes(work, fill = Q1) + geom_bar(position = "dodge")
 ma <- p + aes(marital, fill = Q1) + geom_bar(position = "dodge")
 
 grid.arrange(all, ge, ag, et, nrow = 2)
+```
+
+![](analysis_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+
+```r
 grid.arrange(inc, ed, wo, ma, nrow = 2)
 ```
+
+![](analysis_files/figure-html/unnamed-chunk-3-2.png)<!-- -->
 
 
 ## Q2. Have you had an illness with influenza-like symptoms since August 2015?
 
-```{r}
+
+```r
 q2 <- as.data.frame(svytable(
   ~Q2 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
@@ -120,48 +92,102 @@ wo <- p + aes(work, fill = Q2) + geom_bar(position = "dodge")
 ma <- p + aes(marital, fill = Q2) + geom_bar(position = "dodge")
 
 grid.arrange(all, ge, ag, et, nrow = 2)
+```
+
+![](analysis_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+
+```r
 grid.arrange(inc, ed, wo, ma, nrow = 2)
 ```
 
+![](analysis_files/figure-html/unnamed-chunk-4-2.png)<!-- -->
+
 ### Examine the % of US adults sick with ILI last year by sex, ethnicity, and age. Do a survey-corrected chi-square test for independence.
 
-```{r}
+
+```r
 ## % of US adults sick last year with ILI by sex
 gen <- svyby(formula = ~Q2, by = ~PPGENDER, design = des, FUN = svymean, na.rm = T)
 svychisq(~Q2 + PPGENDER, design = des)
+```
 
+```
+## 
+## 	Pearson's X^2: Rao & Scott adjustment
+## 
+## data:  svychisq(~Q2 + PPGENDER, design = des)
+## F = 6.3, ndf = 1, ddf = 2200, p-value = 0.01
+```
+
+```r
 qplot(x = gen$PPGENDER, y = gen$Q2Yes, data = gen, xlab = "gender", ylab = "% sick") + geom_errorbar(aes(x = PPGENDER, ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2No), width = .25) + ggtitle(label = "% of adults sick last year with ILI by sex")
+```
 
+![](analysis_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+
+```r
 ## % of US adults sick last year with ILI by ethnicity
 eth <- svyby(formula = ~Q2, by = ~PPETHM, design = des, FUN = svymean, na.rm = T)
 svychisq(~Q2 + PPETHM, design = des)
+```
 
+```
+## 
+## 	Pearson's X^2: Rao & Scott adjustment
+## 
+## data:  svychisq(~Q2 + PPETHM, design = des)
+## F = 4.3, ndf = 3.4, ddf = 7400.0, p-value = 0.003
+```
+
+```r
 qplot(x = eth$PPETHM, y = eth$Q2Yes, data = eth, xlab = "ethnicity", ylab = "% sick") + geom_errorbar(aes(x = PPETHM, ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2No), width = .25) + ggtitle(label = "% of adults sick last year with ILI by ethnicity")
+```
 
+![](analysis_files/figure-html/unnamed-chunk-5-2.png)<!-- -->
+
+```r
 ## % of US adults sick last year with ILI by age
 age <- svyby(formula = ~Q2, by = ~ppagecat, design = des, FUN = svymean, na.rm = T)
 svychisq(~Q2 + ppagecat, design = des)
+```
 
+```
+## 
+## 	Pearson's X^2: Rao & Scott adjustment
+## 
+## data:  svychisq(~Q2 + ppagecat, design = des)
+## F = 2.1, ndf = 5.8, ddf = 13000.0, p-value = 0.06
+```
+
+```r
 qplot(x = age$ppagecat, y = age$Q2Yes, data = age, xlab = "age", ylab = "% sick") + geom_errorbar(aes(x = ppagecat, ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2No), width = .25) + ggtitle(label = "% of adults sick last year with ILI by age")
 ```
+
+![](analysis_files/figure-html/unnamed-chunk-5-3.png)<!-- -->
 
 
 ## Q3. Has any other person in your household had an illness with influenza like symptoms since August 2015?
 
-```{r}
+
+```r
 q3 <- as.data.frame(svytable(
   ~Q3 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
 p <- ggplot(q3, aes(Q3, weight = Freq))
 (all <- p + geom_bar())
+```
 
+![](analysis_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
+
+```r
 #svytable(~Q + PPGENDER, des, round = T)
 ```
 
 
 ## Q4. Does your job require you to have a lot of contact with the public?
 
-```{r}
+
+```r
 q4 <- as.data.frame(svytable(
   ~Q4 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
@@ -175,28 +201,39 @@ et <- p + aes(PPETHM, fill = Q4) + geom_bar(position = "dodge")
 inc <- p + aes(income, fill = Q4) + geom_bar(position = "dodge")
 
 grid.arrange(ge, ag, et)
-grid.arrange(inc)
-
 ```
+
+![](analysis_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
+
+```r
+grid.arrange(inc)
+```
+
+![](analysis_files/figure-html/unnamed-chunk-7-2.png)<!-- -->
 
 
 ## Q5. Do you have a car that you can use to travel to work?
 
-```{r}
+
+```r
 q5 <- as.data.frame(svytable(
   ~Q5 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
 p <- ggplot(q5, aes(Q5, weight = Freq))
 (all <- p + geom_bar())
+```
 
+![](analysis_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
+
+```r
 #svytable(~Q + PPGENDER, des, round = T)
-
 ```
 
 
 ## Q6. Do you regularly use public transportation?
 
-```{r}
+
+```r
 q6 <- as.data.frame(svytable(
   ~Q6 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
@@ -215,29 +252,33 @@ ma <- p + aes(marital, fill = Q6) + geom_bar(position = "dodge")
 
 #grid.arrange(all, ge, ag, et, nrow = 2)
 #grid.arrange(inc, ed, wo, ma, nrow = 2)
-
 ```
 
 ## Q7. What types of public transportation do you regularly use?
 ## Q8. For what types of activities do you regularly use public transportation?
 ## Q9. Do other members of your household regularly use public transportation?
 
-```{r}
+
+```r
 q9 <- as.data.frame(svytable(
   ~Q9 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
 p <- ggplot(q9, aes(Q9, weight = Freq))
 (all <- p + geom_bar())
+```
 
+![](analysis_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
+
+```r
 #svytable(~Q + PPGENDER, des, round = T)
-
 ```
 ## Q10. What types of public transportation do other members of your household regularly use?
 ## Q11. How do you rate your risk of getting influenza if you visited each of the following locations?
 ## Q12. Which of the following actions do you take to avoid getting sick?
 ## Q13. Do you get the flu vaccine?
 
-```{r}
+
+```r
 q13 <- as.data.frame(svytable(
   ~Q13 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
@@ -254,13 +295,20 @@ wo <- p + aes(work, fill = Q13) + geom_bar(position = "dodge")
 ma <- p + aes(marital, fill = Q13) + geom_bar(position = "dodge")
 
 grid.arrange(all, ge, ag, et, nrow = 2)
-grid.arrange(inc, ed, wo, ma, nrow = 2)
-
 ```
+
+![](analysis_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
+
+```r
+grid.arrange(inc, ed, wo, ma, nrow = 2)
+```
+
+![](analysis_files/figure-html/unnamed-chunk-11-2.png)<!-- -->
 
 ## Q14. How much do you pay to get an influenza vaccine?
 
-```{r}
+
+```r
 q14 <- as.data.frame(svytable(
   ~Q14 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
@@ -277,13 +325,20 @@ wo <- p + aes(work, fill = Q14) + geom_bar(position = "dodge")
 ma <- p + aes(marital, fill = Q14) + geom_bar(position = "dodge")
 
 grid.arrange(all, ge, ag, et, nrow = 2)
-grid.arrange(inc, ed, wo, ma, nrow = 2)
-
 ```
+
+![](analysis_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
+
+```r
+grid.arrange(inc, ed, wo, ma, nrow = 2)
+```
+
+![](analysis_files/figure-html/unnamed-chunk-12-2.png)<!-- -->
 
 ## Q15. Are you more likely to get a vaccine if others around you get a vaccine?
 
-```{r}
+
+```r
 q15 <- as.data.frame(svytable(
   ~Q15 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
@@ -300,14 +355,21 @@ wo <- p + aes(work, fill = Q15) + geom_bar(position = "dodge")
 ma <- p + aes(marital, fill = Q15) + geom_bar(position = "dodge")
 
 grid.arrange(all, ge, ag, et, nrow = 2)
-grid.arrange(inc, ed, wo, ma, nrow = 2)
-
 ```
+
+![](analysis_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
+
+```r
+grid.arrange(inc, ed, wo, ma, nrow = 2)
+```
+
+![](analysis_files/figure-html/unnamed-chunk-13-2.png)<!-- -->
 
 
 ## Q16. Are you more likely to get a vaccine if others around you do not get a vaccine?
 
-```{r}
+
+```r
 q16 <- as.data.frame(svytable(
   ~Q16 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
@@ -324,14 +386,21 @@ wo <- p + aes(work, fill = Q16) + geom_bar(position = "dodge")
 ma <- p + aes(marital, fill = Q16) + geom_bar(position = "dodge")
 
 grid.arrange(all, ge, ag, et, nrow = 2)
-grid.arrange(inc, ed, wo, ma, nrow = 2)
-
 ```
+
+![](analysis_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
+
+```r
+grid.arrange(inc, ed, wo, ma, nrow = 2)
+```
+
+![](analysis_files/figure-html/unnamed-chunk-14-2.png)<!-- -->
 
 
 ## Q17. Do you get a vaccine to protect yourself, protect others, or protect yourself and others?
 
-```{r}
+
+```r
 q17 <- as.data.frame(svytable(
   ~Q17 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
@@ -348,14 +417,21 @@ wo <- p + aes(work, fill = Q17) + geom_bar(position = "dodge")
 ma <- p + aes(marital, fill = Q17) + geom_bar(position = "dodge")
 
 grid.arrange(all, ge, ag, et)
-grid.arrange(inc, ed, wo, ma)
-
 ```
+
+![](analysis_files/figure-html/unnamed-chunk-15-1.png)<!-- -->
+
+```r
+grid.arrange(inc, ed, wo, ma)
+```
+
+![](analysis_files/figure-html/unnamed-chunk-15-2.png)<!-- -->
 
 ## Q18. What are the reasons you would not get an influenza vaccine?
 ## Q19. Do you have health insurance?
 
-```{r}
+
+```r
 q19 <- as.data.frame(svytable(
   ~Q19 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
@@ -372,13 +448,20 @@ wo <- p + aes(work, fill = Q19) + geom_bar(position = "dodge")
 ma <- p + aes(marital, fill = Q19) + geom_bar(position = "dodge")
 
 grid.arrange(all, ge, ag, et)
-grid.arrange(inc, ed, wo, ma)
-
 ```
+
+![](analysis_files/figure-html/unnamed-chunk-16-1.png)<!-- -->
+
+```r
+grid.arrange(inc, ed, wo, ma)
+```
+
+![](analysis_files/figure-html/unnamed-chunk-16-2.png)<!-- -->
 
 ## Q20. How effective do you think the influenza vaccine is in protecting people from becoming sick with influenza?
 
-```{r}
+
+```r
 q20 <- as.data.frame(svytable(
   ~Q20 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
@@ -395,20 +478,28 @@ wo <- p + aes(work, fill = Q20) + geom_bar(position = "dodge")
 ma <- p + aes(marital, fill = Q20) + geom_bar(position = "dodge")
 
 grid.arrange(all, ge, ag, et, nrow = 2)
-grid.arrange(inc, ed, wo, ma, nrow = 2)
-
 ```
+
+![](analysis_files/figure-html/unnamed-chunk-17-1.png)<!-- -->
+
+```r
+grid.arrange(inc, ed, wo, ma, nrow = 2)
+```
+
+![](analysis_files/figure-html/unnamed-chunk-17-2.png)<!-- -->
 
 ## Q21. Are influenza vaccines covered by your health insurance?
 
-```{r}
+
+```r
 q21 <- as.data.frame(svytable(
   ~Q21 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
 p <- ggplot(q21, aes(Q21, weight = Freq))
 (all <- p + geom_bar())
-
 ```
+
+![](analysis_files/figure-html/unnamed-chunk-18-1.png)<!-- -->
 
 
 ## Q22. Do you do any of the following when you have influenza symptoms?
@@ -417,26 +508,30 @@ p <- ggplot(q21, aes(Q21, weight = Freq))
 ## Q25. If you received information from the news, internet or other public media that there was an influenza outbreak in your community would you do any of the following?
 ## Q26. Does your household have children?
 
-```{r}
+
+```r
 q26 <- as.data.frame(svytable(
   ~Q26 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
 p <- ggplot(q26, aes(Q26, weight = Freq))
 (all <- p + geom_bar())
-
 ```
+
+![](analysis_files/figure-html/unnamed-chunk-19-1.png)<!-- -->
 
 ## Q27. What actions do you take when a child in your household has influenza symptoms?
 ## Q28. Are you a single parent?
 
-```{r}
+
+```r
 q28 <- as.data.frame(svytable(
   ~Q28 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
 p <- ggplot(q28, aes(Q28, weight = Freq))
 (all <- p + geom_bar())
-
 ```
+
+![](analysis_files/figure-html/unnamed-chunk-20-1.png)<!-- -->
 
 ## Q29. How do you care for a sick child? (married parent)
 ## Q30. How do you care for a sick child? (single parent)
@@ -448,7 +543,8 @@ p <- ggplot(q28, aes(Q28, weight = Freq))
 
 
 ## TEMPLATE ##
-```{r}
+
+```r
 # q <- as.data.frame(svytable(
 #   ~Q + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 # 
