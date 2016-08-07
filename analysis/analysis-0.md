@@ -28,7 +28,7 @@ des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight) == F, ]
 ```r
 ## Example of Q1 by gender.
 
-as.data.frame(svytable(~Q1 + PPGENDER, design = des, round = T))  # freq table
+as.data.frame(svytable(~Q1 + PPGENDER, design = des, round = T))  # weighted counts
 ```
 
 ```
@@ -40,7 +40,19 @@ as.data.frame(svytable(~Q1 + PPGENDER, design = des, round = T))  # freq table
 ```
 
 ```r
-svyby(~Q1, ~PPGENDER, design = des, FUN = svymean, na.rm = T)  # contingency %
+svyby(~Q1, ~Q1+PPGENDER, des, unwtd.count)  # unweighted counts
+```
+
+```
+##             Q1 PPGENDER counts se
+## Yes.Female Yes   Female    888  0
+## No.Female   No   Female    205  0
+## Yes.Male   Yes     Male    776  0
+## No.Male     No     Male    283  0
+```
+
+```r
+svyby(~Q1, ~PPGENDER, design = des, FUN = svymean, na.rm = T)  # weighted %
 ```
 
 ```
