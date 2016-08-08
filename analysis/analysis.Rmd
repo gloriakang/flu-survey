@@ -130,19 +130,19 @@ grid.arrange(inc, ed, wo, ma, nrow = 2)
 gen <- svyby(formula = ~Q2, by = ~PPGENDER, design = des, FUN = svymean, na.rm = T)
 svychisq(~Q2 + PPGENDER, design = des)
 
-qplot(x = gen$PPGENDER, y = gen$Q2Yes, data = gen, xlab = "gender", ylab = "% sick") + geom_errorbar(aes(x = PPGENDER, ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2No), width = .25) + ggtitle(label = "% of adults sick last year with ILI by sex")
+qplot(x = gen$PPGENDER, y = gen$Q2Yes, data = gen, xlab = "gender", ylab = "% sick") + geom_errorbar(aes(x = PPGENDER, ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2Yes), width = .25) + ggtitle(label = "% of adults sick last year with ILI by sex")
 
 ## % of US adults sick last year with ILI by ethnicity
 eth <- svyby(formula = ~Q2, by = ~PPETHM, design = des, FUN = svymean, na.rm = T)
 svychisq(~Q2 + PPETHM, design = des)
 
-qplot(x = eth$PPETHM, y = eth$Q2Yes, data = eth, xlab = "ethnicity", ylab = "% sick") + geom_errorbar(aes(x = PPETHM, ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2No), width = .25) + ggtitle(label = "% of adults sick last year with ILI by ethnicity")
+qplot(x = eth$PPETHM, y = eth$Q2Yes, data = eth, xlab = "ethnicity", ylab = "% sick") + geom_errorbar(aes(x = PPETHM, ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2Yes), width = .25) + ggtitle(label = "% of adults sick last year with ILI by ethnicity")
 
 ## % of US adults sick last year with ILI by age
 age <- svyby(formula = ~Q2, by = ~ppagecat, design = des, FUN = svymean, na.rm = T)
 svychisq(~Q2 + ppagecat, design = des)
 
-qplot(x = age$ppagecat, y = age$Q2Yes, data = age, xlab = "age", ylab = "% sick") + geom_errorbar(aes(x = ppagecat, ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2No), width = .25) + ggtitle(label = "% of adults sick last year with ILI by age")
+qplot(x = age$ppagecat, y = age$Q2Yes, data = age, xlab = "age", ylab = "% sick") + geom_errorbar(aes(x = ppagecat, ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2Yes), width = .25) + ggtitle(label = "% of adults sick last year with ILI by age")
 ```
 
 
