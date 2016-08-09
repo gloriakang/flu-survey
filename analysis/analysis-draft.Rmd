@@ -157,8 +157,6 @@ ggplot(sex, aes(PPGENDER, Q2Yes)) + geom_point() + xlab("sex") + ylab("% sick") 
   ggtitle(label = "% of adults sick last year with ILI by sex") 
 
 
-
-
 ```
 
 
