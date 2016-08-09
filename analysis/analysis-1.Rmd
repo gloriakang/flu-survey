@@ -1,5 +1,5 @@
 ---
-title: "analysis-0"
+title: "analysis draft"
 output: 
   html_document:
     keep_md: yes
@@ -37,19 +37,25 @@ des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight) == F, ]
 ```{r example}
 ## Example tables of Q1 by gender.
 
-as.data.frame(svytable(~Q1 + PPGENDER, design = des, round = T))  # weighted counts
-svyby(~Q1, ~Q1+PPGENDER, des, unwtd.count)  # unweighted counts
-svyby(~Q1, ~PPGENDER, design = des, FUN = svymean, na.rm = T)  # weighted %
+svyby(~Q1, ~Q1+PPGENDER, des, unwtd.count)  # unweighted count
+
+svytable(~Q1 + PPGENDER, design = des, round = T) # weighted count
+as.data.frame(svytable(~Q1 + PPGENDER, design = des, round = T))
+svyby(~Q1, ~PPGENDER, des, svytotal, na.rm = T) # weighted count with se
+
+prop.table(svytable(~Q1 + PPGENDER, design = des), margin = 2)  # weighted %
+svyby(~Q1, ~PPGENDER, des, svymean, na.rm = T)  # weighted % with se
+
+
+
+
 plot(svytable(~Q1 + PPGENDER, des))  # default survey plot
 
 ## generic ggplot
-# ggplot(data.frame.here, aes(Q1, Freq, fill = PPGENDER) + geom_bar(stat = 'identity', position = position_dodge())
+# ggplot(df, aes(Q1, Freq, fill = PPGENDER) + geom_bar(stat = 'identity', position = position_dodge())
 ```
 
 ## Q1.
-
-### By demographic variables:
-- gender, ethnicity, age, education, income, employment, marital status, metro location, region, house type, head of household, rent status, state, internet availability
 
 ```{r q1}
 # save freq table as data.frame
@@ -64,7 +70,6 @@ g1 + aes(Q1, Freq, fill = PPETHM) +
   geom_bar(stat = 'identity', position = position_dodge())
 g1 + aes(Q1, Freq, fill = ppagect4) + 
   geom_bar(stat = 'identity', position = position_stack())
-
 ```
 
 ### Examine the % of US adults sick with ILI last year by sex, ethnicity, and age. Do a survey-corrected chi-square test for independence.
@@ -134,10 +139,32 @@ grid.arrange(a, b, c)
 ## Testing.
 
 ```{r, eval=FALSE, include=FALSE}
-## testing ##
+## keep ##
 
 # boxplot for age
 boxplot(PPAGE ~ Q2, data = df, ylab = "age", xlab = "Q2. Have you had an illness with ILI symptoms since August 2015?", main = "Boxplot of age of sick adults")
+
+
+## % of US adults sick last year with ILI by sex
+(sex <- svyby(~Q2, ~PPGENDER, des, svymean, na.rm = T))
+svychisq(~Q2 + PPGENDER, design = des)
+
+qplot(x = sex$PPGENDER, y = sex$Q2Yes, data = sex, xlab = "sex", ylab = "% sick") + geom_errorbar(aes(x = PPGENDER, ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2Yes), width = .25) + ggtitle(label = "% of adults sick last year with ILI by sex")
+
+# ggplot method
+(sex <- svyby(~Q2, ~PPGENDER, des, svymean, na.rm = T))
+ggplot(sex, aes(PPGENDER, Q2Yes)) + geom_point() + xlab("sex") + ylab("% sick") +
+  geom_errorbar(aes(ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2Yes), width = .25) +
+  ggtitle(label = "% of adults sick last year with ILI by sex") 
+
+
+
+
+```
+
+
+```{r}
+## scratch ##
 
 # multiple univariate plots
 temp <- c("Q1", "Q2", "Q3")
@@ -145,6 +172,15 @@ par(mfrow = c(1, 3))
 
 for (i in temp)
   barplot(table(df[, i]), main = i, ylab = "n")
+```
+
+```{r, eval=FALSE, include=FALSE}
+# unweighted tables
+library(prettyR)
+describe(df[, c("Q1", "Q2", "Q3", "Q4")],
+         num.desc = c("mean", "sd", "median", "min", "max", "valid.n"))
+
+# try loop
 
 ```
 
