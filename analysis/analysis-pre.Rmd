@@ -1,5 +1,5 @@
 ---
-title: "analysis-0"
+title: "Comparing weighted and unweighted survey data"
 output: 
   html_document:
     keep_md: yes

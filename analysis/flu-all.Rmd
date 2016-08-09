@@ -1,5 +1,5 @@
 ---
-title: "flu-all"
+title: "Summary of data tables"
 output:
   html_document:
     fig_height: 3
@@ -9,6 +9,7 @@ output:
     theme: cosmo
     toc: yes
 ---
+# note: not runnable until ggplot objects are updated
 
 # Unweighted survey data
 
@@ -19,7 +20,6 @@ rm(list = ls(all.names = TRUE))
 library(dplyr); library(tidyr); library(ggplot2)
 library(knitr); library(gmodels); library(prettyR); library(epitools)
 load("~/git/flu-survey/data/cleaning2.RData")
-
 data2 <- dataf
 ```
 

@@ -1,4 +1,4 @@
-# Household members
+# Subsetting household member data
 
 This report contains survey data analysis for household members.
 
@@ -8,7 +8,16 @@ All household members.
 
 
 ```r
-data2 <- dat
+names(dat[407:417])
+```
+
+```
+##  [1] "Q35"       "Q36"       "Q36_Codes" "Q37"       "Q37_Codes"
+##  [6] "Q38"       "Q38_Codes" "Q39"       "Q40"       "Q41"      
+## [11] "Q42"
+```
+
+```r
 names(dat[407:417])
 ```
 
@@ -21,11 +30,11 @@ names(dat[407:417])
 ```r
 # select respondent's education, race, income, location + household data
 data_hhm1 <- data2 %>%
-  select(c(PPEDUCAT, PPETHM, PPINCIMP, ppreg9, PPSTATEN, 374:375, 407:417)) %>%
+  dplyr::select(c(PPEDUCAT, PPETHM, PPINCIMP, ppreg9, PPSTATEN, 374:375, 407:417)) %>%
   filter(!is.na(HHM1_AGE))
 
 data_hhm2 <- data2 %>%
-  select(c(PPEDUCAT, PPETHM, PPINCIMP, ppreg9, PPSTATEN, 405:406, 418:428)) %>%
+  dplyr::select(c(PPEDUCAT, PPETHM, PPINCIMP, ppreg9, PPSTATEN, 405:406, 418:428)) %>%
   filter(!is.na(HHM2_AGE))
 
 # all ages histogram

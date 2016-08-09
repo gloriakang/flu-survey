@@ -1,5 +1,5 @@
 ---
-title: "Bivariate and multivariate analyses"
+title: "Survey-weighted generalized linear models"
 output: 
   html_document:
     fig_height: 3
