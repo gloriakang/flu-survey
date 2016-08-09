@@ -1,5 +1,5 @@
 ---
-title: "Analysis drafts in progress"
+title: "Analysis draft and notes"
 output: 
   html_document:
     keep_md: yes
@@ -7,7 +7,7 @@ output:
     toc_depth: 2
 ---
 
-# Comparing weighted and unweighted survey data
+## Comparing weighted and unweighted survey data
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = T, warning = F, message = F, tidy = F, size = "small")
@@ -29,6 +29,8 @@ df <- datar  # contains recoded variables
 
 options(digits = 4)
 options(survey.lonely.psu = "adjust")
+
+# need to subset data
 des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight) == F, ])
 ```
 
@@ -40,16 +42,17 @@ des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight) == F, ]
 svyby(~Q1, ~Q1+PPGENDER, des, unwtd.count)  # unweighted count
 
 svytable(~Q1 + PPGENDER, design = des, round = T) # weighted count
+
 as.data.frame(svytable(~Q1 + PPGENDER, design = des, round = T))
+
 svyby(~Q1, ~PPGENDER, des, svytotal, na.rm = T) # weighted count with se
 
 prop.table(svytable(~Q1 + PPGENDER, design = des), margin = 2)  # weighted %
+
 svyby(~Q1, ~PPGENDER, des, svymean, na.rm = T)  # weighted % with se
 
-
-
-
-plot(svytable(~Q1 + PPGENDER, des))  # default survey plot
+# default survey plot
+plot(svytable(~Q1 + PPGENDER, des))
 
 ## generic ggplot
 # ggplot(df, aes(Q1, Freq, fill = PPGENDER) + geom_bar(stat = 'identity', position = position_dodge())
@@ -149,10 +152,6 @@ boxplot(PPAGE ~ Q2, data = df, ylab = "age", xlab = "Q2. Have you had an illness
 (sex <- svyby(~Q2, ~PPGENDER, des, svymean, na.rm = T))
 svychisq(~Q2 + PPGENDER, design = des)
 
-qplot(x = sex$PPGENDER, y = sex$Q2Yes, data = sex, xlab = "sex", ylab = "% sick") + geom_errorbar(aes(x = PPGENDER, ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2Yes), width = .25) + ggtitle(label = "% of adults sick last year with ILI by sex")
-
-# ggplot method
-(sex <- svyby(~Q2, ~PPGENDER, des, svymean, na.rm = T))
 ggplot(sex, aes(PPGENDER, Q2Yes)) + geom_point() + xlab("sex") + ylab("% sick") +
   geom_errorbar(aes(ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2Yes), width = .25) +
   ggtitle(label = "% of adults sick last year with ILI by sex") 
