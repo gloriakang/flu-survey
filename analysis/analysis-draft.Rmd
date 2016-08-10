@@ -138,8 +138,9 @@ c <- q + geom_bar(aes(Q1, fill = ppagect4), position = "dodge")
 grid.arrange(a, b, c)
 ```
 
-
 ## Testing.
+
+
 
 ```{r, eval=FALSE, include=FALSE}
 ## keep ##
@@ -155,12 +156,9 @@ svychisq(~Q2 + PPGENDER, design = des)
 ggplot(sex, aes(PPGENDER, Q2Yes)) + geom_point() + xlab("sex") + ylab("% sick") +
   geom_errorbar(aes(ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2Yes), width = .25) +
   ggtitle(label = "% of adults sick last year with ILI by sex") 
-
-
 ```
 
-
-```{r}
+```{r, eval=FALSE, include=FALSE}
 ## scratch ##
 
 # multiple univariate plots
@@ -176,8 +174,17 @@ for (i in temp)
 library(prettyR)
 describe(df[, c("Q1", "Q2", "Q3", "Q4")],
          num.desc = c("mean", "sd", "median", "min", "max", "valid.n"))
+```
 
-# try loop
+```{r, eval=FALSE, include=FALSE}
+# 
+
+
+```
+
+```{r, eval=FALSE, include=FALSE}
+# 
+
 
 ```
 

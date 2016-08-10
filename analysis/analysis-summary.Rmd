@@ -12,20 +12,18 @@ Hide all code: include = FALSE
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = T, warning = F, message = F, tidy = F, size = "small")
 rm(list = ls(all.names = TRUE))
-library(rmarkdown); library(dplyr); library(ggplot2); library(survey);
-library(gridExtra)
+library(rmarkdown); library(tidyr); library(dplyr); library(ggplot2);
+library(survey); library(gridExtra)
 ```
 
-```{r, include=F}
+```{r load-data, include=F}
 ## Load data variables.
-
 load("~/git/flu-survey/data/cleaning2.RData")
 load("~/git/flu-survey/data/recoding.RData")  # load "datar"
 df <- datar  # contains recoded variables
 ```
 
-```{r, eval=FALSE, include=FALSE}
-## Do not run
+```{r code-data, eval=FALSE, include=FALSE}
 ## income
 income.map <- c(rep("under $10k", 3),
                 rep("$10k to $25k", 4),
@@ -46,9 +44,8 @@ work.map <- c(rep("unemployed", 5),
 # datar$work <- code(data2$PPWORK, work.map, "unemployed")
 ```
 
-```{r des}
+```{r survey-design}
 ## Create survey object.
-
 options(digits = 4)
 options(survey.lonely.psu = "adjust")
 
@@ -63,74 +60,110 @@ des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight) == F, ]
 - Bivariate graphs: gender, age, ethnicity, income, education, work status, marital status
 - Plot means with error bars
 
+#### ggplot ####
+
+```{r ggplot}
+### create ggplot templates ###
+
+ptext <- theme(axis.text = element_text(size = rel(0.9)), axis.text.x = element_text(angle = 45, hjust = 1))
+pgen <- aes(PPGENDER)
+page <- aes(ppagect4)
+peth <- aes(PPETHM)
+pinc <- aes(income)
+pedu <- aes(PPEDUCAT)
+pwor <- aes(work)
+pmar <- aes(marital)
+
+er <- geom_errorbar(aes(ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2Yes), width = .25)
+```
+
+# Survey
 ## Q1. Before receiving this survey, did you know influenza is different from the stomach flu?
 
-```{r}
+```{r q1-plot}
 # default survey plot
 plot(svytable(~Q1 + PPGENDER, des))
 
 # save weighted data frame for Q1 + variables
 q1 <- as.data.frame(svytable(~Q1 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
-# create ggplot templates
-ptext <- theme(axis.text = element_text(size = rel(0.9)), axis.text.x = element_text(angle = 45, hjust = 1))
-# ggplot object
+## ggplot objects for each question ##
 p <- ggplot(q1, aes(Q1, weight = Freq)) + ptext
+fil <- aes(fill = Q1)
 
-# univarate plot
 p + geom_bar()
+# svytable(~Q1 + PPGENDER, des, round = T)
+(gen <- p + pgen + fil + geom_bar(position = "dodge"))
+(age <- p + page + fil + geom_bar(position = "dodge"))
+(eth <- p + peth + fil + geom_bar(position = "dodge") + coord_flip())
+(inc <- p + pinc + fil + geom_bar(position = "dodge"))
+(edu <- p + pedu + fil + geom_bar(position = "dodge"))
+(wor <- p + pwor + fil + geom_bar(position = "dodge"))
+(mar <- p + pmar + fil + geom_bar(position = "dodge"))
 
-#svytable(~Q1 + PPGENDER, des, round = T)
-(gen <- p + aes(PPGENDER, fill = Q1) + geom_bar(position = "dodge"))
-#svytable(~Q1 + ppagect4, des, round = T)
-(age <- p + aes(ppagect4, fill = Q1) + geom_bar(position = "dodge"))
-#svytable(~Q1 + PPETHM, des, round = T)
-(eth <- p + aes(PPETHM, fill = Q1) + coord_flip() + geom_bar(position = "dodge"))
-#svytable(~Q1 + income, des, round = T)
-(inc <- p + ptext + aes(income, fill = Q1) + geom_bar(position = "dodge"))
-#svytable(~Q1 + PPEDUCAT, des, round = T)
-(edu <- p + aes(PPEDUCAT, fill = Q1) + geom_bar(position = "dodge"))
-#svytable(~Q1 + work, des, round = T)
-(wor <- p + aes(work, fill = Q1) + geom_bar(position = "dodge"))
-#svytable(~Q1 + marital, des, round = T)
-(mar <- p + aes(marital, fill = Q1) + geom_bar(position = "dodge"))
-
-#grid.arrange(all, gen, age, eth)
-#grid.arrange(inc, edu, wor, mar)
+grid.arrange(gen, age, eth)
+grid.arrange(inc, edu, wor, mar)
 ```
 
 ## Q2. Have you had an illness with influenza-like symptoms since August 2015?
 
-```{r}
+```{r q2-plot}
 q2 <- as.data.frame(svytable(~Q2 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
 p <- ggplot(q2, aes(Q2, weight = Freq)) + ptext
-all <- p + geom_bar()
+fil <- aes(fill = Q2)
 
+p + geom_bar()
 #svytable(~Q2 + PPGENDER, des, round = T)
-gen <- p + aes(PPGENDER, fill = Q2) + geom_bar(position = "dodge")
-#svytable(~Q2 + ppagect4, des, round = T)
-age <- p + aes(ppagect4, fill = Q2) + geom_bar(position = "dodge")
-#svytable(~Q2 + PPETHM, des, round = T)
-eth <- p + aes(PPETHM, fill = Q2) + geom_bar(position = "dodge")
-#svytable(~Q2 + income, des, round = T)
-inc <- p + ptext + aes(income, fill = Q2) + geom_bar(position = "dodge")
-#svytable(~Q2 + PPEDUCAT, des, round = T)
-edu <- p + ptext + aes(PPEDUCAT, fill = Q2) + geom_bar(position = "dodge")
-#svytable(~Q2 + work, des, round = T)
-wor <- p + aes(work, fill = Q2) + geom_bar(position = "dodge")
-#svytable(~Q2 + marital, des, round = T)
-mar <- p + aes(marital, fill = Q2) + geom_bar(position = "dodge")
+gen <- p + pgen + fil + geom_bar(position = "dodge")
+age <- p + page + fil + geom_bar(position = "dodge")
+eth <- p + peth + fil + geom_bar(position = "dodge") + coord_flip()
+inc <- p + pinc + fil + geom_bar(position = "dodge")
+edu <- p + pedu + fil + geom_bar(position = "dodge")
+wor <- p + pwor + fil + geom_bar(position = "dodge")
+mar <- p + pmar + fil + geom_bar(position = "dodge")
 
-grid.arrange(all, gen, age, eth)
+grid.arrange(gen, age, eth)
 grid.arrange(inc, edu, wor, mar)
+```
+
+#### survey example ####
+
+```{r survey-example, eval=FALSE, include=FALSE}
+### Using survey package ###
+
+# totals
+svytable(~Q2 + PPGENDER, des, round = T)
+svytotal(~Q2, des, na.rm = T)  # SE
+
+# svymean
+svymean(~Q2, des, na.rm=T)  # with SE
+svymean(~factor(Q2), des, na.rm = T)  # same as above
+svymean(~interaction(Q2, PPGENDER), des, na.rm = T)  # table = 100%
+
+# Q2 = 100%
+svyby(~PPGENDER, ~Q2, des, svymean, na.rm = T)
+ftable(svyby(~PPGENDER, ~Q2, des, svymean, na.rm = T))  # formatted
+prop.table(svytable(~Q2 + PPGENDER, des), margin = 1)
+
+# gender = 100%
+svyby(~Q2, ~PPGENDER, des, svymean, na.rm=T)
+ftable(svyby(~Q2, ~PPGENDER, des, svymean, na.rm=T))  # formatted
+prop.table(svytable(~PPGENDER + Q2, des), margin = 1)
+
+# plot gender = 100%
+a <- svyby(~Q2, ~PPGENDER, des, svymean, na.rm=T)
+ftable(a)  # formatted
+prop.table(svytable(~PPGENDER + Q2, des), margin = 1)
+barplot(a)
+dotchart(a)
 ```
 
 ### Examine the % of US adults sick with ILI last year by sex, ethnicity, and age. Do a survey-corrected chi-square test for independence.
 
-```{r}
-## ggplot template
-er <- geom_errorbar(aes(ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2Yes), width = .25)
+```{r q2-dotplots}
+# create ggplot template
+# er <- geom_errorbar(aes(ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2Yes), width = .25)
 
 ## % of US adults sick last year with ILI by sex
 gen <- svyby(~Q2, ~PPGENDER, des, svymean, na.rm = T)
@@ -214,13 +247,11 @@ ggplot(ren, aes(PPRENT, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + pt
 
 ## Q3. Has any other person in your household had an illness with influenza like symptoms since August 2015?
 
-```{r}
+```{r q3-plot}
 q3 <- as.data.frame(svytable(~Q3 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
 p <- ggplot(q3, aes(Q3, weight = Freq)) + ptext
 p + geom_bar()
-
-#svytable(~Q + PPGENDER, des, round = T)
 
 ## % sick with sick household member
 svychisq(~Q2 + Q3, des)
@@ -231,16 +262,20 @@ ggplot(q, aes(Q3, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er +
 
 ## Q4. Does your job require you to have a lot of contact with the public?
 
-```{r}
+```{r q4-plot}
 q4 <- as.data.frame(svytable(~Q4 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
 p <- ggplot(q4, aes(Q4, weight = Freq)) + ptext
-p + geom_bar()
+fil <- aes(fill = Q4)
 
-gen <- p + aes(PPGENDER, fill = Q4) + geom_bar(position = "dodge")
-age <- p + aes(ppagect4, fill = Q4) + geom_bar(position = "dodge")
-eth <- p + aes(PPETHM, fill = Q4) + geom_bar(position = "dodge")
-inc <- p + aes(income, fill = Q4) + geom_bar(position = "dodge")
+p + geom_bar()
+gen <- p + pgen + fil + geom_bar(position = "dodge")
+age <- p + page + fil + geom_bar(position = "dodge")
+eth <- p + peth + fil + geom_bar(position = "dodge") + coord_flip()
+inc <- p + pinc + fil + geom_bar(position = "dodge")
+edu <- p + pedu + fil + geom_bar(position = "dodge")
+wor <- p + pwor + fil + geom_bar(position = "dodge")
+mar <- p + pmar + fil + geom_bar(position = "dodge")
 
 grid.arrange(gen, age)
 grid.arrange(eth, inc)
@@ -250,20 +285,19 @@ svychisq(~Q2 + Q4, des)
 q <- svyby(~Q2, ~Q4, des, svymean, na.rm = T)
 ggplot(q, aes(Q4, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + ptext + er +
   ggtitle(label = "% of adults sick and having job with public contact ") 
+
+# dotchart(q)
 ```
 
 ## Q5. Do you have a car that you can use to travel to work?
 
-```{r}
+```{r q5-plot}
 q5 <- as.data.frame(svytable(~Q5 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
 p <- ggplot(q5, aes(Q5, weight = Freq)) + ptext
 p + geom_bar()
 
-#svytable(~Q + PPGENDER, des, round = T)
-
 ```
-
 
 ## Q6. Do you regularly use public transportation?
 
@@ -271,16 +305,16 @@ p + geom_bar()
 q6 <- as.data.frame(svytable(~Q6 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
 p <- ggplot(q6, aes(Q6, weight = Freq)) + ptext
-p + geom_bar()
+fil <- aes(fill = Q6)
 
-#svytable(~Q + PPGENDER, des, round = T)
-gen <- p + aes(PPGENDER, fill = Q6) + geom_bar(position = "dodge")
-age <- p + aes(ppagect4, fill = Q6) + geom_bar(position = "dodge")
-eth <- p + aes(PPETHM, fill = Q6) + geom_bar(position = "dodge")
-inc <- p + aes(income, fill = Q6) + geom_bar(position = "dodge")
-edu <- p + aes(PPEDUCAT, fill = Q6) + geom_bar(position = "dodge")
-wor <- p + aes(work, fill = Q6) + geom_bar(position = "dodge")
-mar <- p + aes(marital, fill = Q6) + geom_bar(position = "dodge")
+p + geom_bar()
+gen <- p + pgen + fil + geom_bar(position = "dodge")
+age <- p + page + fil + geom_bar(position = "dodge")
+eth <- p + peth + fil + geom_bar(position = "dodge") + coord_flip()
+inc <- p + pinc + fil + geom_bar(position = "dodge")
+edu <- p + pedu + fil + geom_bar(position = "dodge")
+wor <- p + pwor + fil + geom_bar(position = "dodge")
+mar <- p + pmar + fil + geom_bar(position = "dodge")
 # add metro status
 
 grid.arrange(gen, age, eth)
@@ -294,22 +328,68 @@ ggplot(q, aes(Q6, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er +
 
 ```
 
+
+
+
 ## Q7. What types of public transportation do you regularly use?
+
+```{r, eval=FALSE, include=FALSE}
+#names(df)
+
+q7 <- df %>%
+  select(CaseID, PPGENDER, ppagect4, PPETHM, income, PPEDUCAT, work, marital, Q7_1:Q7_7, weight) %>%
+  gather(Q7_q, Q7_r, Q7_1:Q7_7, na.rm = F)
+
+head(q7)
+
+
+
+
+###########################
+# template
+as.data.frame(svytable(~Q7_1, des, round = T))
+
+p <- ggplot(q9, aes(Q9, weight = Freq)) + ptext
+p + geom_bar()
+
+
+#############################
+# make long data
+df %>%
+  gather(Q7_q, Q7_r, Q7_1_Bus:Q7_7_Other) %>%
+  summarise(n = count())
+
+with(q7_long, table(Q7_q, Q7_r))
+
+q7_long %>%
+  group_by(Q7_q, Q7_r, PPGENDER, PPETHM, PPINCIMP, ppagecat) %>%
+  summarise(n = count())
+
+ggplot(q7[!is.na(q7$Q7_r), ], aes(x = Q7_r, y = n, fill = Q7_r)) +
+  geom_bar(stat = 'identity', position = position_dodge()) + facet_wrap(~Q7_q) + coord_flip()
+
+# testing plot
+ggplot(q7[!is.na(q7$Q7_r), ], aes(x = Q7_r, y = n, fill = Q7_r)) +
+  geom_bar(stat = 'identity') +
+  facet_grid(Q7_q ~ PPGENDER)
+
+```
+
+
 
 ## Q8. For what types of activities do you regularly use public transportation?
 
 ## Q9. Do other members of your household regularly use public transportation?
 
-```{r}
+```{r q9-plot}
 q9 <- as.data.frame(svytable(
   ~Q9 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
 p <- ggplot(q9, aes(Q9, weight = Freq)) + ptext
 p + geom_bar()
 
-#svytable(~Q + PPGENDER, des, round = T)
-
 ```
+
 ## Q10. What types of public transportation do other members of your household regularly use?
 
 ## Q11. How do you rate your risk of getting influenza if you visited each of the following locations?
@@ -318,21 +398,21 @@ p + geom_bar()
 
 ## Q13. Do you get the flu vaccine?
 
-```{r}
+```{r q13-plot}
 q13 <- as.data.frame(svytable(
   ~Q13 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
 p <- ggplot(q13, aes(Q13, weight = Freq)) + ptext
-p + geom_bar()
+fil <- aes(fill = Q13)
 
-#svytable(~Q + PPGENDER, des, round = T)
-gen <- p + aes(PPGENDER, fill = Q13) + geom_bar(position = "dodge")
-age <- p + aes(ppagect4, fill = Q13) + geom_bar(position = "dodge")
-eth <- p + aes(PPETHM, fill = Q13) + geom_bar(position = "dodge")
-inc <- p + aes(income, fill = Q13) + geom_bar(position = "dodge")
-edu <- p + aes(PPEDUCAT, fill = Q13) + geom_bar(position = "dodge")
-wor <- p + aes(work, fill = Q13) + geom_bar(position = "dodge")
-mar <- p + aes(marital, fill = Q13) + geom_bar(position = "dodge")
+p + geom_bar()
+gen <- p + pgen + fil + geom_bar(position = "dodge")
+age <- p + page + fil + geom_bar(position = "dodge")
+eth <- p + peth + fil + geom_bar(position = "dodge") + coord_flip()
+inc <- p + pinc + fil + geom_bar(position = "dodge")
+edu <- p + pedu + fil + geom_bar(position = "dodge")
+wor <- p + pwor + fil + geom_bar(position = "dodge")
+mar <- p + pmar + fil + geom_bar(position = "dodge")
 
 grid.arrange(gen, age, eth)
 grid.arrange(inc, edu, wor, mar)
@@ -352,16 +432,16 @@ q14 <- as.data.frame(svytable(
   ~Q14 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
 p <- ggplot(q14, aes(Q14, weight = Freq)) + ptext
-p + geom_bar()
+fil <- aes(fill = Q14)
 
-#svytable(~Q + PPGENDER, des, round = T)
-gen <- p + aes(PPGENDER, fill = Q14) + geom_bar(position = "dodge")
-age <- p + aes(ppagect4, fill = Q14) + geom_bar(position = "dodge")
-eth <- p + aes(PPETHM, fill = Q14) + geom_bar(position = "dodge")
-inc <- p + aes(income, fill = Q14) + geom_bar(position = "dodge")
-edu <- p + aes(PPEDUCAT, fill = Q14) + geom_bar(position = "dodge")
-wor <- p + aes(work, fill = Q14) + geom_bar(position = "dodge")
-mar <- p + aes(marital, fill = Q14) + geom_bar(position = "dodge")
+p + geom_bar()
+gen <- p + pgen + fil + geom_bar(position = "dodge")
+age <- p + page + fil + geom_bar(position = "dodge")
+eth <- p + peth + fil + geom_bar(position = "dodge") + coord_flip()
+inc <- p + pinc + fil + geom_bar(position = "dodge")
+edu <- p + pedu + fil + geom_bar(position = "dodge")
+wor <- p + pwor + fil + geom_bar(position = "dodge")
+mar <- p + pmar + fil + geom_bar(position = "dodge")
 
 grid.arrange(gen, age, eth)
 grid.arrange(inc, edu, wor, mar)
@@ -375,16 +455,16 @@ q15 <- as.data.frame(svytable(
   ~Q15 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
 p <- ggplot(q15, aes(Q15, weight = Freq)) + ptext
-p + geom_bar()
+fil <- aes(fill = Q15)
 
-#svytable(~Q + PPGENDER, des, round = T)
-gen <- p + aes(PPGENDER, fill = Q15) + geom_bar(position = "dodge")
-age <- p + aes(ppagect4, fill = Q15) + geom_bar(position = "dodge")
-eth <- p + aes(PPETHM, fill = Q15) + geom_bar(position = "dodge")
-inc <- p + aes(income, fill = Q15) + geom_bar(position = "dodge")
-edu <- p + aes(PPEDUCAT, fill = Q15) + geom_bar(position = "dodge")
-wor <- p + aes(work, fill = Q15) + geom_bar(position = "dodge")
-mar <- p + aes(marital, fill = Q15) + geom_bar(position = "dodge")
+p + geom_bar()
+gen <- p + pgen + fil + geom_bar(position = "dodge")
+age <- p + page + fil + geom_bar(position = "dodge")
+eth <- p + peth + fil + geom_bar(position = "dodge") + coord_flip()
+inc <- p + pinc + fil + geom_bar(position = "dodge")
+edu <- p + pedu + fil + geom_bar(position = "dodge")
+wor <- p + pwor + fil + geom_bar(position = "dodge")
+mar <- p + pmar + fil + geom_bar(position = "dodge")
 
 grid.arrange(gen, age, eth)
 grid.arrange(inc, edu, wor, mar)
@@ -398,20 +478,19 @@ q16 <- as.data.frame(svytable(
   ~Q16 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
 p <- ggplot(q16, aes(Q16, weight = Freq)) + ptext
-p + geom_bar()
+fil <- aes(fill = Q16)
 
-#svytable(~Q + PPGENDER, des, round = T)
-gen <- p + aes(PPGENDER, fill = Q16) + geom_bar(position = "dodge")
-age <- p + aes(ppagect4, fill = Q16) + geom_bar(position = "dodge")
-eth <- p + aes(PPETHM, fill = Q16) + geom_bar(position = "dodge")
-inc <- p + aes(income, fill = Q16) + geom_bar(position = "dodge")
-edu <- p + aes(PPEDUCAT, fill = Q16) + geom_bar(position = "dodge")
-wor <- p + aes(work, fill = Q16) + geom_bar(position = "dodge")
-mar <- p + aes(marital, fill = Q16) + geom_bar(position = "dodge")
+p + geom_bar()
+gen <- p + pgen + fil + geom_bar(position = "dodge")
+age <- p + page + fil + geom_bar(position = "dodge")
+eth <- p + peth + fil + geom_bar(position = "dodge") + coord_flip()
+inc <- p + pinc + fil + geom_bar(position = "dodge")
+edu <- p + pedu + fil + geom_bar(position = "dodge")
+wor <- p + pwor + fil + geom_bar(position = "dodge")
+mar <- p + pmar + fil + geom_bar(position = "dodge")
 
 grid.arrange(gen, age, eth)
 grid.arrange(inc, edu, wor, mar)
-
 ```
 
 ## Q17. Do you get a vaccine to protect yourself, protect others, or protect yourself and others?
@@ -421,20 +500,19 @@ q17 <- as.data.frame(svytable(
   ~Q17 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
 p <- ggplot(q17, aes(Q17, weight = Freq)) + ptext
-p + geom_bar()
+fil <- aes(fill = Q17)
 
-#svytable(~Q + PPGENDER, des, round = T)
-gen <- p + aes(PPGENDER, fill = Q17) + geom_bar(position = "dodge")
-age <- p + aes(ppagect4, fill = Q17) + geom_bar(position = "dodge")
-eth <- p + aes(PPETHM, fill = Q17) + geom_bar(position = "dodge")
-inc <- p + aes(income, fill = Q17) + geom_bar(position = "dodge")
-edu <- p + aes(PPEDUCAT, fill = Q17) + geom_bar(position = "dodge")
-wor <- p + aes(work, fill = Q17) + geom_bar(position = "dodge")
-mar <- p + aes(marital, fill = Q17) + geom_bar(position = "dodge")
+p + geom_bar()
+gen <- p + pgen + fil + geom_bar(position = "dodge")
+age <- p + page + fil + geom_bar(position = "dodge")
+eth <- p + peth + fil + geom_bar(position = "dodge") + coord_flip()
+inc <- p + pinc + fil + geom_bar(position = "dodge")
+edu <- p + pedu + fil + geom_bar(position = "dodge")
+wor <- p + pwor + fil + geom_bar(position = "dodge")
+mar <- p + pmar + fil + geom_bar(position = "dodge")
 
 grid.arrange(gen, age, eth)
 grid.arrange(inc, edu, wor, mar)
-
 ```
 
 ## Q18. What are the reasons you would not get an influenza vaccine?
@@ -446,16 +524,16 @@ q19 <- as.data.frame(svytable(
   ~Q19 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
 p <- ggplot(q19, aes(Q19, weight = Freq)) + ptext
-p + geom_bar()
+fil <- aes(fill = Q19)
 
-#svytable(~Q + PPGENDER, des, round = T)
-gen <- p + aes(PPGENDER, fill = Q19) + geom_bar(position = "dodge")
-age <- p + aes(ppagect4, fill = Q19) + geom_bar(position = "dodge")
-eth <- p + aes(PPETHM, fill = Q19) + geom_bar(position = "dodge")
-inc <- p + aes(income, fill = Q19) + geom_bar(position = "dodge")
-edu <- p + aes(PPEDUCAT, fill = Q19) + geom_bar(position = "dodge")
-wor <- p + aes(work, fill = Q19) + geom_bar(position = "dodge")
-mar <- p + aes(marital, fill = Q19) + geom_bar(position = "dodge")
+p + geom_bar()
+gen <- p + pgen + fil + geom_bar(position = "dodge")
+age <- p + page + fil + geom_bar(position = "dodge")
+eth <- p + peth + fil + geom_bar(position = "dodge") + coord_flip()
+inc <- p + pinc + fil + geom_bar(position = "dodge")
+edu <- p + pedu + fil + geom_bar(position = "dodge")
+wor <- p + pwor + fil + geom_bar(position = "dodge")
+mar <- p + pmar + fil + geom_bar(position = "dodge")
 
 grid.arrange(gen, age, eth)
 grid.arrange(inc, edu, wor, mar)
@@ -474,16 +552,16 @@ q20 <- as.data.frame(svytable(
   ~Q20 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
 p <- ggplot(q20, aes(Q20, weight = Freq)) + ptext
-p + geom_bar()
+fil <- aes(fill = Q20)
 
-#svytable(~Q + PPGENDER, des, round = T)
-gen <- p + aes(PPGENDER, fill = Q20) + geom_bar(position = "dodge")
-age <- p + aes(ppagect4, fill = Q20) + geom_bar(position = "dodge")
-eth <- p + aes(PPETHM, fill = Q20) + geom_bar(position = "dodge")
-inc <- p + aes(income, fill = Q20) + geom_bar(position = "dodge")
-edu <- p + aes(PPEDUCAT, fill = Q20) + geom_bar(position = "dodge")
-wor <- p + aes(work, fill = Q20) + geom_bar(position = "dodge")
-mar <- p + aes(marital, fill = Q20) + geom_bar(position = "dodge")
+p + geom_bar()
+gen <- p + pgen + fil + geom_bar(position = "dodge")
+age <- p + page + fil + geom_bar(position = "dodge")
+eth <- p + peth + fil + geom_bar(position = "dodge") + coord_flip()
+inc <- p + pinc + fil + geom_bar(position = "dodge")
+edu <- p + pedu + fil + geom_bar(position = "dodge")
+wor <- p + pwor + fil + geom_bar(position = "dodge")
+mar <- p + pmar + fil + geom_bar(position = "dodge")
 
 grid.arrange(gen, age, eth)
 grid.arrange(inc, edu, wor, mar)
@@ -507,11 +585,13 @@ p + geom_bar()
 
 ```
 
+### Q22. Do you do any of the following when you have influenza symptoms?
 
-## Q22. Do you do any of the following when you have influenza symptoms?
-## Q23. Which of the following actions do you take when you have influenza symptoms to avoid someone else from getting sick?
-## Q24. What sources of information do you recall hearing or seeing about influenza outbreaks?
-## Q25. If you received information from the news, internet or other public media that there was an influenza outbreak in your community would you do any of the following?
+### Q23. Which of the following actions do you take when you have influenza symptoms to avoid someone else from getting sick?
+
+### Q24. What sources of information do you recall hearing or seeing about influenza outbreaks?
+
+### Q25. If you received information from the news, internet or other public media that there was an influenza outbreak in your community would you do any of the following?
 
 ## Q26. Does your household have children?
 
@@ -529,7 +609,7 @@ ggplot(q, aes(Q26, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er +
   ggtitle(label = "% of adults sick and having children in household") 
 ```
 
-## Q27. What actions do you take when a child in your household has influenza symptoms?
+### Q27. What actions do you take when a child in your household has influenza symptoms?
 
 ## Q28. Are you a single parent?
 
@@ -549,17 +629,11 @@ ggplot(q, aes(Q28, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er +
 
 ```
 
-## Q29. How do you care for a sick child? (married parent)
-## Q30. How do you care for a sick child? (single parent)
+### Q29. How do you care for a sick child? (married parent)
 
-## Q31. How many hours of screen time (time spent watching television, a computer, smartphone, iPad, etc.) do you spend each day on average when you are not sick? Enter 0 if none
+### Q30. How do you care for a sick child? (single parent)
 
-```{r}
-# histogram
-
-
-```
-## Q32. How many hours of screen time do you spend each day on average when you are sick? Enter 0 if none
+### Q31. How many hours of screen time (time spent watching television, a computer, smartphone, iPad, etc.) do you spend each day on average when you are not sick? Enter 0 if none
 
 ```{r}
 # histogram
@@ -567,7 +641,16 @@ ggplot(q, aes(Q28, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er +
 
 ```
 
-## Q33. How many people, including yourself, reside in your household?
+### Q32. How many hours of screen time do you spend each day on average when you are sick? Enter 0 if none
+
+```{r}
+# histogram
+
+
+```
+
+### Q33. How many people, including yourself, reside in your household?
+
 ```{r}
 # histogram
 
@@ -575,34 +658,32 @@ ggplot(q, aes(Q28, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er +
 ```
 
 
-
+------
 ### TEMPLATE ###
 ```{r, eval=FALSE, include=FALSE}
 # q <- as.data.frame(svytable(~Q + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 # 
-# er <- geom_errorbar(aes(ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2Yes), width = .25)
 # p <- ggplot(q, aes(Q, weight = Freq)) + ptext
-# p + geom_bar()
+# fil <- aes(fill = Q20)
 # 
-## svytable(~Q + PPGENDER, des, round = T)
-# gen <- p + aes(PPGENDER, fill = Q) + geom_bar(position = "dodge")
-# age <- p + aes(ppagect4, fill = Q) + geom_bar(position = "dodge")
-# eth <- p + aes(PPETHM, fill = Q) + geom_bar(position = "dodge")
-# inc <- p + aes(income, fill = Q) + geom_bar(position = "dodge")
-# edu <- p + aes(PPEDUCAT, fill = Q) + geom_bar(position = "dodge")
-# wor <- p + aes(work, fill = Q) + geom_bar(position = "dodge")
-# mar <- p + aes(marital, fill = Q) + geom_bar(position = "dodge")
+# p + geom_bar()
+# gen <- p + pgen + fil + geom_bar(position = "dodge")
+# age <- p + page + fil + geom_bar(position = "dodge")
+# eth <- p + peth + fil + geom_bar(position = "dodge") + coord_flip()
+# inc <- p + pinc + fil + geom_bar(position = "dodge")
+# edu <- p + pedu + fil + geom_bar(position = "dodge")
+# wor <- p + pwor + fil + geom_bar(position = "dodge")
+# mar <- p + pmar + fil + geom_bar(position = "dodge")
 #
 # grid.arrange(gen, age, eth)
 # grid.arrange(inc, edu, wor, mar)
 
+# er <- geom_errorbar(aes(ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2Yes), width = .25)
 ## plotting means with error bars
-q <- svyby(~Q2, ~, des, svymean, na.rm = T)
-ggplot(q, aes(, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") +
+q <- svyby(~Q2, ~PPGENDER, des, svymean, na.rm = T)
+ggplot(q, aes(PPGENDER, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") +
   geom_errorbar(aes(ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2Yes), width = .25) +
   ggtitle(label = "% of adults sick and ") 
 
-
 ```
-
 

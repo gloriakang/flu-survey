@@ -1,0 +1,9 @@
+# survey notes
+
+svymean(~factor(Q2), des, na.rm = T)
+
+svyby(~Q2, ~PPGENDER, des, svymean, na.rm=T)
+prop.table(svytable(~Q2 + PPGENDER, des), margin = 2)
+
+svyby(~PPGENDER, ~Q2, des, svymean, na.rm = T)
+prop.table(svytable(~Q2 + PPGENDER, des), margin = 1)
