@@ -39,8 +39,6 @@ pinc <- aes(income)
 pedu <- aes(PPEDUCAT)
 pwor <- aes(work)
 pmar <- aes(marital)
-
-er <- geom_errorbar(aes(ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2Yes), width = .25)
 ```
 
 # Survey
@@ -122,6 +120,26 @@ grid.arrange(inc, edu, wor, mar)
 
 ![](analysis-summary_files/figure-html/q1-plot-11.png)<!-- -->
 
+```r
+# grid plots
+op <- par(mfrow = c(2, 1))  # 2 plots on page
+plot(svytable(~Q1 + PPGENDER + ppagect4, des))
+plot(svytable(~Q1 + PPGENDER + PPETHM, des))
+```
+
+![](analysis-summary_files/figure-html/q1-plot-12.png)<!-- -->
+
+```r
+plot(svytable(~Q1 + PPGENDER + ppagect4, des))
+plot(svytable(~Q1 + PPGENDER + ppagect4, des))
+```
+
+![](analysis-summary_files/figure-html/q1-plot-13.png)<!-- -->
+
+```r
+par(op)
+```
+
 ## Q2. Have you had an illness with influenza-like symptoms since August 2015?
 
 
@@ -140,7 +158,7 @@ p + geom_bar()
 #svytable(~Q2 + PPGENDER, des, round = T)
 gen <- p + pgen + fil + geom_bar(position = "dodge")
 age <- p + page + fil + geom_bar(position = "dodge")
-eth <- p + peth + fil + geom_bar(position = "dodge") + coord_flip()
+eth <- p + peth + fil + geom_bar(position = "stack")
 inc <- p + pinc + fil + geom_bar(position = "dodge")
 edu <- p + pedu + fil + geom_bar(position = "dodge")
 wor <- p + pwor + fil + geom_bar(position = "dodge")
@@ -165,8 +183,8 @@ grid.arrange(inc, edu, wor, mar)
 
 
 ```r
-# create ggplot template
-# er <- geom_errorbar(aes(ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2Yes), width = .25)
+## create ggplot template
+er <- geom_errorbar(aes(ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2Yes), width = .25)
 
 ## % of US adults sick last year with ILI by sex
 gen <- svyby(~Q2, ~PPGENDER, des, svymean, na.rm = T)
@@ -445,12 +463,19 @@ ggplot(ren, aes(PPRENT, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + pt
 
 ```r
 q3 <- as.data.frame(svytable(~Q3 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
-
 p <- ggplot(q3, aes(Q3, weight = Freq)) + ptext
+fil <- aes(fill = Q3)
+
 p + geom_bar()
 ```
 
 ![](analysis-summary_files/figure-html/q3-plot-1.png)<!-- -->
+
+```r
+(eth <- p + peth + fil + geom_bar(position = "fill"))
+```
+
+![](analysis-summary_files/figure-html/q3-plot-2.png)<!-- -->
 
 ```r
 ## % sick with sick household member
@@ -468,16 +493,16 @@ svychisq(~Q2 + Q3, des)
 ```r
 q <- svyby(~Q2, ~Q3, des, svymean, na.rm = T)
 ggplot(q, aes(Q3, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er +
-  ggtitle(label = "% of adults sick vs. having sick household member ") 
+  ggtitle(label = "% of adults sick vs. having sick household member ")
 ```
 
-![](analysis-summary_files/figure-html/q3-plot-2.png)<!-- -->
+![](analysis-summary_files/figure-html/q3-plot-3.png)<!-- -->
 
 ## Q4. Does your job require you to have a lot of contact with the public?
 
 
 ```r
-q4 <- as.data.frame(svytable(~Q4 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
+q4 <- as.data.frame(svytable(~Q4 + Q2 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
 p <- ggplot(q4, aes(Q4, weight = Freq)) + ptext
 fil <- aes(fill = Q4)
@@ -490,12 +515,11 @@ p + geom_bar()
 ```r
 gen <- p + pgen + fil + geom_bar(position = "dodge")
 age <- p + page + fil + geom_bar(position = "dodge")
-eth <- p + peth + fil + geom_bar(position = "dodge") + coord_flip()
+eth <- p + peth + fil + geom_bar(position = "fill")
 inc <- p + pinc + fil + geom_bar(position = "dodge")
 edu <- p + pedu + fil + geom_bar(position = "dodge")
 wor <- p + pwor + fil + geom_bar(position = "dodge")
 mar <- p + pmar + fil + geom_bar(position = "dodge")
-
 grid.arrange(gen, age)
 ```
 
@@ -529,8 +553,36 @@ ggplot(q, aes(Q4, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + ptext + 
 ![](analysis-summary_files/figure-html/q4-plot-4.png)<!-- -->
 
 ```r
-# dotchart(q)
+## now look at those sick people with high-contact jobs
+svytable(~Q2 + Q4, des)
 ```
+
+```
+##      Q4
+## Q2       Yes No, I don_t work
+##   Yes 203.87           125.07
+##   No  569.44           604.04
+##      Q4
+## Q2    No, my job does not require much contact with the public
+##   Yes                                                    95.43
+##   No                                                    539.59
+```
+
+```r
+# subset q4
+psub <- ggplot(q4[q4$Q4 == 'Yes', ], aes(Q4, weight = Freq)) + ptext
+# being sick by gender
+psub + pgen + aes(fill = Q2) + geom_bar(position = "fill") + ggtitle("People with high-contact jobs vs. being sick")
+```
+
+![](analysis-summary_files/figure-html/q4-plot-5.png)<!-- -->
+
+```r
+# by ethnicity
+psub + peth + aes(fill = Q2) + geom_bar(position = "fill") + ggtitle("People with high-contact jobs vs. being sick")
+```
+
+![](analysis-summary_files/figure-html/q4-plot-6.png)<!-- -->
 
 ## Q5. Do you have a car that you can use to travel to work?
 

@@ -10,7 +10,7 @@ output:
 Hide all code: include = FALSE
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = T, warning = F, message = F, tidy = F, size = "small")
+knitr::opts_chunk$set(echo = T, cache = T, warning = F, message = F, tidy = F, size = "small")
 rm(list = ls(all.names = TRUE))
 library(rmarkdown); library(tidyr); library(dplyr); library(ggplot2);
 library(survey); library(gridExtra)
