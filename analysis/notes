@@ -1,9 +1,47 @@
-# survey notes
+## survey notes
 
-svymean(~factor(Q2), des, na.rm = T)
+* svymean(~factor(Q2), des, na.rm = T)
+* svyby(~Q2, ~PPGENDER, des, svymean, na.rm=T)
+* prop.table(svytable(~Q2 + PPGENDER, des), margin = 2)
+* svyby(~PPGENDER, ~Q2, des, svymean, na.rm = T)
+* prop.table(svytable(~Q2 + PPGENDER, des), margin = 1)
+---
 
-svyby(~Q2, ~PPGENDER, des, svymean, na.rm=T)
-prop.table(svytable(~Q2 + PPGENDER, des), margin = 2)
+## full list of plots
 
-svyby(~PPGENDER, ~Q2, des, svymean, na.rm = T)
-prop.table(svytable(~Q2 + PPGENDER, des), margin = 1)
+all <- p + geom_bar()
+(gen <- p + pgen + fil + geom_bar(position = "dodge"))
+(gen2 <- p + aes(fill = PPGENDER) + geom_bar(position = "dodge"))
+(age <- p + page + fil + geom_bar(position = "dodge"))
+(age2 <- p + aes(fill = ppagect4) + geom_bar(position = "dodge"))
+(eth <- p + peth + fil + geom_bar(position = "stack"))
+(eth2 <- p + aes(fill = PPETHM) + geom_bar(position = "fill"))
+(inc <- p + pinc + fil + geom_bar(position = "stack"))
+(inc2 <- p + aes(fill = income) + geom_bar(position = "dodge"))
+(edu <- p + pedu + fil + geom_bar(position = "dodge"))
+(edu2 <- p + aes(fill = PPEDUCAT) + geom_bar(position = "dodge"))
+(wor <- p + pwor + fil + geom_bar(position = "dodge"))
+(wor2 <- p + aes(fill = work) + geom_bar(position = "dodge"))
+(mar <- p + pmar + fil + geom_bar(position = "dodge"))
+(mar2 <- p + aes(fill = marital) + geom_bar(position = "dodge"))
+(met <- p + aes(PPMSACAT) + fil + geom_bar(position = "dodge"))
+(met2 <- p + aes(fill = PPMSACAT) + geom_bar(position = "dodge"))
+
+---
+
+gen <- p + pgen + fil + geom_bar(position = "dodge")
+gen2 <- p + aes(fill = PPGENDER) + geom_bar(position = "dodge")
+age <- p + page + fil + geom_bar(position = "dodge")
+age2 <- p + aes(fill = ppagect4) + geom_bar(position = "dodge")
+eth <- p + peth + fil + geom_bar(position = "stack")
+eth2 <- p + aes(fill = PPETHM) + geom_bar(position = "fill")
+inc <- p + pinc + fil + geom_bar(position = "stack")
+inc2 <- p + aes(fill = income) + geom_bar(position = "dodge")
+edu <- p + pedu + fil + geom_bar(position = "dodge")
+edu2 <- p + aes(fill = PPEDUCAT) + geom_bar(position = "dodge")
+wor <- p + pwor + fil + geom_bar(position = "dodge")
+wor2 <- p + aes(fill = work) + geom_bar(position = "dodge")
+mar <- p + pmar + fil + geom_bar(position = "dodge")
+mar2 <- p + aes(fill = marital) + geom_bar(position = "dodge")
+met <- p + aes(PPMSACAT) + fil + geom_bar(position = "dodge")
+met2 <- p + aes(fill = PPMSACAT) + geom_bar(position = "dodge")
