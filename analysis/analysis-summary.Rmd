@@ -4,10 +4,9 @@ output:
   html_document:
     keep_md: yes
     toc: yes
+    theme: paper
     toc_depth: 2
 ---
-
-Hide all code: include = FALSE
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = T, cache = T, warning = F, message = F, tidy = F, size = "small")
@@ -53,17 +52,17 @@ options(survey.lonely.psu = "adjust")
 des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight) == F, ])
 ```
 
+
 ## Summary
 
 - Default survey plot
-- Univariate bar graph
-- Bivariate graphs: gender, age, ethnicity, income, education, work status, marital status
-- Plot means with error bars
+- Univariate plots
+- Bivariate plots: gender, age, ethnicity, income, education, work status, marital status
+- Plot group means with error bars
 
-#### ggplot ####
 
-```{r ggplot}
-### create ggplot templates ###
+```{r ggplot, include=FALSE}
+#### create ggplot templates ####
 
 ptext <- theme(axis.text = element_text(size = rel(0.9)), axis.text.x = element_text(angle = 45, hjust = 1))
 pgen <- aes(PPGENDER)
@@ -76,7 +75,8 @@ pmar <- aes(marital)
 
 ```
 
-# Survey
+# Survey Questions
+
 ## Q1. Before receiving this survey, did you know influenza is different from the stomach flu?
 
 ```{r q1-plot}
@@ -84,31 +84,33 @@ pmar <- aes(marital)
 plot(svytable(~Q1 + PPGENDER, des))
 
 # save weighted data frame for Q1 + variables
-q1 <- as.data.frame(svytable(~Q1 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
+q1 <- data.frame(svytable(~Q1 + PPGENDER + ppagecat + ppagect4 + PPETHM + income + PPEDUCAT + work + marital + PPMSACAT, des, round = T))
 
 ## ggplot objects for each question ##
 p <- ggplot(q1, aes(Q1, weight = Freq)) + ptext
 fil <- aes(fill = Q1)
 
+# make tables with: svytable(~Q1 + PPGENDER, des, round = T)
 p + geom_bar()
-# svytable(~Q1 + PPGENDER, des, round = T)
-(gen <- p + pgen + fil + geom_bar(position = "dodge"))
-(age <- p + page + fil + geom_bar(position = "dodge"))
-(eth <- p + peth + fil + geom_bar(position = "dodge") + coord_flip())
+(gen <- p + aes(fill = PPGENDER) + geom_bar(position = "dodge"))
+(age <- p + aes(fill = ppagect4) + geom_bar(position = "dodge"))
+(age2 <- p + aes(ppagecat) + fil + geom_bar(position = "stack"))
+(eth <- p + peth + fil + geom_bar(position = "dodge"))
+p + aes(fill = PPETHM) + geom_bar(position = "fill")
+
 (inc <- p + pinc + fil + geom_bar(position = "dodge"))
 (edu <- p + pedu + fil + geom_bar(position = "dodge"))
 (wor <- p + pwor + fil + geom_bar(position = "dodge"))
 (mar <- p + pmar + fil + geom_bar(position = "dodge"))
+(met <- p + aes(PPMSACAT) + aes(fill = Q1) + geom_bar(position = "dodge"))
 
-grid.arrange(gen, age, eth)
-grid.arrange(inc, edu, wor, mar)
+#grid.arrange(gen, age, eth)
+#grid.arrange(inc, edu, wor, mar)
 
 # grid plots
 op <- par(mfrow = c(2, 1))  # 2 plots on page
 plot(svytable(~Q1 + PPGENDER + ppagect4, des))
 plot(svytable(~Q1 + PPGENDER + PPETHM, des))
-plot(svytable(~Q1 + PPGENDER + ppagect4, des))
-plot(svytable(~Q1 + PPGENDER + ppagect4, des))
 par(op)
 
 ```
@@ -116,13 +118,12 @@ par(op)
 ## Q2. Have you had an illness with influenza-like symptoms since August 2015?
 
 ```{r q2-plot}
-q2 <- as.data.frame(svytable(~Q2 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
+q2 <- data.frame(svytable(~Q2 + PPGENDER + ppagecat + ppagect4 + PPETHM + income + PPEDUCAT + work + marital + PPMSACAT, des, round = T))
 
 p <- ggplot(q2, aes(Q2, weight = Freq)) + ptext
 fil <- aes(fill = Q2)
 
 p + geom_bar()
-#svytable(~Q2 + PPGENDER, des, round = T)
 gen <- p + pgen + fil + geom_bar(position = "dodge")
 age <- p + page + fil + geom_bar(position = "dodge")
 eth <- p + peth + fil + geom_bar(position = "stack")
@@ -130,6 +131,7 @@ inc <- p + pinc + fil + geom_bar(position = "dodge")
 edu <- p + pedu + fil + geom_bar(position = "dodge")
 wor <- p + pwor + fil + geom_bar(position = "dodge")
 mar <- p + pmar + fil + geom_bar(position = "dodge")
+p + aes(PPMSACAT, fill = Q2) + geom_bar(position = "dodge")
 
 grid.arrange(gen, age, eth)
 grid.arrange(inc, edu, wor, mar)
