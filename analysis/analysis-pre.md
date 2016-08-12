@@ -263,8 +263,6 @@ grid.arrange(a, b, c)
 ![](analysis-pre_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
 
 
-## Testing.
-
 
 
 

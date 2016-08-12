@@ -2,7 +2,7 @@
 title: "Survey-weighted generalized linear models"
 output: 
   html_document:
-    fig_height: 3
+    fig_height: 4
     fig_width: 6
     highlight: default
     keep_md: yes
@@ -12,7 +12,7 @@ output:
 ---
   
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = T, warning = F, message = F, tidy = F, size = "small")
+knitr::opts_chunk$set(cache = T, echo = T, warning = F, message = F, tidy = F, size = "small")
 rm(list = ls(all.names = TRUE))
 library(rmarkdown)
 library(dplyr); library(tidyr); library(ggplot2)

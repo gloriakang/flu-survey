@@ -4,13 +4,14 @@ output:
   html_document:
     keep_md: yes
     toc: yes
+    theme: paper
     toc_depth: 2
 ---
 
 ## Comparing weighted and unweighted survey data
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = T, warning = F, message = F, tidy = F, size = "small")
+knitr::opts_chunk$set(cache = T, echo = T, warning = F, message = F, tidy = F, size = "small")
 rm(list = ls(all.names = TRUE))
 library(rmarkdown); library(dplyr); library(ggplot2); library(survey);
 library(gridExtra)
@@ -138,12 +139,10 @@ c <- q + geom_bar(aes(Q1, fill = ppagect4), position = "dodge")
 grid.arrange(a, b, c)
 ```
 
-## Testing.
-
-
 
 ```{r, eval=FALSE, include=FALSE}
-## keep ##
+## TESTING ##
+# keep #
 
 # boxplot for age
 boxplot(PPAGE ~ Q2, data = df, ylab = "age", xlab = "Q2. Have you had an illness with ILI symptoms since August 2015?", main = "Boxplot of age of sick adults")
@@ -175,18 +174,4 @@ library(prettyR)
 describe(df[, c("Q1", "Q2", "Q3", "Q4")],
          num.desc = c("mean", "sd", "median", "min", "max", "valid.n"))
 ```
-
-```{r, eval=FALSE, include=FALSE}
-# 
-
-
-```
-
-```{r, eval=FALSE, include=FALSE}
-# 
-
-
-```
-
-
 

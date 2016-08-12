@@ -5,10 +5,74 @@ output:
     fig_caption: yes
     fig_height: 4
     fig_width: 6
+    theme: paper
     keep_md: yes
     toc: yes
     toc_depth: 2
 ---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T, cache = T, cache.comments = T, warning = F, message = F, tidy = T, size = "small")
+rm(list = ls(all.names = TRUE))
+library(rmarkdown); library(knitr)
+library(tidyr); library(dplyr); library(ggplot2)
+library(survey); library(gridExtra)
+```
+
+```{r load-data, include=F}
+## Load data variables.
+load("~/git/flu-survey/data/cleaning2.RData")
+load("~/git/flu-survey/data/recoding.RData")  # load "datar"
+df <- datar  # contains recoded variables
+```
+
+```{r regroup-data, include=FALSE}
+## income
+income.map <- c(rep("under $10k", 3),
+                rep("$10k to $25k", 4),
+                rep("$25k to $50k", 4),
+                rep("$50k to $75k", 2),
+                rep("$75k to $100k", 2),
+                rep("$100k to $150k", 2),
+                rep("over $150k", 2))
+df$income <- code(datar$PPINCIMP, income.map, "under $10k")
+income.lab <- c("under $10k", "$10k to $25k", "$25k to $50k", "$50k to $75k", "$75k to $100k", "$100k to $150k", "over $150k")
+df$income <- factor(df$income, levels = income.lab)
+
+## marital staus
+marital.map <- c("single", "partnered", "partnered", "single", "single", "single")
+df$marital <- code(dataf$PPMARIT, marital.map, "single")
+
+## work status
+work.map <- c(rep("unemployed", 5),
+              rep("employed", 2))
+df$work <- code(dataf$PPWORK, work.map, "unemployed")
+```
+
+```{r survey-design}
+## Create survey object.
+options(digits = 4)
+options(survey.lonely.psu = "adjust")
+
+# subset data?
+des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight)==F, ])
+```
+
+```{r ggplot, include=FALSE}
+#### create ggplot templates ####
+
+ptext <- theme(axis.text = element_text(size = rel(0.9)), axis.text.x = element_text(angle = 45, hjust = 1))
+pgen <- aes(PPGENDER)
+page <- aes(ppagect4)
+peth <- aes(PPETHM)
+pinc <- aes(income)
+pedu <- aes(PPEDUCAT)
+pwor <- aes(work)
+pmar <- aes(marital)
+er <- geom_errorbar(aes(ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2Yes), width = .25)
+```
+
+
 
 ## Q21. Are influenza vaccines covered by your health insurance?
 

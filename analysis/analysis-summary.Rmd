@@ -6,6 +6,7 @@ output:
     fig_height: 4
     fig_width: 6
     keep_md: yes
+    theme: paper
     toc: yes
     toc_depth: 2
 ---
@@ -241,26 +242,22 @@ ggplot(met, aes(PPMSACAT, Q2Yes)) + geom_point() + xlab("metro status") + ylab("
 ## by region cat4
 reg <- svyby(~Q2, ~PPREG4, des, svymean, na.rm = T)
 svychisq(~Q2 + PPREG4, des)
-ggplot(reg, aes(PPREG4, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") +
-  er + ggtitle(label = "% of adults sick last year with ILI by region")
+ggplot(reg, aes(PPREG4, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er + ggtitle(label = "% of adults sick last year with ILI by region")
 
 ## by region cat9
 reg9 <- svyby(~Q2, ~ppreg9, des, svymean, na.rm = T)
 svychisq(~Q2 + ppreg9, des)
-ggplot(reg9, aes(ppreg9, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + ptext +
-  er + ggtitle(label = "% of adults sick last year with ILI by region")
+ggplot(reg9, aes(ppreg9, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + ptext + er + ggtitle(label = "% of adults sick last year with ILI by region")
 
 ## by state
 sta <- svyby(~Q2, ~PPSTATEN, des, svymean, na.rm = T)
 svychisq(~Q2 + PPSTATEN, des)
-ggplot(sta, aes(PPSTATEN, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + ptext + coord_flip() +
-  er + ggtitle(label = "% of adults sick last year with ILI by state")
+ggplot(sta, aes(PPSTATEN, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + ptext + coord_flip() + er + ggtitle(label = "% of adults sick last year with ILI by state")
 
 ## rent status
 ren <- svyby(~Q2, ~PPRENT, des, svymean, na.rm = T)
 svychisq(~Q2 + PPRENT, des)
-ggplot(ren, aes(PPRENT, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + ptext +
-  er + ggtitle(label = "% of adults sick last year with ILI by rent")
+ggplot(ren, aes(PPRENT, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + ptext + er + ggtitle(label = "% of adults sick last year with ILI by rent")
 
 ```
 
@@ -373,56 +370,79 @@ ggplot(q, aes(Q6, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er +
   ggtitle(label = "% of adults sick and frequent public transportation use") 
 ```
 
-
-
 ## Q7. What types of public transportation do you regularly use?
 
-```{r, eval=FALSE, include=FALSE}
-#names(df)
+```{r}
+# subset question data
+q7df <- df %>%
+  select(CaseID, PPGENDER, ppagect4, PPETHM, income, PPEDUCAT, work, marital, ppreg9, PPMSACAT, Q2, Q7_1:Q7_7, weight) %>%
+  gather(Q7_q, Q7_r, Q7_1:Q7_7, na.rm = T) %>%
+  group_by(Q7_q, Q7_r)
 
-q7 <- df %>%
-  select(CaseID, PPGENDER, ppagect4, PPETHM, income, PPEDUCAT, work, marital, Q7_1:Q7_7, weight) %>%
-  gather(Q7_q, Q7_r, Q7_1:Q7_7, na.rm = F)
+# new survey design
+des7 <- svydesign(ids = ~1, weights = ~weight, data = q7df[is.na(q7df$weight)==F, ])
 
-head(q7)
+# weighted data frame
+q7 <- data.frame(svytable(~Q7_q + Q7_r + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + ppreg9 + PPMSACAT, des7, round = T))
 
+# plot
+p <- ggplot(q7[(q7$Q7_r)=='Yes', ], aes(Q7_q, weight = Freq)) + ptext
+fil <- aes(fill = Q7_q)
 
-
-
-###########################
-# template
-as.data.frame(svytable(~Q7_1, des, round = T))
-
-p <- ggplot(q9, aes(Q9, weight = Freq)) + ptext
 p + geom_bar()
+p + aes(fill = PPGENDER) + geom_bar(position = "dodge")
 
+p + page + fil + geom_bar(position = "dodge")
+p + aes(fill = ppagect4) + geom_bar(position = "stack")
 
-#############################
-# make long data
-df %>%
-  gather(Q7_q, Q7_r, Q7_1_Bus:Q7_7_Other) %>%
-  summarise(n = count())
+p + peth + fil + geom_bar(position = "stack")
+p + aes(fill = PPETHM) + geom_bar(position = "fill")
 
-with(q7_long, table(Q7_q, Q7_r))
+p + pinc + fil + geom_bar(position = "stack")
+p + aes(fill = income) + geom_bar(position = "dodge")
 
-q7_long %>%
-  group_by(Q7_q, Q7_r, PPGENDER, PPETHM, PPINCIMP, ppagecat) %>%
-  summarise(n = count())
+p + aes(PPMSACAT) + fil + geom_bar(position = "fill")
+p + aes(fill = PPMSACAT) + geom_bar(position = "stack")
 
-ggplot(q7[!is.na(q7$Q7_r), ], aes(x = Q7_r, y = n, fill = Q7_r)) +
-  geom_bar(stat = 'identity', position = position_dodge()) + facet_wrap(~Q7_q) + coord_flip()
-
-# testing plot
-ggplot(q7[!is.na(q7$Q7_r), ], aes(x = Q7_r, y = n, fill = Q7_r)) +
-  geom_bar(stat = 'identity') +
-  facet_grid(Q7_q ~ PPGENDER)
+p + aes(fill = Q7_q) + geom_bar(position = "dodge") + facet_wrap(~ ppreg9)
 
 ```
 
 ## Q8. For what types of activities do you regularly use public transportation?
 
 ```{r}
+# subset question data
+q8df <- df %>%
+  select(CaseID, PPGENDER, ppagect4, PPETHM, income, PPEDUCAT, work, marital, ppreg9, PPMSACAT, Q2, Q8_1:Q8_6, weight) %>%
+  gather(Q8_q, Q8_r, Q8_1:Q8_6, na.rm = T) %>%
+  group_by(Q8_q, Q8_r)
 
+# new survey design
+des8 <- svydesign(ids = ~1, weights = ~weight, data = q8df[is.na(q8df$weight)==F, ])
+
+# weighted data frame
+q8 <- data.frame(svytable(~Q8_q + Q8_r + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + ppreg9 + PPMSACAT, des8, round = T))
+
+# plot
+p <- ggplot(q8[(q8$Q8_r)=='Yes', ], aes(Q8_q, weight = Freq)) + ptext
+fil <- aes(fill = Q8_q)
+# gender
+p + geom_bar()
+p + aes(fill = PPGENDER) + geom_bar(position = "dodge")
+# age
+p + page + fil + geom_bar(position = "dodge")
+p + aes(fill = ppagect4) + geom_bar(position = "stack")
+# race
+p + peth + fil + geom_bar(position = "stack")
+p + aes(fill = PPETHM) + geom_bar(position = "fill")
+# income
+p + pinc + fil + geom_bar(position = "stack")
+p + aes(fill = income) + geom_bar(position = "dodge")
+# metro location
+p + aes(PPMSACAT) + fil + geom_bar(position = "fill")
+p + aes(fill = PPMSACAT) + geom_bar(position = "stack")
+# region
+p + fil + geom_bar(position = "dodge") + facet_wrap(~ ppreg9)
 ```
 
 ## Q9. Do other members of your household regularly use public transportation?
@@ -441,6 +461,37 @@ svychisq(~Q15 + Q3, des)
 ## Q10. What types of public transportation do other members of your household regularly use?
 
 ```{r}
+# subset question data
+q10df <- df %>%
+  select(CaseID, PPGENDER, ppagect4, PPETHM, income, PPEDUCAT, work, marital, ppreg9, PPMSACAT, Q2, Q10_1:Q10_8, weight) %>%
+  gather(Q10_q, Q10_r, Q10_1:Q10_8, na.rm = T) %>%
+  group_by(Q10_q, Q10_r)
 
+# new survey design
+des10 <- svydesign(ids = ~1, weights = ~weight, data = q10df[is.na(q10df$weight)==F, ])
+
+# weighted data frame
+q10 <- data.frame(svytable(~Q10_q + Q10_r + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + ppreg9 + PPMSACAT, des10, round = T))
+
+# plot
+p <- ggplot(q10[(q10$Q10_r)=='Yes', ], aes(Q10_q, weight = Freq)) + ptext
+fil <- aes(fill = Q10_q)
+# gender
+p + geom_bar()
+p + aes(fill = PPGENDER) + geom_bar(position = "dodge")
+# age
+p + page + fil + geom_bar(position = "dodge")
+p + aes(fill = ppagect4) + geom_bar(position = "stack")
+# race
+p + peth + fil + geom_bar(position = "stack")
+p + aes(fill = PPETHM) + geom_bar(position = "fill")
+# income
+p + pinc + fil + geom_bar(position = "stack")
+p + aes(fill = income) + geom_bar(position = "dodge")
+# metro location
+p + aes(PPMSACAT) + fil + geom_bar(position = "fill")
+p + aes(fill = PPMSACAT) + geom_bar(position = "stack")
+# region
+p + fil + geom_bar(position = "dodge") + facet_wrap(~ ppreg9)
 ```
 
