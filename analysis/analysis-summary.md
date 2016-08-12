@@ -1,7 +1,5 @@
 # Analysis summary
 
-Hide all code: include = FALSE
-
 
 
 
@@ -15,33 +13,20 @@ options(digits = 4)
 options(survey.lonely.psu = "adjust")
 
 # subset data?
-des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight) == F, ])
+des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight) == 
+    F, ])
 ```
 
-## Summary
 
+
+## Overview:
 - Default survey plot
-- Univariate bar graph
-- Bivariate graphs: gender, age, ethnicity, income, education, work status, marital status
-- Plot means with error bars
+- Univariate plots
+- Bivariate plots: gender, age, ethnicity, income, education, work status, marital status
+- Plot group means with error bars
 
-#### ggplot ####
+# Survey Questions
 
-
-```r
-### create ggplot templates ###
-
-ptext <- theme(axis.text = element_text(size = rel(0.9)), axis.text.x = element_text(angle = 45, hjust = 1))
-pgen <- aes(PPGENDER)
-page <- aes(ppagect4)
-peth <- aes(PPETHM)
-pinc <- aes(income)
-pedu <- aes(PPEDUCAT)
-pwor <- aes(work)
-pmar <- aes(marital)
-```
-
-# Survey
 ## Q1. Before receiving this survey, did you know influenza is different from the stomach flu?
 
 
@@ -54,84 +39,86 @@ plot(svytable(~Q1 + PPGENDER, des))
 
 ```r
 # save weighted data frame for Q1 + variables
-q1 <- as.data.frame(svytable(~Q1 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
+q1 <- data.frame(svytable(~Q1 + PPGENDER + ppagecat + ppagect4 + PPETHM + income + 
+    PPEDUCAT + work + marital + PPMSACAT, des, round = T))
 
-## ggplot objects for each question ##
+# ggplot objects for each question
 p <- ggplot(q1, aes(Q1, weight = Freq)) + ptext
 fil <- aes(fill = Q1)
 
+# make tables with: svytable(~Q1 + PPGENDER, des, round = T)
 p + geom_bar()
 ```
 
 ![](analysis-summary_files/figure-html/q1-plot-2.png)<!-- -->
 
 ```r
-# svytable(~Q1 + PPGENDER, des, round = T)
-(gen <- p + pgen + fil + geom_bar(position = "dodge"))
+(gen <- p + aes(fill = PPGENDER) + geom_bar(position = "dodge"))
 ```
 
 ![](analysis-summary_files/figure-html/q1-plot-3.png)<!-- -->
 
 ```r
-(age <- p + page + fil + geom_bar(position = "dodge"))
+(age <- p + aes(fill = ppagect4) + geom_bar(position = "dodge"))
 ```
 
 ![](analysis-summary_files/figure-html/q1-plot-4.png)<!-- -->
 
 ```r
-(eth <- p + peth + fil + geom_bar(position = "dodge") + coord_flip())
+(age2 <- p + aes(ppagecat) + fil + geom_bar(position = "stack"))
 ```
 
 ![](analysis-summary_files/figure-html/q1-plot-5.png)<!-- -->
 
 ```r
-(inc <- p + pinc + fil + geom_bar(position = "dodge"))
+(eth <- p + peth + fil + geom_bar(position = "dodge"))
 ```
 
 ![](analysis-summary_files/figure-html/q1-plot-6.png)<!-- -->
 
 ```r
-(edu <- p + pedu + fil + geom_bar(position = "dodge"))
+p + aes(fill = PPETHM) + geom_bar(position = "fill")
 ```
 
 ![](analysis-summary_files/figure-html/q1-plot-7.png)<!-- -->
 
 ```r
-(wor <- p + pwor + fil + geom_bar(position = "dodge"))
+(inc <- p + pinc + fil + geom_bar(position = "dodge"))
 ```
 
 ![](analysis-summary_files/figure-html/q1-plot-8.png)<!-- -->
 
 ```r
-(mar <- p + pmar + fil + geom_bar(position = "dodge"))
+(edu <- p + pedu + fil + geom_bar(position = "dodge"))
 ```
 
 ![](analysis-summary_files/figure-html/q1-plot-9.png)<!-- -->
 
 ```r
-grid.arrange(gen, age, eth)
+(wor <- p + pwor + fil + geom_bar(position = "dodge"))
 ```
 
 ![](analysis-summary_files/figure-html/q1-plot-10.png)<!-- -->
 
 ```r
-grid.arrange(inc, edu, wor, mar)
+(mar <- p + pmar + fil + geom_bar(position = "dodge"))
 ```
 
 ![](analysis-summary_files/figure-html/q1-plot-11.png)<!-- -->
 
 ```r
-# grid plots
-op <- par(mfrow = c(2, 1))  # 2 plots on page
-plot(svytable(~Q1 + PPGENDER + ppagect4, des))
-plot(svytable(~Q1 + PPGENDER + PPETHM, des))
+(met <- p + aes(PPMSACAT) + aes(fill = Q1) + geom_bar(position = "dodge"))
 ```
 
 ![](analysis-summary_files/figure-html/q1-plot-12.png)<!-- -->
 
 ```r
+# grid.arrange(gen, age, eth) grid.arrange(inc, edu, wor, mar)
+
+# grid plots
+op <- par(mfrow = c(2, 1))  # 2 plots on page
 plot(svytable(~Q1 + PPGENDER + ppagect4, des))
-plot(svytable(~Q1 + PPGENDER + ppagect4, des))
+plot(svytable(~Q1 + PPGENDER + PPETHM, des))
 ```
 
 ![](analysis-summary_files/figure-html/q1-plot-13.png)<!-- -->
@@ -144,7 +131,8 @@ par(op)
 
 
 ```r
-q2 <- as.data.frame(svytable(~Q2 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
+q2 <- data.frame(svytable(~Q2 + PPGENDER + ppagecat + ppagect4 + PPETHM + income + 
+    PPEDUCAT + work + marital + PPMSACAT, des, round = T))
 
 p <- ggplot(q2, aes(Q2, weight = Freq)) + ptext
 fil <- aes(fill = Q2)
@@ -155,7 +143,6 @@ p + geom_bar()
 ![](analysis-summary_files/figure-html/q2-plot-1.png)<!-- -->
 
 ```r
-#svytable(~Q2 + PPGENDER, des, round = T)
 gen <- p + pgen + fil + geom_bar(position = "dodge")
 age <- p + page + fil + geom_bar(position = "dodge")
 eth <- p + peth + fil + geom_bar(position = "stack")
@@ -163,17 +150,22 @@ inc <- p + pinc + fil + geom_bar(position = "dodge")
 edu <- p + pedu + fil + geom_bar(position = "dodge")
 wor <- p + pwor + fil + geom_bar(position = "dodge")
 mar <- p + pmar + fil + geom_bar(position = "dodge")
-
-grid.arrange(gen, age, eth)
+p + aes(PPMSACAT, fill = Q2) + geom_bar(position = "dodge")
 ```
 
 ![](analysis-summary_files/figure-html/q2-plot-2.png)<!-- -->
 
 ```r
-grid.arrange(inc, edu, wor, mar)
+grid.arrange(gen, age, eth)
 ```
 
 ![](analysis-summary_files/figure-html/q2-plot-3.png)<!-- -->
+
+```r
+grid.arrange(inc, edu, wor, mar)
+```
+
+![](analysis-summary_files/figure-html/q2-plot-4.png)<!-- -->
 
 #### survey example ####
 
@@ -184,7 +176,7 @@ grid.arrange(inc, edu, wor, mar)
 
 ```r
 ## create ggplot template
-er <- geom_errorbar(aes(ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2Yes), width = .25)
+er <- geom_errorbar(aes(ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2Yes), width = 0.25)
 
 ## % of US adults sick last year with ILI by sex
 gen <- svyby(~Q2, ~PPGENDER, des, svymean, na.rm = T)
@@ -200,8 +192,8 @@ svychisq(~Q2 + PPGENDER, des)
 ```
 
 ```r
-ggplot(gen, aes(PPGENDER, Q2Yes)) + geom_point() + xlab("sex") + ylab("% sick") +
-  er + ggtitle(label = "% of adults sick last year with ILI by sex") 
+ggplot(gen, aes(PPGENDER, Q2Yes)) + geom_point() + xlab("sex") + ylab("% sick") + 
+    er + ggtitle(label = "% of adults sick last year with ILI by sex")
 ```
 
 ![](analysis-summary_files/figure-html/q2-dotplots-1.png)<!-- -->
@@ -221,8 +213,8 @@ svychisq(~Q2 + ppagecat, des)
 ```
 
 ```r
-ggplot(age, aes(ppagecat, Q2Yes)) + geom_point() + xlab("age") + ylab("% sick") +
-  er + ggtitle(label = "% of adults sick last year with ILI by age") 
+ggplot(age, aes(ppagecat, Q2Yes)) + geom_point() + xlab("age") + ylab("% sick") + 
+    er + ggtitle(label = "% of adults sick last year with ILI by age")
 ```
 
 ![](analysis-summary_files/figure-html/q2-dotplots-2.png)<!-- -->
@@ -242,8 +234,8 @@ svychisq(~Q2 + PPETHM, des)
 ```
 
 ```r
-ggplot(eth, aes(PPETHM, Q2Yes)) + geom_point() + xlab("ethnicity") + ylab("% sick") + ptext +
-  er + ggtitle(label = "% of adults sick last year with ILI by ethnicity") 
+ggplot(eth, aes(PPETHM, Q2Yes)) + geom_point() + xlab("ethnicity") + ylab("% sick") + 
+    ptext + er + ggtitle(label = "% of adults sick last year with ILI by ethnicity")
 ```
 
 ![](analysis-summary_files/figure-html/q2-dotplots-3.png)<!-- -->
@@ -263,8 +255,8 @@ svychisq(~Q2 + PPINCIMP, des)
 ```
 
 ```r
-ggplot(inc, aes(PPINCIMP, Q2Yes)) + geom_point() + xlab("income") + ylab("% sick") + coord_flip() +
-  er + ggtitle(label = "% of adults sick last year with ILI by income") 
+ggplot(inc, aes(PPINCIMP, Q2Yes)) + geom_point() + xlab("income") + ylab("% sick") + 
+    coord_flip() + er + ggtitle(label = "% of adults sick last year with ILI by income")
 ```
 
 ![](analysis-summary_files/figure-html/q2-dotplots-4.png)<!-- -->
@@ -284,8 +276,8 @@ svychisq(~Q2 + PPEDUCAT, des)
 ```
 
 ```r
-ggplot(edu, aes(PPEDUCAT, Q2Yes)) + geom_point() + xlab("education") + ylab("% sick") +
-  er + ggtitle(label = "% of adults sick last year with ILI by education") 
+ggplot(edu, aes(PPEDUCAT, Q2Yes)) + geom_point() + xlab("education") + ylab("% sick") + 
+    er + ggtitle(label = "% of adults sick last year with ILI by education")
 ```
 
 ![](analysis-summary_files/figure-html/q2-dotplots-5.png)<!-- -->
@@ -305,8 +297,8 @@ svychisq(~Q2 + work, des)
 ```
 
 ```r
-ggplot(wor, aes(work, Q2Yes)) + geom_point() + xlab("work") + ylab("% sick") +
-  er + ggtitle(label = "% of adults sick last year with ILI by work") 
+ggplot(wor, aes(work, Q2Yes)) + geom_point() + xlab("work") + ylab("% sick") + 
+    er + ggtitle(label = "% of adults sick last year with ILI by work")
 ```
 
 ![](analysis-summary_files/figure-html/q2-dotplots-6.png)<!-- -->
@@ -326,8 +318,8 @@ svychisq(~Q2 + PPMARIT, des)
 ```
 
 ```r
-ggplot(mar, aes(PPMARIT, Q2Yes)) + geom_point() + xlab("marital status") + ylab("% sick") +
-  er + ggtitle(label = "% of adults sick last year with ILI by marital status") 
+ggplot(mar, aes(PPMARIT, Q2Yes)) + geom_point() + xlab("marital status") + ylab("% sick") + 
+    er + ggtitle(label = "% of adults sick last year with ILI by marital status")
 ```
 
 ![](analysis-summary_files/figure-html/q2-dotplots-7.png)<!-- -->
@@ -347,8 +339,8 @@ svychisq(~Q2 + marital, des)
 ```
 
 ```r
-ggplot(mar2, aes(marital, Q2Yes)) + geom_point() + xlab("") + ylab("% sick") +
-  er + ggtitle(label = "% of adults sick last year with ILI by marital status") 
+ggplot(mar2, aes(marital, Q2Yes)) + geom_point() + xlab("") + ylab("% sick") + 
+    er + ggtitle(label = "% of adults sick last year with ILI by marital status")
 ```
 
 ![](analysis-summary_files/figure-html/q2-dotplots-8.png)<!-- -->
@@ -368,8 +360,8 @@ svychisq(~Q2 + PPMSACAT, des)
 ```
 
 ```r
-ggplot(met, aes(PPMSACAT, Q2Yes)) + geom_point() + xlab("metro status") + ylab("% sick") +
-  er + ggtitle(label = "% of adults sick last year with ILI by metro status")
+ggplot(met, aes(PPMSACAT, Q2Yes)) + geom_point() + xlab("metro status") + ylab("% sick") + 
+    er + ggtitle(label = "% of adults sick last year with ILI by metro status")
 ```
 
 ![](analysis-summary_files/figure-html/q2-dotplots-9.png)<!-- -->
@@ -389,8 +381,8 @@ svychisq(~Q2 + PPREG4, des)
 ```
 
 ```r
-ggplot(reg, aes(PPREG4, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") +
-  er + ggtitle(label = "% of adults sick last year with ILI by region")
+ggplot(reg, aes(PPREG4, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + 
+    er + ggtitle(label = "% of adults sick last year with ILI by region")
 ```
 
 ![](analysis-summary_files/figure-html/q2-dotplots-10.png)<!-- -->
@@ -410,8 +402,8 @@ svychisq(~Q2 + ppreg9, des)
 ```
 
 ```r
-ggplot(reg9, aes(ppreg9, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + ptext +
-  er + ggtitle(label = "% of adults sick last year with ILI by region")
+ggplot(reg9, aes(ppreg9, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + 
+    ptext + er + ggtitle(label = "% of adults sick last year with ILI by region")
 ```
 
 ![](analysis-summary_files/figure-html/q2-dotplots-11.png)<!-- -->
@@ -431,8 +423,8 @@ svychisq(~Q2 + PPSTATEN, des)
 ```
 
 ```r
-ggplot(sta, aes(PPSTATEN, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + ptext + coord_flip() +
-  er + ggtitle(label = "% of adults sick last year with ILI by state")
+ggplot(sta, aes(PPSTATEN, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + 
+    ptext + coord_flip() + er + ggtitle(label = "% of adults sick last year with ILI by state")
 ```
 
 ![](analysis-summary_files/figure-html/q2-dotplots-12.png)<!-- -->
@@ -452,8 +444,8 @@ svychisq(~Q2 + PPRENT, des)
 ```
 
 ```r
-ggplot(ren, aes(PPRENT, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + ptext +
-  er + ggtitle(label = "% of adults sick last year with ILI by rent")
+ggplot(ren, aes(PPRENT, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + 
+    ptext + er + ggtitle(label = "% of adults sick last year with ILI by rent")
 ```
 
 ![](analysis-summary_files/figure-html/q2-dotplots-13.png)<!-- -->
@@ -462,7 +454,8 @@ ggplot(ren, aes(PPRENT, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + pt
 
 
 ```r
-q3 <- as.data.frame(svytable(~Q3 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
+q3 <- as.data.frame(svytable(~Q3 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + 
+    work + marital, des, round = T))
 p <- ggplot(q3, aes(Q3, weight = Freq)) + ptext
 fil <- aes(fill = Q3)
 
@@ -492,8 +485,8 @@ svychisq(~Q2 + Q3, des)
 
 ```r
 q <- svyby(~Q2, ~Q3, des, svymean, na.rm = T)
-ggplot(q, aes(Q3, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er +
-  ggtitle(label = "% of adults sick vs. having sick household member ")
+ggplot(q, aes(Q3, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er + 
+    ggtitle(label = "% of adults sick vs. having sick household member ")
 ```
 
 ![](analysis-summary_files/figure-html/q3-plot-3.png)<!-- -->
@@ -502,7 +495,8 @@ ggplot(q, aes(Q3, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er +
 
 
 ```r
-q4 <- as.data.frame(svytable(~Q4 + Q2 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
+q4 <- as.data.frame(svytable(~Q4 + Q2 + PPGENDER + ppagect4 + PPETHM + income + 
+    PPEDUCAT + work + marital, des, round = T))
 
 p <- ggplot(q4, aes(Q4, weight = Freq)) + ptext
 fil <- aes(fill = Q4)
@@ -546,8 +540,8 @@ svychisq(~Q2 + Q4, des)
 
 ```r
 q <- svyby(~Q2, ~Q4, des, svymean, na.rm = T)
-ggplot(q, aes(Q4, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + ptext + er +
-  ggtitle(label = "% of adults sick and having job with public contact ") 
+ggplot(q, aes(Q4, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + ptext + 
+    er + ggtitle(label = "% of adults sick and having job with public contact ")
 ```
 
 ![](analysis-summary_files/figure-html/q4-plot-4.png)<!-- -->
@@ -570,7 +564,7 @@ svytable(~Q2 + Q4, des)
 
 ```r
 # subset q4
-psub <- ggplot(q4[q4$Q4 == 'Yes', ], aes(Q4, weight = Freq)) + ptext
+psub <- ggplot(q4[q4$Q4 == "Yes", ], aes(Q4, weight = Freq)) + ptext
 # being sick by gender
 psub + pgen + aes(fill = Q2) + geom_bar(position = "fill") + ggtitle("People with high-contact jobs vs. being sick")
 ```
@@ -588,7 +582,8 @@ psub + peth + aes(fill = Q2) + geom_bar(position = "fill") + ggtitle("People wit
 
 
 ```r
-q5 <- as.data.frame(svytable(~Q5 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
+q5 <- as.data.frame(svytable(~Q5 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + 
+    work + marital, des, round = T))
 
 p <- ggplot(q5, aes(Q5, weight = Freq)) + ptext
 p + geom_bar()
@@ -600,7 +595,8 @@ p + geom_bar()
 
 
 ```r
-q6 <- as.data.frame(svytable(~Q6 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
+q6 <- as.data.frame(svytable(~Q6 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + 
+    work + marital, des, round = T))
 
 p <- ggplot(q6, aes(Q6, weight = Freq)) + ptext
 fil <- aes(fill = Q6)
@@ -646,8 +642,8 @@ svychisq(~Q2 + Q6, des)
 
 ```r
 q <- svyby(~Q2, ~Q6, des, svymean, na.rm = T)
-ggplot(q, aes(Q6, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er +
-  ggtitle(label = "% of adults sick and frequent public transportation use") 
+ggplot(q, aes(Q6, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er + 
+    ggtitle(label = "% of adults sick and frequent public transportation use")
 ```
 
 ![](analysis-summary_files/figure-html/unnamed-chunk-1-4.png)<!-- -->
@@ -667,8 +663,8 @@ ggplot(q, aes(Q6, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er +
 
 
 ```r
-q9 <- as.data.frame(svytable(
-  ~Q9 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
+q9 <- as.data.frame(svytable(~Q9 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + 
+    work + marital, des, round = T))
 
 p <- ggplot(q9, aes(Q9, weight = Freq)) + ptext
 p + geom_bar()
@@ -686,8 +682,8 @@ p + geom_bar()
 
 
 ```r
-q13 <- as.data.frame(svytable(
-  ~Q13 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
+q13 <- as.data.frame(svytable(~Q13 + PPGENDER + ppagect4 + PPETHM + income + 
+    PPEDUCAT + work + marital, des, round = T))
 
 p <- ggplot(q13, aes(Q13, weight = Freq)) + ptext
 fil <- aes(fill = Q13)
@@ -732,8 +728,8 @@ svychisq(~Q2 + Q13, des)
 
 ```r
 q <- svyby(~Q2, ~Q13, des, svymean, na.rm = T)
-ggplot(q, aes(Q13, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er +
-  ggtitle(label = "% of adults sick and getting flu vaccine") 
+ggplot(q, aes(Q13, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er + 
+    ggtitle(label = "% of adults sick and getting flu vaccine")
 ```
 
 ![](analysis-summary_files/figure-html/q13-plot-4.png)<!-- -->
@@ -742,8 +738,8 @@ ggplot(q, aes(Q13, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er +
 
 
 ```r
-q14 <- as.data.frame(svytable(
-  ~Q14 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
+q14 <- as.data.frame(svytable(~Q14 + PPGENDER + ppagect4 + PPETHM + income + 
+    PPEDUCAT + work + marital, des, round = T))
 
 p <- ggplot(q14, aes(Q14, weight = Freq)) + ptext
 fil <- aes(fill = Q14)
@@ -777,8 +773,8 @@ grid.arrange(inc, edu, wor, mar)
 
 
 ```r
-q15 <- as.data.frame(svytable(
-  ~Q15 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
+q15 <- as.data.frame(svytable(~Q15 + PPGENDER + ppagect4 + PPETHM + income + 
+    PPEDUCAT + work + marital, des, round = T))
 
 p <- ggplot(q15, aes(Q15, weight = Freq)) + ptext
 fil <- aes(fill = Q15)
@@ -812,8 +808,8 @@ grid.arrange(inc, edu, wor, mar)
 
 
 ```r
-q16 <- as.data.frame(svytable(
-  ~Q16 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
+q16 <- as.data.frame(svytable(~Q16 + PPGENDER + ppagect4 + PPETHM + income + 
+    PPEDUCAT + work + marital, des, round = T))
 
 p <- ggplot(q16, aes(Q16, weight = Freq)) + ptext
 fil <- aes(fill = Q16)
@@ -847,8 +843,8 @@ grid.arrange(inc, edu, wor, mar)
 
 
 ```r
-q17 <- as.data.frame(svytable(
-  ~Q17 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
+q17 <- as.data.frame(svytable(~Q17 + PPGENDER + ppagect4 + PPETHM + income + 
+    PPEDUCAT + work + marital, des, round = T))
 
 p <- ggplot(q17, aes(Q17, weight = Freq)) + ptext
 fil <- aes(fill = Q17)
@@ -884,8 +880,8 @@ grid.arrange(inc, edu, wor, mar)
 
 
 ```r
-q19 <- as.data.frame(svytable(
-  ~Q19 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
+q19 <- as.data.frame(svytable(~Q19 + PPGENDER + ppagect4 + PPETHM + income + 
+    PPEDUCAT + work + marital, des, round = T))
 
 p <- ggplot(q19, aes(Q19, weight = Freq)) + ptext
 fil <- aes(fill = Q19)
@@ -918,8 +914,8 @@ grid.arrange(inc, edu, wor, mar)
 ```r
 ## sick plot
 q <- svyby(~Q2, ~Q19, des, svymean, na.rm = T)
-ggplot(q, aes(Q19, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er +
-  ggtitle(label = "% of adults sick and having health insurance ") 
+ggplot(q, aes(Q19, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er + 
+    ggtitle(label = "% of adults sick and having health insurance ")
 ```
 
 ![](analysis-summary_files/figure-html/unnamed-chunk-7-4.png)<!-- -->
@@ -928,8 +924,8 @@ ggplot(q, aes(Q19, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er +
 
 
 ```r
-q20 <- as.data.frame(svytable(
-  ~Q20 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
+q20 <- as.data.frame(svytable(~Q20 + PPGENDER + ppagect4 + PPETHM + income + 
+    PPEDUCAT + work + marital, des, round = T))
 
 p <- ggplot(q20, aes(Q20, weight = Freq)) + ptext
 fil <- aes(fill = Q20)
@@ -974,8 +970,8 @@ svychisq(~Q2 + Q20, des)
 
 ```r
 q <- svyby(~Q2, ~Q20, des, svymean, na.rm = T)
-ggplot(q, aes(Q20, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + ptext + er +
-  ggtitle(label = "% of adults sick vs. perception of flu vaccine efficacy") 
+ggplot(q, aes(Q20, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + ptext + 
+    er + ggtitle(label = "% of adults sick vs. perception of flu vaccine efficacy")
 ```
 
 ![](analysis-summary_files/figure-html/unnamed-chunk-8-4.png)<!-- -->
@@ -984,8 +980,8 @@ ggplot(q, aes(Q20, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + ptext +
 
 
 ```r
-q21 <- as.data.frame(svytable(
-  ~Q21 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
+q21 <- as.data.frame(svytable(~Q21 + PPGENDER + ppagect4 + PPETHM + income + 
+    PPEDUCAT + work + marital, des, round = T))
 
 p <- ggplot(q21, aes(Q21, weight = Freq)) + ptext
 p + geom_bar()
@@ -1005,8 +1001,8 @@ p + geom_bar()
 
 
 ```r
-q26 <- as.data.frame(svytable(
-  ~Q26 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
+q26 <- as.data.frame(svytable(~Q26 + PPGENDER + ppagect4 + PPETHM + income + 
+    PPEDUCAT + work + marital, des, round = T))
 
 p <- ggplot(q26, aes(Q26, weight = Freq)) + ptext
 p + geom_bar()
@@ -1029,8 +1025,8 @@ svychisq(~Q2 + Q26, des)
 
 ```r
 q <- svyby(~Q2, ~Q26, des, svymean, na.rm = T)
-ggplot(q, aes(Q26, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er +
-  ggtitle(label = "% of adults sick and having children in household") 
+ggplot(q, aes(Q26, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er + 
+    ggtitle(label = "% of adults sick and having children in household")
 ```
 
 ![](analysis-summary_files/figure-html/unnamed-chunk-10-2.png)<!-- -->
@@ -1041,8 +1037,8 @@ ggplot(q, aes(Q26, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er +
 
 
 ```r
-q28 <- as.data.frame(svytable(
-  ~Q28 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
+q28 <- as.data.frame(svytable(~Q28 + PPGENDER + ppagect4 + PPETHM + income + 
+    PPEDUCAT + work + marital, des, round = T))
 
 p <- ggplot(q28, aes(Q28, weight = Freq)) + ptext
 p + geom_bar()
@@ -1065,8 +1061,8 @@ svychisq(~Q2 + Q28, des)
 
 ```r
 q <- svyby(~Q2, ~Q28, des, svymean, na.rm = T)
-ggplot(q, aes(Q28, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er +
-  ggtitle(label = "% of adults sick and being single parent") 
+ggplot(q, aes(Q28, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er + 
+    ggtitle(label = "% of adults sick and being single parent")
 ```
 
 ![](analysis-summary_files/figure-html/unnamed-chunk-11-2.png)<!-- -->

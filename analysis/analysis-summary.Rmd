@@ -9,9 +9,10 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = T, cache = T, warning = F, message = F, tidy = F, size = "small")
+knitr::opts_chunk$set(echo = T, cache = T, cache.comments = T, warning = F, message = F, tidy = T, size = "small")
 rm(list = ls(all.names = TRUE))
-library(rmarkdown); library(tidyr); library(dplyr); library(ggplot2);
+library(rmarkdown); library(knitr)
+library(tidyr); library(dplyr); library(ggplot2)
 library(survey); library(gridExtra)
 ```
 
@@ -22,7 +23,7 @@ load("~/git/flu-survey/data/recoding.RData")  # load "datar"
 df <- datar  # contains recoded variables
 ```
 
-```{r code-data, eval=FALSE, include=FALSE}
+```{r regroup-data, include=FALSE}
 ## income
 income.map <- c(rep("under $10k", 3),
                 rep("$10k to $25k", 4),
@@ -31,16 +32,18 @@ income.map <- c(rep("under $10k", 3),
                 rep("$75k to $100k", 2),
                 rep("$100k to $150k", 2),
                 rep("over $150k", 2))
-# datar$income <- code(data2$PPINCIMP, income.map, "under $10k")
+df$income <- code(datar$PPINCIMP, income.map, "under $10k")
+income.lab <- c("under $10k", "$10k to $25k", "$25k to $50k", "$50k to $75k", "$75k to $100k", "$100k to $150k", "over $150k")
+df$income <- factor(df$income, levels = income.lab)
 
 ## marital staus
 marital.map <- c("single", "partnered", "partnered", "single", "single", "single")
-# datar$marital <- code(data2$PPMARIT, marital.map, "single")
+df$marital <- code(dataf$PPMARIT, marital.map, "single")
 
 ## work status
 work.map <- c(rep("unemployed", 5),
               rep("employed", 2))
-# datar$work <- code(data2$PPWORK, work.map, "unemployed")
+df$work <- code(dataf$PPWORK, work.map, "unemployed")
 ```
 
 ```{r survey-design}
@@ -49,17 +52,8 @@ options(digits = 4)
 options(survey.lonely.psu = "adjust")
 
 # subset data?
-des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight) == F, ])
+des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight)==F, ])
 ```
-
-
-## Summary
-
-- Default survey plot
-- Univariate plots
-- Bivariate plots: gender, age, ethnicity, income, education, work status, marital status
-- Plot group means with error bars
-
 
 ```{r ggplot, include=FALSE}
 #### create ggplot templates ####
@@ -75,6 +69,12 @@ pmar <- aes(marital)
 
 ```
 
+## Overview:
+- Default survey plot
+- Univariate plots
+- Bivariate plots: gender, age, ethnicity, income, education, work status, marital status
+- Plot group means with error bars
+
 # Survey Questions
 
 ## Q1. Before receiving this survey, did you know influenza is different from the stomach flu?
@@ -86,7 +86,7 @@ plot(svytable(~Q1 + PPGENDER, des))
 # save weighted data frame for Q1 + variables
 q1 <- data.frame(svytable(~Q1 + PPGENDER + ppagecat + ppagect4 + PPETHM + income + PPEDUCAT + work + marital + PPMSACAT, des, round = T))
 
-## ggplot objects for each question ##
+# ggplot objects for each question
 p <- ggplot(q1, aes(Q1, weight = Freq)) + ptext
 fil <- aes(fill = Q1)
 
