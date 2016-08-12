@@ -2,9 +2,9 @@
 title: "Analysis summary"
 output: 
   html_document:
+    fig_height: 7
     keep_md: yes
     toc: yes
-    theme: paper
     toc_depth: 2
 ---
 
@@ -79,7 +79,7 @@ pmar <- aes(marital)
 
 ## Q1. Before receiving this survey, did you know influenza is different from the stomach flu?
 
-```{r q1-plot}
+```{r q1-plot, fig.height=4, fig.width=5}
 # default survey plot
 plot(svytable(~Q1 + PPGENDER, des))
 
@@ -96,23 +96,23 @@ p + geom_bar()
 (age <- p + aes(fill = ppagect4) + geom_bar(position = "dodge"))
 (age2 <- p + aes(ppagecat) + fil + geom_bar(position = "stack"))
 (eth <- p + peth + fil + geom_bar(position = "dodge"))
-p + aes(fill = PPETHM) + geom_bar(position = "fill")
-
-(inc <- p + pinc + fil + geom_bar(position = "dodge"))
+(eth2 <- p + aes(fill = PPETHM) + geom_bar(position = "fill"))
+(inc <- p + pinc + fil + geom_bar(position = "stack"))
+(inc2 <- p + aes(fill = income) + geom_bar(position = "dodge"))
 (edu <- p + pedu + fil + geom_bar(position = "dodge"))
+(edu2 <- p + aes(fill = PPEDUCAT) + geom_bar(position = "dodge"))
 (wor <- p + pwor + fil + geom_bar(position = "dodge"))
+(wor2 <- p + aes(fill = work) + geom_bar(position = "dodge"))
 (mar <- p + pmar + fil + geom_bar(position = "dodge"))
-(met <- p + aes(PPMSACAT) + aes(fill = Q1) + geom_bar(position = "dodge"))
+(met <- p + aes(PPMSACAT) + fil + geom_bar(position = "dodge"))
+(met2 <- p + aes(fill = PPMSACAT) + geom_bar(position = "dodge"))
 
 #grid.arrange(gen, age, eth)
 #grid.arrange(inc, edu, wor, mar)
 
 # grid plots
-op <- par(mfrow = c(2, 1))  # 2 plots on page
 plot(svytable(~Q1 + PPGENDER + ppagect4, des))
 plot(svytable(~Q1 + PPGENDER + PPETHM, des))
-par(op)
-
 ```
 
 ## Q2. Have you had an illness with influenza-like symptoms since August 2015?
@@ -123,14 +123,14 @@ q2 <- data.frame(svytable(~Q2 + PPGENDER + ppagecat + ppagect4 + PPETHM + income
 p <- ggplot(q2, aes(Q2, weight = Freq)) + ptext
 fil <- aes(fill = Q2)
 
-p + geom_bar()
-gen <- p + pgen + fil + geom_bar(position = "dodge")
-age <- p + page + fil + geom_bar(position = "dodge")
-eth <- p + peth + fil + geom_bar(position = "stack")
-inc <- p + pinc + fil + geom_bar(position = "dodge")
-edu <- p + pedu + fil + geom_bar(position = "dodge")
-wor <- p + pwor + fil + geom_bar(position = "dodge")
-mar <- p + pmar + fil + geom_bar(position = "dodge")
+all <- p + geom_bar()
+(gen <- p + pgen + fil + geom_bar(position = "dodge"))
+(age <- p + page + fil + geom_bar(position = "dodge"))
+(eth <- p + peth + fil + geom_bar(position = "stack"))
+(inc <- p + pinc + fil + geom_bar(position = "dodge"))
+(edu <- p + pedu + fil + geom_bar(position = "dodge"))
+(wor <- p + pwor + fil + geom_bar(position = "dodge"))
+(mar <- p + pmar + fil + geom_bar(position = "dodge"))
 p + aes(PPMSACAT, fill = Q2) + geom_bar(position = "dodge")
 
 grid.arrange(gen, age, eth)
