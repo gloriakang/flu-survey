@@ -1,0 +1,12 @@
+base
+rmarkdown
+dplyr
+tidyr
+ggplot2
+Matrix
+survival
+survey
+car
+lattice
+MASS
+memisc
