@@ -1,0 +1,150 @@
+---
+title: "Comparing weighted and unweighted survey data"
+output: 
+  html_document:
+    keep_md: yes
+    theme: paper
+    toc: yes
+    toc_depth: 2
+---
+
+# Comparing weighted and unweighted survey data
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache = T, echo = T, warning = F, message = F, tidy = F, size = "small")
+rm(list = ls(all.names = TRUE))
+library(rmarkdown); library(dplyr); library(ggplot2); library(survey);
+library(gridExtra)
+```
+
+```{r}
+## Load data variables.
+
+load("~/git/flu-survey/data/cleaning2.RData")
+load("~/git/flu-survey/data/recoding.RData")  # load "datar"
+df <- datar  # contains recoded variables
+```
+
+```{r des}
+## Create survey object.
+
+options(digits = 4)
+options(survey.lonely.psu = "adjust")
+des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight) == F, ])
+```
+
+### Example of Q1 by gender.
+
+```{r example}
+## Example tables of Q1 by gender.
+
+as.data.frame(svytable(~Q1 + PPGENDER, design = des, round = T))  # weighted counts
+svyby(~Q1, ~Q1+PPGENDER, des, unwtd.count)  # unweighted counts
+svyby(~Q1, ~PPGENDER, design = des, FUN = svymean, na.rm = T)  # weighted %
+plot(svytable(~Q1 + PPGENDER, des))  # default survey plot
+
+## generic ggplot
+# ggplot(data.frame.here, aes(Q1, Freq, fill = PPGENDER) + geom_bar(stat = 'identity', position = position_dodge())
+```
+
+## Q1.
+
+### By demographic variables:
+- gender, ethnicity, age, education, income, employment, marital status, metro location, region, house type, head of household, rent status, state, internet availability
+
+```{r q1}
+# save freq table as data.frame
+q1 <- as.data.frame(svytable(
+  ~Q1 + PPGENDER + PPETHM + ppagect4, design = des, round = T))
+
+# make ggplot object
+g1 <- ggplot(q1)
+g1 + aes(Q1, Freq, fill = PPGENDER) + 
+  geom_bar(stat = 'identity', position = position_dodge())
+g1 + aes(Q1, Freq, fill = PPETHM) + 
+  geom_bar(stat = 'identity', position = position_dodge())
+g1 + aes(Q1, Freq, fill = ppagect4) + 
+  geom_bar(stat = 'identity', position = position_stack())
+
+```
+
+### Examine the % of US adults sick with ILI last year by sex, ethnicity, and age. Do a survey-corrected chi-square test for independence.
+
+```{r}
+## % of US adults sick last year with ILI by sex
+sex <- svyby(formula = ~Q2, by = ~PPGENDER, design = des, FUN = svymean, na.rm = T)
+svychisq(~Q2 + PPGENDER, design = des)
+
+qplot(x = sex$PPGENDER, y = sex$Q2Yes, data = sex, xlab = "sex", ylab = "% sick") + geom_errorbar(aes(x = PPGENDER, ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2Yes), width = .25) + ggtitle(label = "% of adults sick last year with ILI by sex")
+
+## % of US adults sick last year with ILI by ethnicity
+eth <- svyby(formula = ~Q2, by = ~PPETHM, design = des, FUN = svymean, na.rm = T)
+svychisq(~Q2 + PPETHM, design = des)
+
+qplot(x = eth$PPETHM, y = eth$Q2Yes, data = eth, xlab = "ethnicity", ylab = "% sick") + geom_errorbar(aes(x = PPETHM, ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2Yes), width = .25) + ggtitle(label = "% of adults sick last year with ILI by ethnicity")
+
+## % of US adults sick last year with ILI by age
+age <- svyby(formula = ~Q2, by = ~ppagecat, design = des, FUN = svymean, na.rm = T)
+svychisq(~Q2 + ppagecat, design = des)
+
+qplot(x = age$ppagecat, y = age$Q2Yes, data = age, xlab = "age", ylab = "% sick") + geom_errorbar(aes(x = ppagecat, ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2Yes), width = .25) + ggtitle(label = "% of adults sick last year with ILI by age")
+```
+
+### Simple weighted plots.
+
+```{r}
+## weighted bivariate plots with svytable
+qtest <- as.data.frame(svytable(
+  ~Q1 + PPGENDER + PPETHM + ppagect4, design = des, round = T))
+
+p <- ggplot(qtest, aes(weight = Freq))
+
+#svytable(~Q1 + PPGENDER, des, round = T)
+(a <- p + aes(PPGENDER, fill = Q1) + geom_bar(width = 0.7, position = "fill"))
+
+#svytable(~Q1 + PPETHM, des, round = T)
+(b <- p + aes(PPETHM, fill = Q1) + geom_bar(width = 0.7, position = "fill") +
+  geom_point(aes(y = -0.05), size = 0.75, alpha = 0.3, position = position_jitter(h = 0.01)))
+
+#svytable(~Q1 + ppagect4, des, round = T)
+(c <- p + aes(ppagect4, fill = Q1) + geom_bar(position = "fill") +
+  geom_point(aes(y = -0.05), size = 0.75, alpha = 0.3, position = position_jitter(h = 0.01)))
+
+grid.arrange(a, b, c)
+```
+
+### Compare weighted plots to unweighted plots.
+
+```{r}
+## unweighted plots
+q <- ggplot(df[!is.na(df$Q1), ])
+
+with(df, table(PPGENDER, Q1))
+a <- q + geom_bar(aes(PPGENDER, fill = Q1), position = "dodge")
+
+with(df, table(PPETHM, Q1))
+b <- q + geom_bar(aes(Q1, fill = PPETHM), position = "dodge")
+
+with(df, table(ppagect4, Q1))
+c <- q + geom_bar(aes(Q1, fill = ppagect4), position = "dodge")
+
+grid.arrange(a, b, c)
+```
+
+
+```{r, eval=FALSE, include=FALSE}
+## testing ##
+
+# boxplot for age
+boxplot(PPAGE ~ Q2, data = df, ylab = "age", xlab = "Q2. Have you had an illness with ILI symptoms since August 2015?", main = "Boxplot of age of sick adults")
+
+# multiple univariate plots
+temp <- c("Q1", "Q2", "Q3")
+par(mfrow = c(1, 3))
+
+for (i in temp)
+  barplot(table(df[, i]), main = i, ylab = "n")
+```
+
+
+
