@@ -107,8 +107,8 @@ svyby(formula = ~Q1, by = ~PPGENDER, design = des, FUN = svymean, na.rm = T)
 ## Male       Male 0.7045 0.2955  0.01562 0.01562
 ```
 
-In the unweighted data frame, 81.2442818% of females and 73.2766761% of males answered Yes. 26.7233239% of males and 18.7557182% of females answered No.  
-In the weighted data frame, 79.3709018% of females and 70.4534438% of males answered Yes. 29.5465562% of males and 20.6290982% of females answered No.  
+In the unweighted data frame, 81.2443% of females and 73.2767% of males answered Yes. 26.7233% of males and 18.7557% of females answered No.  
+In the weighted data frame, 79.3709% of females and 70.4534% of males answered Yes. 29.5466% of males and 20.6291% of females answered No.  
   
 
 ## Q2. Have you had an illness with influenza-like symptoms since August 2015?
@@ -191,7 +191,7 @@ summary(fit1)
 ##       0.2727       0.7526
 ```
 
-The unadjusted odds ratio of being sick as a male is 0.7525656 compared to females.
+The unadjusted odds ratio of being sick as a male is 0.7526 compared to females.
 
 
 ### Apply survey design and weights for Q2. Calculate unadjusted OR for getting sick by gender.
@@ -251,7 +251,7 @@ exp(confint(m1))  # 95% CI
 ## PPGENDERFemale 1.0676 1.7005
 ```
 
-In the weighted data frame, females had 1.3473578 times the odds of being sick compared to males.
+In the weighted data frame, females had 1.3474 times the odds of being sick compared to males.
 
 ### Calculate OR for being sick, adjusted for ethnicity
 
@@ -311,7 +311,7 @@ exp(confint(m2))  # note 95% CI for hispanic group
 ## PPETHM2+ Races, Non-Hispanic 0.8687 2.6023
 ```
 
-Compared to whites, OR for being sick are 1.1840113, 1.8070876, 1.6027619, 1.5035254 for blacks, hispanics, others, and 2+ races, respectively.  
+Compared to whites, OR for being sick are 1.184, 1.8071, 1.6028, 1.5035 for blacks, hispanics, others, and 2+ races, respectively.  
   
 Notes: When a logistic regression is calculated, the regression coefficient (b1) is the estimated increase in the log odds of the outcome per unit increase in the value of the exposure; the exponential function of the regression coefficient (e^b1) is the odds ratio associated with a one-unit increase in the exposure.  
   
@@ -394,7 +394,7 @@ mtable(a1, a2, a3, a4)
 ##                       1.2682                       0.9943
 ```
 
-When adjusting for gender, ethnicity, employment, and marital status, significant variables for being sick included female gender (OR = 1.4010761) and hispanic ethnicity (OR = 1.8491467)
+When adjusting for gender, ethnicity, employment, and marital status, significant variables for being sick included female gender (OR = 1.4011) and hispanic ethnicity (OR = 1.8491)
 
 ***
 
@@ -463,7 +463,7 @@ summary(m5)
 ##      0.2091      1.3231
 ```
 
-Those who get the vaccine had 1.3231002 the odds of getting sick compared to those who do not get the vaccine.
+Those who get the vaccine had 1.3231 the odds of getting sick compared to those who do not get the vaccine.
 
 
 ```r
@@ -500,11 +500,11 @@ svytable(~q13 + sick, design = des3, round = T)  # sick = 1, not sick = 0
 ##   No  82.70 17.30
 ```
 
-Out of those who reported being sick, 34.9712462% reported receiving vaccine.  
-Out of those who were healthy, 65.0287538% received vaccine (58.4269653% did not).  
+Out of those who reported being sick, 34.9712% reported receiving vaccine.  
+Out of those who were healthy, 65.0288% received vaccine (58.427% did not).  
   
-Vaccinated group: 21.6725711% report no illness.  
-Unvaccinated group: 78.3274289% report no illness.  
+Vaccinated group: 21.6726% report no illness.  
+Unvaccinated group: 78.3274% report no illness.  
   
 ***
 

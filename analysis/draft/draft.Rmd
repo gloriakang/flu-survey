@@ -1,5 +1,5 @@
 ---
-title: "Analysis draft and notes"
+title: "Analysis draft"
 output: 
   html_document:
     keep_md: yes

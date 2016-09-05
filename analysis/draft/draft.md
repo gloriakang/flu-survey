@@ -1,4 +1,4 @@
-# Analysis draft and notes
+# Analysis draft
 
 ## Comparing weighted and unweighted survey data
 

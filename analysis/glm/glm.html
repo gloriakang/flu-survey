@@ -189,8 +189,8 @@ svyby(formula = ~Q1, by = ~PPGENDER, design = des, FUN = svymean, na.rm = T)</co
 <pre><code>##        PPGENDER  Q1Yes   Q1No se.Q1Yes se.Q1No
 ## Female   Female 0.7937 0.2063  0.01373 0.01373
 ## Male       Male 0.7045 0.2955  0.01562 0.01562</code></pre>
-<p>In the unweighted data frame, 81.2442818% of females and 73.2766761% of males answered Yes. 26.7233239% of males and 18.7557182% of females answered No.<br />
-In the weighted data frame, 79.3709018% of females and 70.4534438% of males answered Yes. 29.5465562% of males and 20.6290982% of females answered No.</p>
+<p>In the unweighted data frame, 81.2443% of females and 73.2767% of males answered Yes. 26.7233% of males and 18.7557% of females answered No.<br />
+In the weighted data frame, 79.3709% of females and 70.4534% of males answered Yes. 29.5466% of males and 20.6291% of females answered No.</p>
 </div>
 </div>
 <div id="q2.-have-you-had-an-illness-with-influenza-like-symptoms-since-august-2015" class="section level2">
@@ -242,7 +242,7 @@ summary(fit1)</code></pre>
 <pre class="r"><code>(q2.u &lt;- exp(coefficients(fit1)))  # OR</code></pre>
 <pre><code>##  (Intercept) PPGENDERMale 
 ##       0.2727       0.7526</code></pre>
-<p>The unadjusted odds ratio of being sick as a male is 0.7525656 compared to females.</p>
+<p>The unadjusted odds ratio of being sick as a male is 0.7526 compared to females.</p>
 </div>
 <div id="apply-survey-design-and-weights-for-q2.-calculate-unadjusted-or-for-getting-sick-by-gender." class="section level3">
 <h3>Apply survey design and weights for Q2. Calculate unadjusted OR for getting sick by gender.</h3>
@@ -282,7 +282,7 @@ summary(m1)</code></pre>
 <pre><code>##                 2.5 % 97.5 %
 ## (Intercept)    0.1773 0.2511
 ## PPGENDERFemale 1.0676 1.7005</code></pre>
-<p>In the weighted data frame, females had 1.3473578 times the odds of being sick compared to males.</p>
+<p>In the weighted data frame, females had 1.3474 times the odds of being sick compared to males.</p>
 </div>
 <div id="calculate-or-for-being-sick-adjusted-for-ethnicity" class="section level3">
 <h3>Calculate OR for being sick, adjusted for ethnicity</h3>
@@ -323,7 +323,7 @@ summary(m2)</code></pre>
 ## PPETHMHispanic               1.3008 2.5104
 ## PPETHMOther, Non-Hispanic    0.9606 2.6743
 ## PPETHM2+ Races, Non-Hispanic 0.8687 2.6023</code></pre>
-<p>Compared to whites, OR for being sick are 1.1840113, 1.8070876, 1.6027619, 1.5035254 for blacks, hispanics, others, and 2+ races, respectively.</p>
+<p>Compared to whites, OR for being sick are 1.184, 1.8071, 1.6028, 1.5035 for blacks, hispanics, others, and 2+ races, respectively.</p>
 <p>Notes: When a logistic regression is calculated, the regression coefficient (b1) is the estimated increase in the log odds of the outcome per unit increase in the value of the exposure; the exponential function of the regression coefficient (e^b1) is the odds ratio associated with a one-unit increase in the exposure.</p>
 <hr />
 </div>
@@ -389,7 +389,7 @@ mtable(a1, a2, a3, a4)</code></pre>
 ##                       1.5806                       1.4872 
 ##                 workemployed             maritalpartnered 
 ##                       1.2682                       0.9943</code></pre>
-<p>When adjusting for gender, ethnicity, employment, and marital status, significant variables for being sick included female gender (OR = 1.4010761) and hispanic ethnicity (OR = 1.8491467)</p>
+<p>When adjusting for gender, ethnicity, employment, and marital status, significant variables for being sick included female gender (OR = 1.4011) and hispanic ethnicity (OR = 1.8491)</p>
 <hr />
 </div>
 </div>
@@ -433,7 +433,7 @@ summary(m5)</code></pre>
 <pre class="r"><code>(or5 &lt;- exp(coefficients(m5)))</code></pre>
 <pre><code>## (Intercept)      q13Yes 
 ##      0.2091      1.3231</code></pre>
-<p>Those who get the vaccine had 1.3231002 the odds of getting sick compared to those who do not get the vaccine.</p>
+<p>Those who get the vaccine had 1.3231 the odds of getting sick compared to those who do not get the vaccine.</p>
 <pre class="r"><code># Q2 + Q13 tables with weights
 svytable(~q13 + sick, design = des3, round = T)  # sick = 1, not sick = 0</code></pre>
 <pre><code>##      sick
@@ -450,10 +450,10 @@ svytable(~q13 + sick, design = des3, round = T)  # sick = 1, not sick = 0</code>
 ## q13       0     1
 ##   Yes 78.33 21.67
 ##   No  82.70 17.30</code></pre>
-<p>Out of those who reported being sick, 34.9712462% reported receiving vaccine.<br />
-Out of those who were healthy, 65.0287538% received vaccine (58.4269653% did not).</p>
-<p>Vaccinated group: 21.6725711% report no illness.<br />
-Unvaccinated group: 78.3274289% report no illness.</p>
+<p>Out of those who reported being sick, 34.9712% reported receiving vaccine.<br />
+Out of those who were healthy, 65.0288% received vaccine (58.427% did not).</p>
+<p>Vaccinated group: 21.6726% report no illness.<br />
+Unvaccinated group: 78.3274% report no illness.</p>
 <hr />
 <div id="logistic-regression-for-q2-and-q13.-subset-sick-vaccinated-group." class="section level3">
 <h3>Logistic regression for Q2 and Q13. Subset sick + vaccinated group.</h3>
