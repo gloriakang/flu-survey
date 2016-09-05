@@ -12,7 +12,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = T, cache = T, cache.comments = T, warning = F, message = F, tidy = T, size = "small")
+knitr::opts_chunk$set(echo = T, cache = T, warning = F, message = F, tidy = T, size = "small")
 rm(list = ls(all.names = TRUE))
 library(rmarkdown); library(knitr)
 library(tidyr); library(dplyr); library(ggplot2)

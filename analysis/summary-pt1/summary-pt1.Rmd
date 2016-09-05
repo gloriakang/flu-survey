@@ -12,7 +12,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = T, cache = T, cache.comments = T, warning = F, message = F, tidy = T, size = "small")
+knitr::opts_chunk$set(echo = T, cache = T, warning = F, message = F, tidy = T, size = "small")
 rm(list = ls(all.names = TRUE))
 library(rmarkdown); library(knitr)
 library(tidyr); library(dplyr); library(ggplot2)
@@ -23,8 +23,10 @@ library(survey); library(gridExtra)
 ## Load data variables.
 load("~/git/flu-survey/data/cleaning2.RData")
 load("~/git/flu-survey/data/recoding.RData")  # load "datar"
+
 df <- datar  # contains recoded variables
 ```
+
 
 ```{r regroup-data, include=FALSE}
 ## income
@@ -48,6 +50,7 @@ work.map <- c(rep("unemployed", 5),
               rep("employed", 2))
 df$work <- code(dataf$PPWORK, work.map, "unemployed")
 ```
+
 
 ```{r survey-design}
 ## Create survey object.

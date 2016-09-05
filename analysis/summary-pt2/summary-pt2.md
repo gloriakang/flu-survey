@@ -22,6 +22,95 @@ des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight) ==
 
 ## Q11. How do you rate your risk of getting influenza if you visited each of the following locations?
 
+```r
+# subset question data
+q11df <- df %>% select(CaseID, PPGENDER, ppagect4, PPETHM, income, PPEDUCAT, 
+    work, marital, ppreg9, PPMSACAT, Q2, Q11_1:Q11_11, weight) %>% gather(Q11_q, 
+    Q11_r, Q11_1:Q11_11, na.rm = T) %>% group_by(Q11_q, Q11_r)
+
+# new survey design
+des11 <- svydesign(ids = ~1, weights = ~weight, data = q11df[is.na(q11df$weight) == 
+    F, ])
+
+# weighted data frame
+q11 <- data.frame(svytable(~Q11_q + Q11_r + PPGENDER + ppagect4 + PPETHM + income + 
+    PPEDUCAT + work + ppreg9 + PPMSACAT, des11, round = T))
+
+
+# plot
+p <- ggplot(q11, aes(Q11_r, weight = Freq)) + ptext
+fil <- aes(fill = Q11_r)
+
+p + fil + geom_bar() + facet_wrap(~Q11_q)
+```
+
+![](summary-pt2_files/figure-html/unnamed-chunk-1-1.png)<!-- -->
+
+```r
+# gender
+p + aes(fill = PPGENDER) + geom_bar(position = "dodge") + facet_wrap(~Q11_q)
+```
+
+![](summary-pt2_files/figure-html/unnamed-chunk-1-2.png)<!-- -->
+
+```r
+# age
+p + page + fil + geom_bar(position = "dodge") + facet_wrap(~Q11_q)
+```
+
+![](summary-pt2_files/figure-html/unnamed-chunk-1-3.png)<!-- -->
+
+```r
+p + fil + geom_bar(position = "stack") + facet_wrap(~ppagect4 + ~Q11_q)
+```
+
+![](summary-pt2_files/figure-html/unnamed-chunk-1-4.png)<!-- -->
+
+```r
+# race
+p + peth + fil + geom_bar(position = "stack")
+```
+
+![](summary-pt2_files/figure-html/unnamed-chunk-1-5.png)<!-- -->
+
+```r
+p + aes(fill = PPETHM) + geom_bar(position = "fill")
+```
+
+![](summary-pt2_files/figure-html/unnamed-chunk-1-6.png)<!-- -->
+
+```r
+# income
+p + pinc + fil + geom_bar(position = "stack")
+```
+
+![](summary-pt2_files/figure-html/unnamed-chunk-1-7.png)<!-- -->
+
+```r
+p + aes(fill = income) + geom_bar(position = "dodge")
+```
+
+![](summary-pt2_files/figure-html/unnamed-chunk-1-8.png)<!-- -->
+
+```r
+# metro location
+p + aes(PPMSACAT) + fil + geom_bar(position = "fill")
+```
+
+![](summary-pt2_files/figure-html/unnamed-chunk-1-9.png)<!-- -->
+
+```r
+p + aes(fill = PPMSACAT) + geom_bar(position = "stack")
+```
+
+![](summary-pt2_files/figure-html/unnamed-chunk-1-10.png)<!-- -->
+
+```r
+# region
+p + fil + geom_bar(position = "dodge") + facet_wrap(~ppreg9)
+```
+
+![](summary-pt2_files/figure-html/unnamed-chunk-1-11.png)<!-- -->
 
 ## Q12. Which of the following actions do you take to avoid getting sick?
 
