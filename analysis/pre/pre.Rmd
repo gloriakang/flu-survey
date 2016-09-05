@@ -8,26 +8,23 @@ output:
     toc_depth: 2
 ---
 
-# Comparing weighted and unweighted survey data
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(cache = F, echo = T, warning = F, message = F, tidy = F, size = "small")
 rm(list = ls(all.names = TRUE))
-library(rmarkdown); library(dplyr); library(ggplot2); library(survey);
+library(rmarkdown); library(dplyr); library(ggplot2); library(survey)
 library(gridExtra)
 ```
 
 ```{r}
 ## Load data variables.
-
 load("~/git/flu-survey/data/cleaning2.RData")
 load("~/git/flu-survey/data/recoding.RData")  # load "datar"
+
 df <- datar  # contains recoded variables
 ```
 
 ```{r des}
 ## Create survey object.
-
 options(digits = 4)
 options(survey.lonely.psu = "adjust")
 des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight) == F, ])
@@ -36,18 +33,26 @@ des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight) == F, ]
 ### Example of Q1 by gender.
 
 ```{r example}
-## Example tables of Q1 by gender.
+# unweighted count
+svyby(~Q1, ~Q1+PPGENDER, des, unwtd.count)
 
-as.data.frame(svytable(~Q1 + PPGENDER, design = des, round = T))  # weighted counts
-svyby(~Q1, ~Q1+PPGENDER, des, unwtd.count)  # unweighted counts
-svyby(~Q1, ~PPGENDER, design = des, FUN = svymean, na.rm = T)  # weighted %
-plot(svytable(~Q1 + PPGENDER, des))  # default survey plot
+# weighted count
+as.data.frame(svytable(~Q1 + PPGENDER, design = des))
+
+# weighted count (rounded)
+as.data.frame(svytable(~Q1 + PPGENDER, design = des, round = T))
+
+# weighted %
+svyby(~Q1, ~PPGENDER, design = des, FUN = svymean, na.rm = T)
+
+# default survey plot
+plot(svytable(~Q1 + PPGENDER, des))
 
 ## generic ggplot
 # ggplot(data.frame.here, aes(Q1, Freq, fill = PPGENDER) + geom_bar(stat = 'identity', position = position_dodge())
 ```
 
-## Q1.
+## Q1. Before receiving this survey did you know influenza is different from the stomach flu?
 
 ### By demographic variables:
 - gender, ethnicity, age, education, income, employment, marital status, metro location, region, house type, head of household, rent status, state, internet availability
@@ -59,12 +64,14 @@ q1 <- as.data.frame(svytable(
 
 # make ggplot object
 g1 <- ggplot(q1)
+title <- ggtitle("Did you know influenza is different from the stomach flu?")
+
 g1 + aes(Q1, Freq, fill = PPGENDER) + 
-  geom_bar(stat = 'identity', position = position_dodge())
+  geom_bar(stat = 'identity', position = position_dodge()) + title
 g1 + aes(Q1, Freq, fill = PPETHM) + 
-  geom_bar(stat = 'identity', position = position_dodge())
+  geom_bar(stat = 'identity', position = position_dodge()) + title
 g1 + aes(Q1, Freq, fill = ppagect4) + 
-  geom_bar(stat = 'identity', position = position_stack())
+  geom_bar(stat = 'identity', position = position_stack()) + title
 
 ```
 
@@ -98,19 +105,20 @@ qtest <- as.data.frame(svytable(
   ~Q1 + PPGENDER + PPETHM + ppagect4, design = des, round = T))
 
 p <- ggplot(qtest, aes(weight = Freq))
+title <- ggtitle("Did you know influenza is different from the stomach flu?")
 
 #svytable(~Q1 + PPGENDER, des, round = T)
-(a <- p + aes(PPGENDER, fill = Q1) + geom_bar(width = 0.7, position = "fill"))
+(a <- p + aes(PPGENDER, fill = Q1) + geom_bar(width = 0.7, position = "fill") + title)
 
 #svytable(~Q1 + PPETHM, des, round = T)
 (b <- p + aes(PPETHM, fill = Q1) + geom_bar(width = 0.7, position = "fill") +
-  geom_point(aes(y = -0.05), size = 0.75, alpha = 0.3, position = position_jitter(h = 0.01)))
+  geom_point(aes(y = -0.05), size = 0.75, alpha = 0.3, position = position_jitter(h = 0.01)) + title)
 
 #svytable(~Q1 + ppagect4, des, round = T)
 (c <- p + aes(ppagect4, fill = Q1) + geom_bar(position = "fill") +
-  geom_point(aes(y = -0.05), size = 0.75, alpha = 0.3, position = position_jitter(h = 0.01)))
+  geom_point(aes(y = -0.05), size = 0.75, alpha = 0.3, position = position_jitter(h = 0.01)) + title)
 
-grid.arrange(a, b, c)
+#grid.arrange(a, b, c)
 ```
 
 ### Compare weighted plots to unweighted plots.
@@ -130,6 +138,8 @@ c <- q + geom_bar(aes(Q1, fill = ppagect4), position = "dodge")
 
 grid.arrange(a, b, c)
 ```
+
+
 
 
 ```{r, eval=FALSE, include=FALSE}
