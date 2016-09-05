@@ -3,5 +3,5 @@ account: rpubs
 server: rpubs.com
 appId: https://api.rpubs.com/api/v1/document/206609/1c1670f0e40a4146a22e440eb2b659af
 bundleId: https://api.rpubs.com/api/v1/document/206609/1c1670f0e40a4146a22e440eb2b659af
-url: http://rpubs.com/publish/claim/206609/20bdea45438e42278a698cd9d3b26b33
-when: 1473035280.95144
+url: http://rpubs.com/gkang/206609
+when: 1473043605.10763

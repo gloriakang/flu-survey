@@ -19,7 +19,6 @@ library(gridExtra)
 
 ```{r}
 ## Load data variables.
-
 load("~/git/flu-survey/data/cleaning2.RData")
 load("~/git/flu-survey/data/recoding.RData")  # load "datar"
 df <- datar  # contains recoded variables
@@ -27,11 +26,9 @@ df <- datar  # contains recoded variables
 
 ```{r des}
 ## Create survey object.
-
 options(digits = 4)
 options(survey.lonely.psu = "adjust")
 
-# need to subset data
 des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight) == F, ])
 ```
 
@@ -157,6 +154,8 @@ ggplot(sex, aes(PPGENDER, Q2Yes)) + geom_point() + xlab("sex") + ylab("% sick") 
   ggtitle(label = "% of adults sick last year with ILI by sex") 
 ```
 
+
+
 ```{r, eval=FALSE, include=FALSE}
 ## scratch ##
 
@@ -166,6 +165,33 @@ par(mfrow = c(1, 3))
 
 for (i in temp)
   barplot(table(df[, i]), main = i, ylab = "n")
+
+```
+
+```{r, eval=FALSE, include=FALSE}
+## testing ##
+# weighted
+qtest2 <- as.data.frame(svytable(
+  ~Q2 + PPAGE, design = des, round = T))
+
+#qtest2$PPAGE <- as.integer(qtest2$PPAGE)
+#qtest2$PPAGE
+
+# boxplot for age
+boxplot(PPAGE ~ Q2, data = qtest2, ylab = "age", xlab = "Q2. Have you had an illness with ILI symptoms since August 2015?", main = "Boxplot of age of sick adults")
+
+
+## unweighted
+# boxplot for age
+boxplot(PPAGE ~ Q2, data = df, ylab = "age", xlab = "Q2. Have you had an illness with ILI symptoms since August 2015?", main = "Boxplot of age of sick adults")
+
+# multiple univariate plots
+temp <- c("Q1", "Q2", "Q3")
+par(mfrow = c(1, 3))
+
+for (i in temp)
+  barplot(table(df[, i]), main = i, ylab = "n")
+
 ```
 
 ```{r, eval=FALSE, include=FALSE}
@@ -173,5 +199,6 @@ for (i in temp)
 library(prettyR)
 describe(df[, c("Q1", "Q2", "Q3", "Q4")],
          num.desc = c("mean", "sd", "median", "min", "max", "valid.n"))
+
 ```
 

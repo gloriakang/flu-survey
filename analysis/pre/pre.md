@@ -1,46 +1,115 @@
-# Comparing weighted and unweighted survey data
-
-# Comparing weighted and unweighted survey data
+# Comparing unweighted and weighted survey data
 
 
 
 
 ```r
 ## Load data variables.
-
 load("~/git/flu-survey/data/cleaning2.RData")
 load("~/git/flu-survey/data/recoding.RData")  # load "datar"
+
 df <- datar  # contains recoded variables
 ```
 
 
 ```r
 ## Create survey object.
-
 options(digits = 4)
 options(survey.lonely.psu = "adjust")
 des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight) == F, ])
+```
+
+### Example of unweighted vs. weighted variables.
+
+
+```r
+# unweighted count for gender
+svyby(~PPGENDER, ~PPGENDER, des, unwtd.count)
+```
+
+```
+##        PPGENDER counts se
+## Female   Female   1097  0
+## Male       Male   1071  0
+```
+
+```r
+# weighted gender
+as.data.frame(svytable(~PPGENDER, design = des))
+```
+
+```
+##   PPGENDER Freq
+## 1   Female 1122
+## 2     Male 1046
+```
+
+```r
+# unweighted count for ethnicity
+svyby(~PPGENDER, ~PPETHM, des, unwtd.count)
+```
+
+```
+##                                        PPETHM counts se
+## White, Non-Hispanic       White, Non-Hispanic   1568  0
+## Black, Non-Hispanic       Black, Non-Hispanic    195  0
+## Hispanic                             Hispanic    232  0
+## Other, Non-Hispanic       Other, Non-Hispanic     93  0
+## 2+ Races, Non-Hispanic 2+ Races, Non-Hispanic     80  0
+```
+
+```r
+# weighted ethnicity
+as.data.frame(svytable(~PPETHM, design = des))
+```
+
+```
+##                   PPETHM    Freq
+## 1    White, Non-Hispanic 1410.46
+## 2    Black, Non-Hispanic  253.06
+## 3               Hispanic  332.38
+## 4    Other, Non-Hispanic  144.39
+## 5 2+ Races, Non-Hispanic   27.71
+```
+
+```r
+# unweighted count for age
+svyby(~PPGENDER, ~ppagecat, des, unwtd.count)
+```
+
+```
+##       ppagecat counts se
+## 18-24    18-24    172  0
+## 25-34    25-34    300  0
+## 35-44    35-44    327  0
+## 45-54    45-54    386  0
+## 55-64    55-64    498  0
+## 65-74    65-74    340  0
+## 75+        75+    145  0
+```
+
+```r
+# weighted age
+as.data.frame(svytable(~ppagecat, design = des))
+```
+
+```
+##   ppagecat  Freq
+## 1    18-24 254.5
+## 2    25-34 380.9
+## 3    35-44 369.6
+## 4    45-54 341.2
+## 5    55-64 429.8
+## 6    65-74 274.7
+## 7      75+ 117.4
 ```
 
 ### Example of Q1 by gender.
 
 
 ```r
-## Example tables of Q1 by gender.
-
-as.data.frame(svytable(~Q1 + PPGENDER, design = des, round = T))  # weighted counts
-```
-
-```
-##    Q1 PPGENDER Freq
-## 1 Yes   Female  887
-## 2  No   Female  231
-## 3 Yes     Male  725
-## 4  No     Male  304
-```
-
-```r
-svyby(~Q1, ~Q1+PPGENDER, des, unwtd.count)  # unweighted counts
+# unweighted count
+svyby(~Q1, ~Q1+PPGENDER, des, unwtd.count)
 ```
 
 ```
@@ -52,7 +121,34 @@ svyby(~Q1, ~Q1+PPGENDER, des, unwtd.count)  # unweighted counts
 ```
 
 ```r
-svyby(~Q1, ~PPGENDER, design = des, FUN = svymean, na.rm = T)  # weighted %
+# weighted count
+as.data.frame(svytable(~Q1 + PPGENDER, design = des))
+```
+
+```
+##    Q1 PPGENDER  Freq
+## 1 Yes   Female 886.9
+## 2  No   Female 230.5
+## 3 Yes     Male 725.0
+## 4  No     Male 304.1
+```
+
+```r
+# weighted count (rounded)
+as.data.frame(svytable(~Q1 + PPGENDER, design = des, round = T))
+```
+
+```
+##    Q1 PPGENDER Freq
+## 1 Yes   Female  887
+## 2  No   Female  231
+## 3 Yes     Male  725
+## 4  No     Male  304
+```
+
+```r
+# weighted %
+svyby(~Q1, ~PPGENDER, design = des, FUN = svymean, na.rm = T)
 ```
 
 ```
@@ -62,18 +158,19 @@ svyby(~Q1, ~PPGENDER, design = des, FUN = svymean, na.rm = T)  # weighted %
 ```
 
 ```r
-plot(svytable(~Q1 + PPGENDER, des))  # default survey plot
+# default survey plot
+plot(svytable(~Q1 + PPGENDER, des))
 ```
 
-![](pre_files/figure-html/example-1.png)<!-- -->
+![](pre_files/figure-html/example2-1.png)<!-- -->
 
 ```r
 ## generic ggplot
 # ggplot(data.frame.here, aes(Q1, Freq, fill = PPGENDER) + geom_bar(stat = 'identity', position = position_dodge())
 ```
 
-## Q1.
 
+## Q1. Before receiving this survey did you know influenza is different from the stomach flu?
 ### By demographic variables:
 - gender, ethnicity, age, education, income, employment, marital status, metro location, region, house type, head of household, rent status, state, internet availability
 
@@ -85,22 +182,24 @@ q1 <- as.data.frame(svytable(
 
 # make ggplot object
 g1 <- ggplot(q1)
+title <- ggtitle("Did you know influenza is different from the stomach flu?")
+
 g1 + aes(Q1, Freq, fill = PPGENDER) + 
-  geom_bar(stat = 'identity', position = position_dodge())
+  geom_bar(stat = 'identity', position = position_dodge()) + title
 ```
 
 ![](pre_files/figure-html/q1-1.png)<!-- -->
 
 ```r
 g1 + aes(Q1, Freq, fill = PPETHM) + 
-  geom_bar(stat = 'identity', position = position_dodge())
+  geom_bar(stat = 'identity', position = position_dodge()) + title
 ```
 
 ![](pre_files/figure-html/q1-2.png)<!-- -->
 
 ```r
 g1 + aes(Q1, Freq, fill = ppagect4) + 
-  geom_bar(stat = 'identity', position = position_stack())
+  geom_bar(stat = 'identity', position = position_stack()) + title
 ```
 
 ![](pre_files/figure-html/q1-3.png)<!-- -->
@@ -177,9 +276,10 @@ qtest <- as.data.frame(svytable(
   ~Q1 + PPGENDER + PPETHM + ppagect4, design = des, round = T))
 
 p <- ggplot(qtest, aes(weight = Freq))
+title <- ggtitle("Did you know influenza is different from the stomach flu?")
 
 #svytable(~Q1 + PPGENDER, des, round = T)
-(a <- p + aes(PPGENDER, fill = Q1) + geom_bar(width = 0.7, position = "fill"))
+(a <- p + aes(PPGENDER, fill = Q1) + geom_bar(width = 0.7, position = "fill") + title)
 ```
 
 ![](pre_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
@@ -187,7 +287,7 @@ p <- ggplot(qtest, aes(weight = Freq))
 ```r
 #svytable(~Q1 + PPETHM, des, round = T)
 (b <- p + aes(PPETHM, fill = Q1) + geom_bar(width = 0.7, position = "fill") +
-  geom_point(aes(y = -0.05), size = 0.75, alpha = 0.3, position = position_jitter(h = 0.01)))
+  geom_point(aes(y = -0.05), size = 0.75, alpha = 0.3, position = position_jitter(h = 0.01)) + title)
 ```
 
 ![](pre_files/figure-html/unnamed-chunk-3-2.png)<!-- -->
@@ -195,7 +295,7 @@ p <- ggplot(qtest, aes(weight = Freq))
 ```r
 #svytable(~Q1 + ppagect4, des, round = T)
 (c <- p + aes(ppagect4, fill = Q1) + geom_bar(position = "fill") +
-  geom_point(aes(y = -0.05), size = 0.75, alpha = 0.3, position = position_jitter(h = 0.01)))
+  geom_point(aes(y = -0.05), size = 0.75, alpha = 0.3, position = position_jitter(h = 0.01)) + title)
 ```
 
 ![](pre_files/figure-html/unnamed-chunk-3-3.png)<!-- -->
@@ -261,9 +361,5 @@ grid.arrange(a, b, c)
 ```
 
 ![](pre_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
-
-
-
-
 
 
