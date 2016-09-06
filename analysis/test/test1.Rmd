@@ -1,0 +1,82 @@
+---
+title: "test1"
+output: 
+  html_document:
+    keep_md: yes
+    toc: yes
+    theme: paper
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache = F, echo = T, warning = F, message = F, tidy = F, size = "small")
+rm(list = ls(all.names = TRUE))
+
+library(rmarkdown); library(dplyr); library(ggplot2); library(survey); library(gridExtra)
+```
+
+```{r}
+## Load data variables.
+load("~/git/flu-survey/data/cleaning2.RData")
+load("~/git/flu-survey/data/recoding.RData")  # load "datar"
+df <- datar  # contains recoded variables
+```
+
+```{r des}
+## Create survey object.
+options(digits = 4)
+options(survey.lonely.psu = "adjust")
+
+des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight) == F, ])  # what is nest?
+```
+
+From: https://rpubs.com/corey_sparks/59698
+
+```{r}
+# simple descriptives
+svyhist(~PPAGE, des)
+
+```
+
+
+
+
+
+
+
+
+
+
+Example of Q1 by gender.
+```{r example}
+## Example tables of Q1 by gender.
+
+svyby(~Q1, ~Q1+PPGENDER, des, unwtd.count)  # unweighted count
+svytable(~Q1 + PPGENDER, design = des, round = T) # weighted count
+as.data.frame(svytable(~Q1 + PPGENDER, design = des, round = T))
+svyby(~Q1, ~PPGENDER, des, svytotal, na.rm = T) # weighted count with se
+prop.table(svytable(~Q1 + PPGENDER, design = des), margin = 2)  # weighted %
+svyby(~Q1, ~PPGENDER, des, svymean, na.rm = T)  # weighted % with se
+
+# default survey plot
+plot(svytable(~Q1 + PPGENDER, des))
+
+## generic ggplot
+# ggplot(df, aes(Q1, Freq, fill = PPGENDER) + geom_bar(stat = 'identity', position = position_dodge())
+```
+
+```{r q1}
+# save freq table as data.frame
+q1 <- as.data.frame(svytable(
+  ~Q1 + PPGENDER + PPETHM + ppagect4, design = des, round = T))
+
+# make ggplot object
+g1 <- ggplot(q1)
+g1 + aes(Q1, Freq, fill = PPGENDER) + 
+  geom_bar(stat = 'identity', position = position_dodge())
+g1 + aes(Q1, Freq, fill = PPETHM) + 
+  geom_bar(stat = 'identity', position = position_dodge())
+g1 + aes(Q1, Freq, fill = ppagect4) + 
+  geom_bar(stat = 'identity', position = position_stack())
+```
+
