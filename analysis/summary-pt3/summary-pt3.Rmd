@@ -59,8 +59,7 @@ des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight)==F, ])
 ```
 
 ```{r ggplot, include=FALSE}
-#### create ggplot templates ####
-
+### create ggplot templates ###
 ptext <- theme(axis.text = element_text(size = rel(0.9)), axis.text.x = element_text(angle = 45, hjust = 1))
 pgen <- aes(PPGENDER)
 page <- aes(ppagect4)
@@ -73,47 +72,73 @@ er <- geom_errorbar(aes(ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2Yes), width
 ```
 
 
-
 ## Q21. Are influenza vaccines covered by your health insurance?
+
 
 ```{r}
 
 q21 <- as.data.frame(svytable(
   ~Q21 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
+title <- ggtitle("Q21. Are influenza vaccines covered by your health insurance?")
 p <- ggplot(q21, aes(Q21, weight = Freq)) + ptext
-p + geom_bar()
+p + geom_bar() + title
 
 ```
 
-### Q22. Do you do any of the following when you have influenza symptoms?
+
+## Q22. Do you do any of the following when you have influenza symptoms?
+
+
 ```{r}
 
+title <- ggtitle("Q22. Do you do any of the following when you have influenza symptoms?")
+
 ```
 
-### Q23. Which of the following actions do you take when you have influenza symptoms to avoid someone else from getting sick?
+
+## Q23. Which of the following actions do you take when you have influenza symptoms to avoid someone else from getting sick?
+
+
 ```{r}
 
+title <- ggtitle("Q23. Which of the following actions do you take when you have influenza symptoms to avoid someone else from getting sick?")
+
 ```
 
-### Q24. What sources of information do you recall hearing or seeing about influenza outbreaks?
+
+## Q24. What sources of information do you recall hearing or seeing about influenza outbreaks?
+
+
 ```{r}
 
+title <- ggtitle("Q24. What sources of information do you recall hearing or seeing about influenza outbreaks?")
+
 ```
 
-### Q25. If you received information from the news, internet or other public media that there was an influenza outbreak in your community would you do any of the following?
+
+## Q25. If you received information from the news, internet or other public media that there was an influenza outbreak in your community would you do any of the following?
+
+
 ```{r}
 
+
+title <- ggtitle("Q25. If you received information from the news, internet or other public media that there was an influenza outbreak in your community would you do any of the following?")
+
+
 ```
+
 
 ## Q26. Does your household have children?
+
 
 ```{r}
 q26 <- as.data.frame(svytable(
   ~Q26 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
+title <- ggtitle("Q26. Does your household have children?")
 p <- ggplot(q26, aes(Q26, weight = Freq)) + ptext
-p + geom_bar()
+p + geom_bar() + title
 
 ## plot means
 svychisq(~Q2 + Q26, des)
@@ -122,19 +147,28 @@ ggplot(q, aes(Q26, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er +
   ggtitle(label = "% of adults sick and having children in household") 
 ```
 
-### Q27. What actions do you take when a child in your household has influenza symptoms?
+
+## Q27. What actions do you take when a child in your household has influenza symptoms?
+
+
 ```{r}
+
+
+title <- ggtitle("Q27. What actions do you take when a child in your household has influenza symptoms?")
 
 ```
 
+
 ## Q28. Are you a single parent?
+
 
 ```{r}
 q28 <- as.data.frame(svytable(
   ~Q28 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
+title <- ggtitle("Q28. Are you a single parent?")
 p <- ggplot(q28, aes(Q28, weight = Freq)) + ptext
-p + geom_bar()
+p + geom_bar() + title
 
 
 ## plot means
@@ -145,37 +179,63 @@ ggplot(q, aes(Q28, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er +
 
 ```
 
-### Q29. How do you care for a sick child? (married parent)
+
+## Q29. How do you care for a sick child? (married parent)
+
+
 ```{r}
+
+
+title <- ggtitle("Q29. How do you care for a sick child? (married parent)")
+
 
 ```
 
-### Q30. How do you care for a sick child? (single parent)
+
+## Q30. How do you care for a sick child? (single parent)
+
+
 ```{r}
+
+
+title <- ggtitle("Q30. How do you care for a sick child? (single parent)")
+
 
 ```
 
-### Q31. How many hours of screen time (time spent watching television, a computer, smartphone, iPad, etc.) do you spend each day on average when you are not sick? Enter 0 if none
+
+## Q31. How many hours of screen time (time spent watching television, a computer, smartphone, iPad, etc.) do you spend each day on average when you are not sick? Enter 0 if none
+
 
 ```{r}
 # histogram
 
 
+title <- ggtitle("Q31. How many hours of screen time (time spent watching television, a computer, smartphone, iPad, etc.) do you spend each day on average when you are not sick?")
+
 ```
 
-### Q32. How many hours of screen time do you spend each day on average when you are sick? Enter 0 if none
+
+## Q32. How many hours of screen time do you spend each day on average when you are sick? Enter 0 if none
+
 
 ```{r}
 # histogram
 
 
+title <- ggtitle("Q32. How many hours of screen time do you spend each day on average when you are sick?")
+
 ```
 
-### Q33. How many people, including yourself, reside in your household?
+
+## Q33. How many people, including yourself, reside in your household?
+
 
 ```{r}
 # histogram
 
+
+title <- ggtitle("Q33. How many people, including yourself, reside in your household?")
 
 ```
 
