@@ -1,0 +1,15 @@
+From: http://faculty.washington.edu/tlumley/survey-jsm-nup.pdf
+Available regression models in survey package
+
+svyglm for linear and generalized linear models (and regression estimator of total via predict()
+
+svyolr for proportional odds and other cumulative link models.
+
+svyloglin for loglinear models.
+
+
+
+
+
+
+

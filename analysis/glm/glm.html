@@ -129,27 +129,18 @@ $(document).ready(function () {
 </ul>
 </div>
 
-<pre class="r"><code>## Load data and recoded variables.
-
-load(&quot;~/git/flu-survey/data/cleaning2.RData&quot;)
-data &lt;- dataf
-
-#source(recoding.R)
-load(&quot;~/git/flu-survey/data/recoding.RData&quot;)
-df &lt;- datar  # datar contains recoded variables
-#tail(df)</code></pre>
-<pre class="r"><code>## Create survey object with weights, des
-
+<pre class="r"><code>## Create survey object
 options(digits = 4)
 options(survey.lonely.psu = &quot;adjust&quot;)
-des &lt;- svydesign(ids = ~1, weights = ~weight, data = data[is.na(data$weight) == F, ])
+
+des &lt;- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight) == F, ])
 #summary(des)</code></pre>
 <div id="survey-questions" class="section level1">
 <h1>Survey questions</h1>
 <div id="q1.-before-receiving-this-survey-did-you-know-influenza-is-different-from-the-stomach-flu" class="section level2">
 <h2>Q1. Before receiving this survey, did you know influenza is different from the stomach flu?</h2>
-<div id="compare-sex-ratios-in-unweighted-and-weighted-data-frames-for-q1." class="section level3">
-<h3>Compare sex ratios in unweighted and weighted data frames for Q1.</h3>
+<div id="compare-unweighted-and-weighted-sex-ratios-for-q1" class="section level3">
+<h3>Compare unweighted and weighted sex ratios for Q1</h3>
 <pre class="r"><code># unweighted Q1
 with(data, addmargins(table(Q1, PPGENDER)))</code></pre>
 <pre><code>##      PPGENDER
@@ -157,63 +148,60 @@ with(data, addmargins(table(Q1, PPGENDER)))</code></pre>
 ##   Yes    888  776 1664
 ##   No     205  283  488
 ##   Sum   1093 1059 2152</code></pre>
+<pre class="r"><code>svyby(~Q1, ~Q1+PPGENDER, des, unwtd.count)</code></pre>
+<pre><code>##             Q1 PPGENDER counts se
+## Yes.Female Yes   Female    888  0
+## No.Female   No   Female    205  0
+## Yes.Male   Yes     Male    776  0
+## No.Male     No     Male    283  0</code></pre>
 <pre class="r"><code># weighted Q1
 svytable(~Q1 + PPGENDER, design = des, round = T)</code></pre>
 <pre><code>##      PPGENDER
 ## Q1    Female Male
 ##   Yes    887  725
 ##   No     231  304</code></pre>
-<pre class="r"><code># another unweighted table
-svyby(~Q1, ~Q1+PPGENDER, des, unwtd.count)</code></pre>
-<pre><code>##             Q1 PPGENDER counts se
-## Yes.Female Yes   Female    888  0
-## No.Female   No   Female    205  0
-## Yes.Male   Yes     Male    776  0
-## No.Male     No     Male    283  0</code></pre>
-<pre class="r"><code># unweighted prop
+<pre class="r"><code># unweighted proportion
 (u &lt;- with(data, prop.table(table(Q1, PPGENDER), margin = 2))*100)  </code></pre>
 <pre><code>##      PPGENDER
 ## Q1    Female  Male
 ##   Yes  81.24 73.28
 ##   No   18.76 26.72</code></pre>
-<pre class="r"><code># weighted prop
+<pre class="r"><code># weighted proportion
 (w &lt;- prop.table(svytable(~Q1 + PPGENDER, design = des), margin = 2)*100)</code></pre>
 <pre><code>##      PPGENDER
 ## Q1    Female  Male
 ##   Yes  79.37 70.45
 ##   No   20.63 29.55</code></pre>
-<pre class="r"><code># figure out how to plot weighted survey designs
-
-# table above with standard errors
-svyby(formula = ~Q1, by = ~PPGENDER, design = des, FUN = svymean, na.rm = T)</code></pre>
-<pre><code>##        PPGENDER  Q1Yes   Q1No se.Q1Yes se.Q1No
-## Female   Female 0.7937 0.2063  0.01373 0.01373
-## Male       Male 0.7045 0.2955  0.01562 0.01562</code></pre>
-<p>In the unweighted data frame, 81.2443% of females and 73.2767% of males answered Yes. 26.7233% of males and 18.7557% of females answered No.<br />
-In the weighted data frame, 79.3709% of females and 70.4534% of males answered Yes. 29.5466% of males and 20.6291% of females answered No.</p>
+<pre class="r"><code># table above with standard errors
+ftable(svyby(formula = ~Q1, by = ~PPGENDER, design = des, FUN = svymean, na.rm = T))</code></pre>
+<pre><code>##                     Q1Yes    Q1No
+## PPGENDER                         
+## Female   svymean  0.79371 0.20629
+##          SE       0.01373 0.01373
+## Male     svymean  0.70453 0.29547
+##          SE       0.01562 0.01562</code></pre>
+<hr />
 </div>
 </div>
 <div id="q2.-have-you-had-an-illness-with-influenza-like-symptoms-since-august-2015" class="section level2">
 <h2>Q2. Have you had an illness with influenza-like symptoms since August 2015?</h2>
-<div id="first-look-at-unweighted-data.-calculate-unadjusted-or-for-being-sick-by-gender." class="section level3">
-<h3>First look at unweighted data. Calculate unadjusted OR for being sick by gender.</h3>
-<pre class="r"><code>## without weights
-
+<div id="first-look-at-unweighted.-calculate-or-for-being-sick-by-gender." class="section level3">
+<h3>First look at unweighted. Calculate OR for being sick by gender.</h3>
+<pre class="r"><code>## unweighted
 # recode datar$Q2
-head(datar$Q2)</code></pre>
-<pre><code>## [1] No No No No No No
-## Levels: Yes No</code></pre>
-<pre class="r"><code>df$sick &lt;- car::recode(datar$Q2, recodes = &quot;'Yes' = 1; 'No' = 0; NA = NA&quot;)
-head(df$sick)</code></pre>
-<pre><code>## [1] 0 0 0 0 0 0
-## Levels: 0 1</code></pre>
-<pre class="r"><code># table Q2 by gender
+#head(datar$Q2)
+
+# sick = 1; not sick = 0
+df$sick &lt;- car::recode(datar$Q2, recodes = &quot;'Yes' = 1; 'No' = 0; NA = NA&quot;)
+#head(df$sick)
+
+# unwtd table Q2 by gender
 with(df, table(Q2, PPGENDER))</code></pre>
 <pre><code>##      PPGENDER
 ## Q2    Female Male
 ##   Yes    234  180
 ##   No     858  877</code></pre>
-<pre class="r"><code># glm without weights
+<pre class="r"><code># glm unwtd
 fit1 &lt;- glm(sick ~ PPGENDER, data = df, family = binomial())
 summary(fit1)</code></pre>
 <pre><code>## 
@@ -242,20 +230,19 @@ summary(fit1)</code></pre>
 <pre class="r"><code>(q2.u &lt;- exp(coefficients(fit1)))  # OR</code></pre>
 <pre><code>##  (Intercept) PPGENDERMale 
 ##       0.2727       0.7526</code></pre>
-<p>The unadjusted odds ratio of being sick as a male is 0.7526 compared to females.</p>
+<p>Odds ratio of being sick as a male is 0.7526 compared to females.</p>
 </div>
-<div id="apply-survey-design-and-weights-for-q2.-calculate-unadjusted-or-for-getting-sick-by-gender." class="section level3">
-<h3>Apply survey design and weights for Q2. Calculate unadjusted OR for getting sick by gender.</h3>
-<pre class="r"><code>## With survey weights
-
-# relevel PPGENDER
+<div id="apply-survey-weights-for-q2.-calculate-or-for-getting-sick-by-gender." class="section level3">
+<h3>Apply survey weights for Q2. Calculate OR for getting sick by gender.</h3>
+<pre class="r"><code>## weighted
+# relevel PPGENDER, set male as reference group
 df$PPGENDER &lt;- relevel(datar$PPGENDER, &quot;Male&quot;)
 
-# create updated survey object with weights = des2
+# update survey object
 options(survey.lonely.psu = &quot;adjust&quot;)
 des2 &lt;- svydesign(ids = ~1, weights = ~weight, data = df)  # data = df
 
-# svyglm with weighted model
+# wtd svyglm
 m1 &lt;- svyglm(sick ~ PPGENDER, des2, family = quasibinomial())
 summary(m1)</code></pre>
 <pre><code>## 
@@ -275,18 +262,20 @@ summary(m1)</code></pre>
 ## (Dispersion parameter for quasibinomial family taken to be 0.9992)
 ## 
 ## Number of Fisher Scoring iterations: 4</code></pre>
-<pre class="r"><code>(or1 &lt;- exp(coefficients(m1)))  # unadjusted OR</code></pre>
+<pre class="r"><code># OR
+(or1 &lt;- exp(coefficients(m1)))</code></pre>
 <pre><code>##    (Intercept) PPGENDERFemale 
 ##          0.211          1.347</code></pre>
-<pre class="r"><code>exp(confint(m1))  # 95% CI </code></pre>
+<pre class="r"><code># 95% CI 
+exp(confint(m1))</code></pre>
 <pre><code>##                 2.5 % 97.5 %
 ## (Intercept)    0.1773 0.2511
 ## PPGENDERFemale 1.0676 1.7005</code></pre>
-<p>In the weighted data frame, females had 1.3474 times the odds of being sick compared to males.</p>
+<p>In the weighted data, females had 1.3474 times the odds of being sick compared to males.</p>
 </div>
 <div id="calculate-or-for-being-sick-adjusted-for-ethnicity" class="section level3">
 <h3>Calculate OR for being sick, adjusted for ethnicity</h3>
-<pre class="r"><code># being sick, by ethnicity
+<pre class="r"><code># being sick = 1; by ethnicity; white = reference level
 m2 &lt;- svyglm(sick ~ PPETHM, des2, family = quasibinomial())
 summary(m2)</code></pre>
 <pre><code>## 
@@ -309,14 +298,16 @@ summary(m2)</code></pre>
 ## (Dispersion parameter for quasibinomial family taken to be 0.9992)
 ## 
 ## Number of Fisher Scoring iterations: 4</code></pre>
-<pre class="r"><code>(or2 &lt;- exp(coefficients(m2)))  # OR adjusted for race</code></pre>
+<pre class="r"><code># OR adjusted for ethnicity
+(or2 &lt;- exp(coefficients(m2)))</code></pre>
 <pre><code>##                  (Intercept)    PPETHMBlack, Non-Hispanic 
 ##                       0.2109                       1.1840 
 ##               PPETHMHispanic    PPETHMOther, Non-Hispanic 
 ##                       1.8071                       1.6028 
 ## PPETHM2+ Races, Non-Hispanic 
 ##                       1.5035</code></pre>
-<pre class="r"><code>exp(confint(m2))  # note 95% CI for hispanic group</code></pre>
+<pre class="r"><code># note 95% CI for hispanic group
+exp(confint(m2))</code></pre>
 <pre><code>##                               2.5 % 97.5 %
 ## (Intercept)                  0.1839 0.2418
 ## PPETHMBlack, Non-Hispanic    0.8004 1.7514
@@ -325,27 +316,93 @@ summary(m2)</code></pre>
 ## PPETHM2+ Races, Non-Hispanic 0.8687 2.6023</code></pre>
 <p>Compared to whites, OR for being sick are 1.184, 1.8071, 1.6028, 1.5035 for blacks, hispanics, others, and 2+ races, respectively.</p>
 <p>Notes: When a logistic regression is calculated, the regression coefficient (b1) is the estimated increase in the log odds of the outcome per unit increase in the value of the exposure; the exponential function of the regression coefficient (e^b1) is the odds ratio associated with a one-unit increase in the exposure.</p>
+<pre class="r"><code>## should I recode each variable as binomial? or re-level a reference group each time?
+## same as above but with recoded 1,0 variables; can change reference level
+
+# first recode xi variables
+#summary(datar$PPETHM)
+df$white &lt;- car::recode(datar$PPETHM, recodes = &quot;'White, Non-Hispanic' = 1; NA = NA; else = 0&quot;)
+df$black &lt;- car::recode(datar$PPETHM, recodes = &quot;'Black, Non-Hispanic' = 1; NA = NA; else = 0&quot;)
+df$hispanic &lt;- car::recode(datar$PPETHM, recodes = &quot;'Hispanic' = 1; NA = NA; else = 0&quot;)
+df$otherrace &lt;- car::recode(datar$PPETHM, recodes = &quot;'Other, Non-Hispanic' = 1; NA = NA; else = 0&quot;)
+df$more2race &lt;- car::recode(datar$PPETHM, recodes = &quot;'2+ Races, Non-Hispanic' = 1; NA = NA; else = 0&quot;)
+#tail(df)
+
+# update survey object mx
+options(survey.lonely.psu = &quot;adjust&quot;)
+desx &lt;- svydesign(ids = ~1, weights = ~weight, data = df)
+
+# being sick; black = 1; not black = 0
+mx &lt;- svyglm(sick ~ black, desx, family = quasibinomial())
+#summary(mx)
+mx2 &lt;- update(mx, ~ . + hispanic)
+mx3 &lt;- update(mx2, ~ . + otherrace)
+mx4 &lt;- update(mx3, ~ . + more2race)
+mx5 &lt;- update(mx4, ~ . + white)  # reference group
+
+# compare
+mtable(mx, mx2, mx3, mx4, mx5)</code></pre>
+<pre><code>## 
+## Calls:
+## mx: svyglm(formula = sick ~ black, desx, family = quasibinomial())
+## mx2: svyglm(formula = sick ~ black + hispanic, desx, family = quasibinomial())
+## mx3: svyglm(formula = sick ~ black + hispanic + otherrace, desx, family = quasibinomial())
+## mx4: svyglm(formula = sick ~ black + hispanic + otherrace + more2race, 
+##     desx, family = quasibinomial())
+## mx5: svyglm(formula = sick ~ black + hispanic + otherrace + more2race + 
+##     white, desx, family = quasibinomial())
+## 
+## ===============================================================================
+##                            mx         mx2        mx3        mx4        mx5     
+## -------------------------------------------------------------------------------
+##   (Intercept)           -1.395***  -1.499***  -1.548***  -1.557***  -1.557***  
+##                         (0.062)    (0.067)    (0.068)    (0.070)    (0.070)    
+##   black: 1/0             0.007      0.112      0.160      0.169      0.169     
+##                         (0.197)    (0.199)    (0.199)    (0.200)    (0.200)    
+##   hispanic: 1/0                     0.534**    0.583***   0.592***   0.592***  
+##                                    (0.167)    (0.167)    (0.168)    (0.168)    
+##   otherrace: 1/0                               0.463      0.472      0.472     
+##                                               (0.261)    (0.261)    (0.261)    
+##   more2race: 1/0                                          0.408      0.408     
+##                                                          (0.280)    (0.280)    
+## -------------------------------------------------------------------------------
+##   Aldrich-Nelson R-sq.      0.0        0.0        0.0        0.0        0.0    
+##   McFadden R-sq.            0.0        0.0        0.0        0.0        0.0    
+##   Cox-Snell R-sq.           0.0        0.0        0.0        0.0        0.0    
+##   Nagelkerke R-sq.          0.0        0.0        0.0        0.0        0.0    
+##   phi                       1.0        1.0        1.0        1.0        1.0    
+##   Likelihood-ratio          0.0       13.9       18.8       19.5       19.5    
+##   p                         1.0        0.0        0.0        0.0        0.0    
+##   Log-likelihood         2140.7     2126.8     2122.0     2121.2     2121.2    
+##   Deviance               2140.7     2126.8     2122.0     2121.2     2121.2    
+##   N                      2146       2146       2146       2146       2146      
+## ===============================================================================</code></pre>
+<pre class="r"><code># odds ratios
+exp(coefficients(mx5))</code></pre>
+<pre><code>## (Intercept)      black1   hispanic1  otherrace1  more2race1 
+##      0.2109      1.1840      1.8071      1.6028      1.5035</code></pre>
+<pre class="r"><code>## answer: re-level reference group</code></pre>
 <hr />
 </div>
-<div id="compare-model-variables-for-being-sick." class="section level3">
-<h3>Compare model variables for being sick.</h3>
-<pre class="r"><code>#des2 &lt;- svydesign(ids = ~1, weights = ~weight, data = df)
+<div id="compare-model-variables-for-being-sick-adjust-for-gender-ethnicity-employment-and-marital-status" class="section level3">
+<h3>Compare model variables for being sick: adjust for gender, ethnicity, employment, and marital status</h3>
+<pre class="r"><code>des3 &lt;- svydesign(ids = ~1, weights = ~weight, data = df)
 
 ## sick = 1, not sick = 0
 # add variables to glm with survey design
-a1 &lt;- svyglm(sick ~ PPGENDER, des2, family = quasibinomial())  # by gender
+a1 &lt;- svyglm(sick ~ PPGENDER, des3, family = quasibinomial())  # by gender
 a2 &lt;- update(a1, ~ . + PPETHM)  # adjust for race
 a3 &lt;- update(a2, ~ . + work)  #  work
 a4 &lt;- update(a3, ~ . + marital)  # marital status
 
-# memisc: need to modify summary function
+# memisc; can modify summary function
 mtable(a1, a2, a3, a4)</code></pre>
 <pre><code>## 
 ## Calls:
-## a1: svyglm(formula = sick ~ PPGENDER, des2, family = quasibinomial())
-## a2: svyglm(formula = sick ~ PPGENDER + PPETHM, des2, family = quasibinomial())
-## a3: svyglm(formula = sick ~ PPGENDER + PPETHM + work, des2, family = quasibinomial())
-## a4: svyglm(formula = sick ~ PPGENDER + PPETHM + work + marital, des2, 
+## a1: svyglm(formula = sick ~ PPGENDER, des3, family = quasibinomial())
+## a2: svyglm(formula = sick ~ PPGENDER + PPETHM, des3, family = quasibinomial())
+## a3: svyglm(formula = sick ~ PPGENDER + PPETHM + work, des3, family = quasibinomial())
+## a4: svyglm(formula = sick ~ PPGENDER + PPETHM + work + marital, des3, 
 ##     family = quasibinomial())
 ## 
 ## ==================================================================================================
@@ -380,7 +437,7 @@ mtable(a1, a2, a3, a4)</code></pre>
 ##   N                                                    2146       2146       2146       2146      
 ## ==================================================================================================</code></pre>
 <pre class="r"><code># AOR for last glm
-(or &lt;- exp(coefficients(a4)))</code></pre>
+exp(coefficients(a4))</code></pre>
 <pre><code>##                  (Intercept)               PPGENDERFemale 
 ##                       0.1521                       1.4011 
 ##    PPETHMBlack, Non-Hispanic               PPETHMHispanic 
@@ -389,33 +446,33 @@ mtable(a1, a2, a3, a4)</code></pre>
 ##                       1.5806                       1.4872 
 ##                 workemployed             maritalpartnered 
 ##                       1.2682                       0.9943</code></pre>
-<p>When adjusting for gender, ethnicity, employment, and marital status, significant variables for being sick included female gender (OR = 1.4011) and hispanic ethnicity (OR = 1.8491)</p>
+<p>When adjusting for gender, ethnicity, employment, and marital status, significant variables for being sick included being female (compared to males) and hispanic (compared to white).</p>
 <hr />
 </div>
 </div>
 <div id="q13.-do-you-get-an-influenza-vaccine-yes-every-year-yes-some-years-no-never" class="section level2">
 <h2>Q13. Do you get an influenza vaccine? (Yes, every year; Yes, some years; No, never)</h2>
 <pre class="r"><code># first make sure Q13 has been re-grouped
-head(datar$Q13)  # original</code></pre>
+head(datar$Q13)  # original: 3 answers</code></pre>
 <pre><code>## [1] Yes, every year &lt;NA&gt;            Yes, every year Yes, some years
 ## [5] Yes, every year Yes, some years
 ## Levels: Yes, every year Yes, some years No, never</code></pre>
-<pre class="r"><code>head(df$q13)  # updated</code></pre>
+<pre class="r"><code>head(df$q13)  # updated: 2 answers</code></pre>
 <pre><code>## [1] Yes  &lt;NA&gt; Yes  Yes  Yes  Yes 
 ## Levels: Yes No</code></pre>
-<pre class="r"><code># relevel q13
+<pre class="r"><code># relevel q13; no vaccine = reference
 df$q13 &lt;- relevel(df$q13, &quot;No&quot;)
 
 # update survey object
 options(survey.lonely.psu = &quot;adjust&quot;)
-des3 &lt;- svydesign(ids = ~1, weights = ~weight, data = df)
+des4 &lt;- svydesign(ids = ~1, weights = ~weight, data = df)
 
 # getting sick ~ getting vaccine
-m5 &lt;- svyglm(sick ~ q13, des3, family = quasibinomial)
-summary(m5)</code></pre>
+m &lt;- svyglm(sick ~ q13, des4, family = quasibinomial)
+summary(m)</code></pre>
 <pre><code>## 
 ## Call:
-## svyglm(formula = sick ~ q13, des3, family = quasibinomial)
+## svyglm(formula = sick ~ q13, des4, family = quasibinomial)
 ## 
 ## Survey design:
 ## svydesign(ids = ~1, weights = ~weight, data = df)
@@ -430,72 +487,113 @@ summary(m5)</code></pre>
 ## (Dispersion parameter for quasibinomial family taken to be 0.9979)
 ## 
 ## Number of Fisher Scoring iterations: 4</code></pre>
-<pre class="r"><code>(or5 &lt;- exp(coefficients(m5)))</code></pre>
+<pre class="r"><code># OR
+exp(coefficients(m))</code></pre>
 <pre><code>## (Intercept)      q13Yes 
 ##      0.2091      1.3231</code></pre>
-<p>Those who get the vaccine had 1.3231 the odds of getting sick compared to those who do not get the vaccine.</p>
+<p>Those receiving the vaccine had 1.3231 higher odds of getting sick compared to those who did not get the vaccine.</p>
 <pre class="r"><code># Q2 + Q13 tables with weights
-svytable(~q13 + sick, design = des3, round = T)  # sick = 1, not sick = 0</code></pre>
+svytable(~q13 + sick, des4, round = T)  # sick = 1, not sick = 0</code></pre>
 <pre><code>##      sick
 ## q13     0   1
 ##   No  711 149
 ##   Yes 999 276</code></pre>
-<pre class="r"><code>(t2 &lt;- prop.table(svytable(~q13 + sick, design = des2), margin = 2)* 100)</code></pre>
+<pre class="r"><code>(t2 &lt;- prop.table(svytable(~q13 + sick, des4), margin = 2)* 100)</code></pre>
 <pre><code>##      sick
 ## q13       0     1
-##   Yes 58.43 65.03
-##   No  41.57 34.97</code></pre>
-<pre class="r"><code>(t1 &lt;- prop.table(svytable(~q13 + sick, design = des2), margin = 1)* 100)</code></pre>
+##   No  41.57 34.97
+##   Yes 58.43 65.03</code></pre>
+<pre class="r"><code>(t1 &lt;- prop.table(svytable(~q13 + sick, des4), margin = 1)* 100)</code></pre>
 <pre><code>##      sick
 ## q13       0     1
-##   Yes 78.33 21.67
-##   No  82.70 17.30</code></pre>
-<p>Out of those who reported being sick, 34.9712% reported receiving vaccine.<br />
-Out of those who were healthy, 65.0288% received vaccine (58.427% did not).</p>
-<p>Vaccinated group: 21.6726% report no illness.<br />
-Unvaccinated group: 78.3274% report no illness.</p>
+##   No  82.70 17.30
+##   Yes 78.33 21.67</code></pre>
+<p>Out of those sick, 65.0288% reported receiving the vaccine.<br />
+Out of those healthy, 34.9712% received the vaccine (41.573% did not).</p>
+<p>Vaccinated group: 17.2955% report no illness.<br />
+Unvaccinated group: 82.7045% report no illness.</p>
 <hr />
-<div id="logistic-regression-for-q2-and-q13.-subset-sick-vaccinated-group." class="section level3">
-<h3>Logistic regression for Q2 and Q13. Subset sick + vaccinated group.</h3>
-<pre class="r"><code># subset sick and vaccinated into new df2
-df2 &lt;- df %&gt;%
-  mutate(sickq13 = ifelse((sick == 1 &amp; q13 == &quot;Yes&quot;), 1, 0))
+<div id="subset-sick-vaccinated-group." class="section level3">
+<h3>Subset sick + vaccinated group.</h3>
+<pre class="r"><code># subset data for sick and vaccinated
+sick_vax &lt;- df %&gt;%
+  mutate(sickvax = ifelse((sick == 1 &amp; q13 == &quot;Yes&quot;), 1, 0))
 
-df2$sickq13 &lt;- as.factor(df2$sickq13)
-str(df2$sickq13)</code></pre>
+sick_vax$sickvax &lt;- as.factor(sick_vax$sickvax)
+str(sick_vax$sickvax)</code></pre>
 <pre><code>##  Factor w/ 2 levels &quot;0&quot;,&quot;1&quot;: 1 1 1 1 1 1 1 1 2 1 ...</code></pre>
 <pre class="r"><code># table of sick and vaccine status
-xtabs(~sick + q13, df2)</code></pre>
+xtabs(~sick + q13, sick_vax)</code></pre>
 <pre><code>##     q13
 ## sick   No  Yes
 ##    0  674 1053
 ##    1  144  269</code></pre>
 <pre class="r"><code># sick and vaccinated = 1, else = 0
-table(df2$sickq13)</code></pre>
+table(sick_vax$sickvax)</code></pre>
 <pre><code>## 
 ##    0    1 
 ## 1880  269</code></pre>
+<pre class="r"><code># update survey object
+options(survey.lonely.psu = &quot;adjust&quot;)
+des5 &lt;- svydesign(ids = ~1, weights = ~weight, data = sick_vax)
+
+## who is getting sick after vaccinations?
+# age group
+ftable(svyby(~sickvax, ~ppagecat, des5, svymean, na.rm = T))</code></pre>
+<pre><code>##                   sickvax0 sickvax1
+## ppagecat                           
+## 18-24    svymean   0.85953  0.14047
+##          SE        0.02729  0.02729
+## 25-34    svymean   0.89066  0.10934
+##          SE        0.01887  0.01887
+## 35-44    svymean   0.83698  0.16302
+##          SE        0.02172  0.02172
+## 45-54    svymean   0.87832  0.12168
+##          SE        0.01742  0.01742
+## 55-64    svymean   0.88228  0.11772
+##          SE        0.01527  0.01527
+## 65-74    svymean   0.84925  0.15075
+##          SE        0.02287  0.02287
+## 75+      svymean   0.93337  0.06663
+##          SE        0.02197  0.02197</code></pre>
+<pre class="r"><code>ftable(svyby(~ppagecat, ~sickvax, des5, svymean, na.rm = T))</code></pre>
+<pre><code>##                  ppagecat18-24 ppagecat25-34 ppagecat35-44 ppagecat45-54 ppagecat55-64 ppagecat65-74 ppagecat75+
+## sickvax                                                                                                         
+## 0       svymean       0.117019      0.176415      0.164462      0.158853      0.200725      0.124578    0.057948
+##         SE            0.009241      0.010315      0.009539      0.008519      0.009350      0.007300    0.005136
+## 1       svymean       0.129351      0.146472      0.216646      0.148848      0.181136      0.149569    0.027978
+##         SE            0.024790      0.024425      0.027704      0.021386      0.023224      0.023188    0.009463</code></pre>
+<pre class="r"><code># gender
+ftable(svyby(~sickvax, ~PPGENDER, des5, svymean, na.rm = T))</code></pre>
+<pre><code>##                   sickvax0 sickvax1
+## PPGENDER                           
+## Male     svymean   0.88367  0.11633
+##          SE        0.01070  0.01070
+## Female   svymean   0.85971  0.14029
+##          SE        0.01145  0.01145</code></pre>
+<pre class="r"><code>ftable(svyby(~PPGENDER, ~sickvax, des5, svymean, na.rm = T))</code></pre>
+<pre><code>##                  PPGENDERMale PPGENDERFemale
+## sickvax                                     
+## 0       svymean       0.48603        0.51397
+##         SE            0.01243        0.01243
+## 1       svymean       0.43275        0.56725
+##         SE            0.03236        0.03236</code></pre>
 </div>
 <div id="run-regression-and-adjust-for-demographic-variables." class="section level3">
 <h3>Run regression and adjust for demographic variables.</h3>
-<pre class="r"><code># update survey object
-options(survey.lonely.psu = &quot;adjust&quot;)
-des4 &lt;- svydesign(ids = ~1, weights = ~weight, data = df2)
+<pre class="r"><code>m1 &lt;- svyglm(sickvax ~ PPGENDER, des5, family = quasibinomial())
+m2 &lt;- update(m1, ~ . + PPETHM)
+m3 &lt;- update(m2, ~ . + work)
+m4 &lt;- update(m3, ~ . + ppagecat)
 
-m1 &lt;- svyglm(sickq13 ~ PPGENDER, des4, family = quasibinomial())
-m2 &lt;- update(m1, ~ . + PPETHM)  # add race
-m3 &lt;- update(m2, ~ . + work)  # add work
-m4 &lt;- update(m3, ~ . + ppagecat)  # add age
-
-# memisc, need to modify summary function
 mtable(m1, m2, m3, m4)  # this isn't very helpful</code></pre>
 <pre><code>## 
 ## Calls:
-## m1: svyglm(formula = sickq13 ~ PPGENDER, des4, family = quasibinomial())
-## m2: svyglm(formula = sickq13 ~ PPGENDER + PPETHM, des4, family = quasibinomial())
-## m3: svyglm(formula = sickq13 ~ PPGENDER + PPETHM + work, des4, family = quasibinomial())
-## m4: svyglm(formula = sickq13 ~ PPGENDER + PPETHM + work + ppagecat, 
-##     des4, family = quasibinomial())
+## m1: svyglm(formula = sickvax ~ PPGENDER, des5, family = quasibinomial())
+## m2: svyglm(formula = sickvax ~ PPGENDER + PPETHM, des5, family = quasibinomial())
+## m3: svyglm(formula = sickvax ~ PPGENDER + PPETHM + work, des5, family = quasibinomial())
+## m4: svyglm(formula = sickvax ~ PPGENDER + PPETHM + work + ppagecat, 
+##     des5, family = quasibinomial())
 ## 
 ## ==================================================================================================
 ##                                                          m1         m2         m3         m4      
@@ -538,31 +636,7 @@ mtable(m1, m2, m3, m4)  # this isn't very helpful</code></pre>
 ##   Deviance                                             1645.5     1626.5     1624.2     1613.6    
 ##   N                                                    2145       2145       2145       2145      
 ## ==================================================================================================</code></pre>
-<pre class="r"><code># who is getting sick after vaccinations?
-svyby(formula = ~ppagecat, by = ~sickq13, design = des4, FUN = svymean, na.rm = T)</code></pre>
-<pre><code>##   sickq13 ppagecat18-24 ppagecat25-34 ppagecat35-44 ppagecat45-54
-## 0       0        0.1170        0.1764        0.1645        0.1589
-## 1       1        0.1294        0.1465        0.2166        0.1488
-##   ppagecat55-64 ppagecat65-74 ppagecat75+ se.ppagecat18-24
-## 0        0.2007        0.1246     0.05795         0.009241
-## 1        0.1811        0.1496     0.02798         0.024790
-##   se.ppagecat25-34 se.ppagecat35-44 se.ppagecat45-54 se.ppagecat55-64
-## 0          0.01032         0.009539         0.008519          0.00935
-## 1          0.02443         0.027704         0.021386          0.02322
-##   se.ppagecat65-74 se.ppagecat75+
-## 0          0.00730       0.005136
-## 1          0.02319       0.009463</code></pre>
-<pre class="r"><code>svyby(formula = ~PPGENDER, by = ~sick + q13, design = des4, FUN = svymean, na.rm = T)</code></pre>
-<pre><code>##       sick q13 PPGENDERMale PPGENDERFemale se.PPGENDERMale
-## 0.No     0  No       0.5169         0.4831         0.02082
-## 1.No     1  No       0.3904         0.6096         0.04385
-## 0.Yes    0 Yes       0.4752         0.5248         0.01651
-## 1.Yes    1 Yes       0.4328         0.5672         0.03236
-##       se.PPGENDERFemale
-## 0.No            0.02082
-## 1.No            0.04385
-## 0.Yes           0.01651
-## 1.Yes           0.03236</code></pre>
+<hr />
 </div>
 </div>
 <div id="in-progress" class="section level2">
