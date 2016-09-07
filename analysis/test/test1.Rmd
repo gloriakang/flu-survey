@@ -11,15 +11,14 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(cache = F, echo = T, warning = F, message = F, tidy = F, size = "small")
 rm(list = ls(all.names = TRUE))
-
 library(rmarkdown); library(dplyr); library(ggplot2); library(survey); library(gridExtra)
 ```
 
 ```{r}
 ## Load data variables.
-load("~/git/flu-survey/data/cleaning2.RData")
+load("~/git/flu-survey/data/cleaning2.RData")  # clean data frame
 load("~/git/flu-survey/data/recoding.RData")  # load "datar"
-df <- datar  # contains recoded variables
+df <- datar  # recoded variables
 ```
 
 ```{r des}
