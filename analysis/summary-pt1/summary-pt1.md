@@ -7,268 +7,319 @@
 
 
 
-
-
 ```r
 ## Create survey object.
 options(digits = 4)
 options(survey.lonely.psu = "adjust")
 
-# subset data?
 des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight) == 
     F, ])
 ```
 
 
 
+
 ## Overview:
-- Default survey plot
+- Default survey mosaic plot
 - Univariate plots
-- Bivariate plots: gender, age, ethnicity, income, education, work status, marital status
+- Bivariate: gender, age, ethnicity, income, education, work status, marital status, region, metro status, internet status
 - Plot group means with error bars
+
 
 # Survey Questions
 
 ## Q1. Before receiving this survey, did you know influenza is different from the stomach flu?
 
 
+
 ```r
-# default survey plot
-plot(svytable(~Q1 + PPGENDER, des))
+# save dataframe
+q1 <- data.frame(svytable(~Q1 + PPGENDER + ppagecat + ppagect4 + PPETHM + income + 
+    PPEDUCAT + work + marital + PPMSACAT, des, round = T))
+
+# ggplot templates
+title <- ggtitle("Q1. Did you know influenza is different from the stomach flu?")
+p <- ggplot(q1, aes(Q1, weight = Freq)) + ptext
+fil <- aes(fill = Q1)
+
+# plots: tables from svytable(~Q1 + PPGENDER, des, round = T)
+p + geom_bar() + title
 ```
 
 ![](summary-pt1_files/figure-html/q1-plot-1.png)<!-- -->
 
 ```r
-# save weighted data frame for Q1 + variables
-q1 <- data.frame(svytable(~Q1 + PPGENDER + ppagecat + ppagect4 + PPETHM + income + 
-    PPEDUCAT + work + marital + PPMSACAT, des, round = T))
-
-# ggplot objects for each question
-p <- ggplot(q1, aes(Q1, weight = Freq)) + ptext
-fil <- aes(fill = Q1)
-
-# make tables with: svytable(~Q1 + PPGENDER, des, round = T)
-p + geom_bar()
+# default mosaic plot
+plot(svytable(~Q1 + PPGENDER, des), main = "mosaic plot of Q1 and gender")
 ```
 
 ![](summary-pt1_files/figure-html/q1-plot-2.png)<!-- -->
 
 ```r
-(gen <- p + aes(fill = PPGENDER) + geom_bar(position = "dodge"))
+gen <- p + aes(fill = PPGENDER) + geom_bar(position = "dodge") + title
+gen
 ```
 
 ![](summary-pt1_files/figure-html/q1-plot-3.png)<!-- -->
 
 ```r
-(age <- p + aes(fill = ppagect4) + geom_bar(position = "dodge"))
+svyboxplot(PPAGE ~ Q1, des, main = "Q1 by age")
 ```
 
 ![](summary-pt1_files/figure-html/q1-plot-4.png)<!-- -->
 
 ```r
-(age2 <- p + aes(ppagecat) + fil + geom_bar(position = "stack"))
+age <- p + aes(fill = ppagect4) + geom_bar(position = "dodge")
+age
 ```
 
 ![](summary-pt1_files/figure-html/q1-plot-5.png)<!-- -->
 
 ```r
-(eth <- p + peth + fil + geom_bar(position = "dodge"))
+age2 <- p + aes(ppagecat) + fil + geom_bar(position = "stack")
+age2
 ```
 
 ![](summary-pt1_files/figure-html/q1-plot-6.png)<!-- -->
 
 ```r
-(eth2 <- p + aes(fill = PPETHM) + geom_bar(position = "fill"))
+eth <- p + peth + fil + geom_bar(position = "dodge") + title
+eth
 ```
 
 ![](summary-pt1_files/figure-html/q1-plot-7.png)<!-- -->
 
 ```r
-(inc <- p + pinc + fil + geom_bar(position = "stack"))
+eth2 <- p + aes(fill = PPETHM) + geom_bar(position = "fill")
+eth2
 ```
 
 ![](summary-pt1_files/figure-html/q1-plot-8.png)<!-- -->
 
 ```r
-(inc2 <- p + aes(fill = income) + geom_bar(position = "dodge"))
+inc <- p + pinc + fil + geom_bar(position = "stack") + title
+inc
 ```
 
 ![](summary-pt1_files/figure-html/q1-plot-9.png)<!-- -->
 
 ```r
-(edu <- p + pedu + fil + geom_bar(position = "dodge"))
+inc2 <- p + aes(fill = income) + geom_bar(position = "dodge")
+inc2
 ```
 
 ![](summary-pt1_files/figure-html/q1-plot-10.png)<!-- -->
 
 ```r
-(edu2 <- p + aes(fill = PPEDUCAT) + geom_bar(position = "dodge"))
+edu <- p + pedu + fil + geom_bar(position = "dodge") + title
+edu
 ```
 
 ![](summary-pt1_files/figure-html/q1-plot-11.png)<!-- -->
 
 ```r
-(wor <- p + pwor + fil + geom_bar(position = "dodge"))
+edu2 <- p + aes(fill = PPEDUCAT) + geom_bar(position = "dodge")
+edu2
 ```
 
 ![](summary-pt1_files/figure-html/q1-plot-12.png)<!-- -->
 
 ```r
-(wor2 <- p + aes(fill = work) + geom_bar(position = "dodge"))
+wor <- p + pwor + fil + geom_bar(position = "dodge")
+wor
 ```
 
 ![](summary-pt1_files/figure-html/q1-plot-13.png)<!-- -->
 
 ```r
-(mar <- p + pmar + fil + geom_bar(position = "dodge"))
+wor2 <- p + aes(fill = work) + geom_bar(position = "dodge")
+wor2
 ```
 
 ![](summary-pt1_files/figure-html/q1-plot-14.png)<!-- -->
 
 ```r
-(met <- p + aes(PPMSACAT) + fil + geom_bar(position = "dodge"))
+mar <- p + pmar + fil + geom_bar(position = "dodge")
+mar
 ```
 
 ![](summary-pt1_files/figure-html/q1-plot-15.png)<!-- -->
 
 ```r
-(met2 <- p + aes(fill = PPMSACAT) + geom_bar(position = "dodge"))
+met <- p + aes(PPMSACAT) + fil + geom_bar(position = "dodge")
+met
 ```
 
 ![](summary-pt1_files/figure-html/q1-plot-16.png)<!-- -->
 
 ```r
-# grid.arrange(gen, age, eth) grid.arrange(inc, edu, wor, mar)
-
-# grid plots
-plot(svytable(~Q1 + PPGENDER + ppagect4, des))
+met2 <- p + aes(fill = PPMSACAT) + geom_bar(position = "dodge")
+met2
 ```
 
 ![](summary-pt1_files/figure-html/q1-plot-17.png)<!-- -->
 
 ```r
-plot(svytable(~Q1 + PPGENDER + PPETHM, des))
+# grid.arrange(gen, age, eth) grid.arrange(inc, edu, wor, mar)
+
+# mosaic plots
+plot(svytable(~Q1 + PPGENDER + ppagect4, des), main = "mosaic plot of Q1 by gender & age group")
 ```
 
 ![](summary-pt1_files/figure-html/q1-plot-18.png)<!-- -->
 
+```r
+plot(svytable(~Q1 + PPGENDER + PPETHM, des), main = "mosaic plot of Q1 by gender & race")
+```
+
+![](summary-pt1_files/figure-html/q1-plot-19.png)<!-- -->
+
+
 ## Q2. Have you had an illness with influenza-like symptoms since August 2015?
+
 
 
 ```r
 q2 <- data.frame(svytable(~Q2 + PPGENDER + ppagecat + ppagect4 + PPETHM + income + 
     PPEDUCAT + work + marital + PPMSACAT, des, round = T))
 
+title <- ggtitle("Q2. Have you had an illness with influenza-like symptoms since August 2015?")
 p <- ggplot(q2, aes(Q2, weight = Freq)) + ptext
 fil <- aes(fill = Q2)
 
-all <- p + geom_bar()
-(gen <- p + pgen + fil + geom_bar(position = "dodge"))
+# plots
+all <- p + geom_bar() + title
+all
 ```
 
 ![](summary-pt1_files/figure-html/q2-plot-1.png)<!-- -->
 
 ```r
-(gen2 <- p + aes(fill = PPGENDER) + geom_bar(position = "dodge"))
+gen <- p + pgen + fil + geom_bar(position = "dodge") + title
+gen
 ```
 
 ![](summary-pt1_files/figure-html/q2-plot-2.png)<!-- -->
 
 ```r
-(age <- p + page + fil + geom_bar(position = "dodge"))
+gen2 <- p + aes(fill = PPGENDER) + geom_bar(position = "dodge")
+gen2
 ```
 
 ![](summary-pt1_files/figure-html/q2-plot-3.png)<!-- -->
 
 ```r
-(age2 <- p + aes(fill = ppagect4) + geom_bar(position = "dodge"))
+svyboxplot(PPAGE ~ Q2, des, main = "Q2 by age")
 ```
 
 ![](summary-pt1_files/figure-html/q2-plot-4.png)<!-- -->
 
 ```r
-(eth <- p + peth + fil + geom_bar(position = "stack"))
+age <- p + page + fil + geom_bar(position = "dodge")
+age
 ```
 
 ![](summary-pt1_files/figure-html/q2-plot-5.png)<!-- -->
 
 ```r
-(eth2 <- p + aes(fill = PPETHM) + geom_bar(position = "fill"))
+age2 <- p + aes(fill = ppagect4) + geom_bar(position = "dodge")
+age2
 ```
 
 ![](summary-pt1_files/figure-html/q2-plot-6.png)<!-- -->
 
 ```r
-(inc <- p + pinc + fil + geom_bar(position = "stack"))
+eth <- p + peth + fil + geom_bar(position = "stack")
+eth
 ```
 
 ![](summary-pt1_files/figure-html/q2-plot-7.png)<!-- -->
 
 ```r
-(inc2 <- p + aes(fill = income) + geom_bar(position = "dodge"))
+eth2 <- p + aes(fill = PPETHM) + geom_bar(position = "fill")
+eth2
 ```
 
 ![](summary-pt1_files/figure-html/q2-plot-8.png)<!-- -->
 
 ```r
-(edu <- p + pedu + fil + geom_bar(position = "dodge"))
+inc <- p + pinc + fil + geom_bar(position = "stack") + title
+inc
 ```
 
 ![](summary-pt1_files/figure-html/q2-plot-9.png)<!-- -->
 
 ```r
-(edu2 <- p + aes(fill = PPEDUCAT) + geom_bar(position = "dodge"))
+inc2 <- p + aes(fill = income) + geom_bar(position = "dodge")
+inc2
 ```
 
 ![](summary-pt1_files/figure-html/q2-plot-10.png)<!-- -->
 
 ```r
-(wor <- p + pwor + fil + geom_bar(position = "dodge"))
+edu <- p + pedu + fil + geom_bar(position = "dodge")
+edu
 ```
 
 ![](summary-pt1_files/figure-html/q2-plot-11.png)<!-- -->
 
 ```r
-(wor2 <- p + aes(fill = work) + geom_bar(position = "dodge"))
+edu2 <- p + aes(fill = PPEDUCAT) + geom_bar(position = "dodge")
+edu2
 ```
 
 ![](summary-pt1_files/figure-html/q2-plot-12.png)<!-- -->
 
 ```r
-(mar <- p + pmar + fil + geom_bar(position = "dodge"))
+wor <- p + pwor + fil + geom_bar(position = "dodge") + title
+wor
 ```
 
 ![](summary-pt1_files/figure-html/q2-plot-13.png)<!-- -->
 
 ```r
-(mar2 <- p + aes(fill = marital) + geom_bar(position = "dodge"))
+wor2 <- p + aes(fill = work) + geom_bar(position = "dodge")
+wor2
 ```
 
 ![](summary-pt1_files/figure-html/q2-plot-14.png)<!-- -->
 
 ```r
-(met <- p + aes(PPMSACAT) + fil + geom_bar(position = "dodge"))
+mar <- p + pmar + fil + geom_bar(position = "dodge")
+mar
 ```
 
 ![](summary-pt1_files/figure-html/q2-plot-15.png)<!-- -->
 
 ```r
-(met2 <- p + aes(fill = PPMSACAT) + geom_bar(position = "dodge"))
+mar2 <- p + aes(fill = marital) + geom_bar(position = "dodge")
+mar2
 ```
 
 ![](summary-pt1_files/figure-html/q2-plot-16.png)<!-- -->
 
 ```r
+met <- p + aes(PPMSACAT) + fil + geom_bar(position = "dodge") + title
+met
+```
+
+![](summary-pt1_files/figure-html/q2-plot-17.png)<!-- -->
+
+```r
+met2 <- p + aes(fill = PPMSACAT) + geom_bar(position = "dodge")
+met2
+```
+
+![](summary-pt1_files/figure-html/q2-plot-18.png)<!-- -->
+
+```r
 # grid.arrange(gen, age, eth) grid.arrange(inc, edu, wor, mar)
 ```
 
-#### survey example ####
 
 
 
 ### Examine the % of US adults sick with ILI last year by sex, ethnicity, and age. Do a survey-corrected chi-square test for independence.
-
 
 ```r
 ## create ggplot template
@@ -546,28 +597,35 @@ ggplot(ren, aes(PPRENT, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") +
 
 ![](summary-pt1_files/figure-html/q2-dotplots-13.png)<!-- -->
 
+
 ## Q3. Has any other person in your household had an illness with influenza like symptoms since August 2015?
+
 
 
 ```r
 q3 <- as.data.frame(svytable(~Q3 + ppagect4 + PPETHM + income + work + marital, 
     des, round = T))
+
+title <- ggtitle("Q3. Has any other person in your household had an illness with influenza like symptoms since August 2015?")
 p <- ggplot(q3, aes(Q3, weight = Freq)) + ptext
 fil <- aes(fill = Q3)
 
-p + geom_bar()
+# plots
+p + geom_bar() + title
 ```
 
 ![](summary-pt1_files/figure-html/q3-plot-1.png)<!-- -->
 
 ```r
-(eth <- p + peth + fil + geom_bar(position = "fill"))
+eth <- p + peth + fil + geom_bar(position = "fill") + title
+eth
 ```
 
 ![](summary-pt1_files/figure-html/q3-plot-2.png)<!-- -->
 
 ```r
-(eth2 <- p + aes(fill = PPETHM) + geom_bar(position = "dodge"))
+eth2 <- p + aes(fill = PPETHM) + geom_bar(position = "dodge")
+eth2
 ```
 
 ![](summary-pt1_files/figure-html/q3-plot-3.png)<!-- -->
@@ -593,20 +651,29 @@ ggplot(q, aes(Q3, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er +
 
 ![](summary-pt1_files/figure-html/q3-plot-4.png)<!-- -->
 
+
 ## Q4. Does your job require you to have a lot of contact with the public?
+
 
 
 ```r
 q4 <- as.data.frame(svytable(~Q4 + Q2 + PPGENDER + ppagect4 + PPETHM + income + 
     PPEDUCAT, des, round = T))
 
+title <- ggtitle("Q4. Does your job require you to have a lot of contact with the public?")
 p <- ggplot(q4, aes(Q4, weight = Freq)) + ptext
 fil <- aes(fill = Q4)
 
-all <- p + geom_bar()
-gen <- p + pgen + fil + geom_bar(position = "dodge")
+all <- p + geom_bar() + title
+all
+```
+
+![](summary-pt1_files/figure-html/q4-plot-1.png)<!-- -->
+
+```r
+gen <- p + pgen + fil + geom_bar(position = "dodge") + title
 gen2 <- p + aes(fill = PPGENDER) + geom_bar(position = "dodge")
-age <- p + page + fil + geom_bar(position = "dodge")
+age <- p + page + fil + geom_bar(position = "dodge") + title
 age2 <- p + aes(fill = ppagect4) + geom_bar(position = "dodge")
 eth <- p + peth + fil + geom_bar(position = "stack")
 eth2 <- p + aes(fill = PPETHM) + geom_bar(position = "fill")
@@ -618,31 +685,31 @@ edu2 <- p + aes(fill = PPEDUCAT) + geom_bar(position = "dodge")
 grid.arrange(gen, age, nrow = 2)
 ```
 
-![](summary-pt1_files/figure-html/q4-plot-1.png)<!-- -->
+![](summary-pt1_files/figure-html/q4-plot-2.png)<!-- -->
 
 ```r
 grid.arrange(gen2, age2, nrow = 1)
 ```
 
-![](summary-pt1_files/figure-html/q4-plot-2.png)<!-- -->
+![](summary-pt1_files/figure-html/q4-plot-3.png)<!-- -->
 
 ```r
 grid.arrange(eth, eth2, nrow = 2)
 ```
 
-![](summary-pt1_files/figure-html/q4-plot-3.png)<!-- -->
+![](summary-pt1_files/figure-html/q4-plot-4.png)<!-- -->
 
 ```r
 grid.arrange(inc, inc2)
 ```
 
-![](summary-pt1_files/figure-html/q4-plot-4.png)<!-- -->
+![](summary-pt1_files/figure-html/q4-plot-5.png)<!-- -->
 
 ```r
 grid.arrange(edu, edu2)
 ```
 
-![](summary-pt1_files/figure-html/q4-plot-5.png)<!-- -->
+![](summary-pt1_files/figure-html/q4-plot-6.png)<!-- -->
 
 
 ```r
@@ -698,30 +765,42 @@ psub + peth + aes(fill = Q2) + geom_bar(position = "fill") + ggtitle("People wit
 
 ![](summary-pt1_files/figure-html/unnamed-chunk-1-3.png)<!-- -->
 
+
 ## Q5. Do you have a car that you can use to travel to work?
+
 
 
 ```r
 q5 <- as.data.frame(svytable(~Q5 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT, 
     des, round = T))
 
+title <- ggtitle("Q5. Do you have a car that you can use to travel to work?")
 p <- ggplot(q5, aes(Q5, weight = Freq)) + ptext
-p + geom_bar()
+p + geom_bar() + title
 ```
 
 ![](summary-pt1_files/figure-html/q5-plot-1.png)<!-- -->
 
+
 ## Q6. Do you regularly use public transportation?
+
 
 
 ```r
 q6 <- as.data.frame(svytable(~Q6 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + 
     work + marital + PPMSACAT, des, round = T))
 
+title <- ggtitle("Q6. Do you regularly use public transportation?")
 p <- ggplot(q6, aes(Q6, weight = Freq)) + ptext
 fil <- aes(fill = Q6)
 
-all <- p + geom_bar()
+all <- p + geom_bar() + title
+all
+```
+
+![](summary-pt1_files/figure-html/q6-plot-1.png)<!-- -->
+
+```r
 gen <- p + pgen + fil + geom_bar(position = "dodge")
 gen2 <- p + aes(fill = PPGENDER) + geom_bar(position = "dodge")
 age <- p + page + fil + geom_bar(position = "dodge")
@@ -736,31 +815,31 @@ met2 <- p + aes(fill = PPMSACAT) + geom_bar(position = "dodge")
 grid.arrange(gen, age, nrow = 2)
 ```
 
-![](summary-pt1_files/figure-html/q6-plot-1.png)<!-- -->
+![](summary-pt1_files/figure-html/q6-plot-2.png)<!-- -->
 
 ```r
 grid.arrange(gen2, age2, nrow = 1)
 ```
 
-![](summary-pt1_files/figure-html/q6-plot-2.png)<!-- -->
+![](summary-pt1_files/figure-html/q6-plot-3.png)<!-- -->
 
 ```r
 grid.arrange(eth, eth2, nrow = 2)
 ```
 
-![](summary-pt1_files/figure-html/q6-plot-3.png)<!-- -->
+![](summary-pt1_files/figure-html/q6-plot-4.png)<!-- -->
 
 ```r
 grid.arrange(inc, inc2)
 ```
 
-![](summary-pt1_files/figure-html/q6-plot-4.png)<!-- -->
+![](summary-pt1_files/figure-html/q6-plot-5.png)<!-- -->
 
 ```r
 grid.arrange(met, met2)
 ```
 
-![](summary-pt1_files/figure-html/q6-plot-5.png)<!-- -->
+![](summary-pt1_files/figure-html/q6-plot-6.png)<!-- -->
 
 
 ```r
@@ -784,7 +863,9 @@ ggplot(q, aes(Q6, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er +
 
 ![](summary-pt1_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
 
+
 ## Q7. What types of public transportation do you regularly use?
+
 
 
 ```r
@@ -802,10 +883,11 @@ q7 <- data.frame(svytable(~Q7_q + Q7_r + PPGENDER + ppagect4 + PPETHM + income +
     PPEDUCAT + work + ppreg9 + PPMSACAT, des7, round = T))
 
 # plot
+title <- ggtitle("Q7. What types of public transportation do you regularly use?")
 p <- ggplot(q7[(q7$Q7_r) == "Yes", ], aes(Q7_q, weight = Freq)) + ptext
 fil <- aes(fill = Q7_q)
 
-p + geom_bar()
+p + geom_bar() + title
 ```
 
 ![](summary-pt1_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
@@ -841,7 +923,7 @@ p + aes(fill = PPETHM) + geom_bar(position = "fill")
 ![](summary-pt1_files/figure-html/unnamed-chunk-3-6.png)<!-- -->
 
 ```r
-p + pinc + fil + geom_bar(position = "stack")
+p + pinc + fil + geom_bar(position = "stack") + title
 ```
 
 ![](summary-pt1_files/figure-html/unnamed-chunk-3-7.png)<!-- -->
@@ -853,7 +935,7 @@ p + aes(fill = income) + geom_bar(position = "dodge")
 ![](summary-pt1_files/figure-html/unnamed-chunk-3-8.png)<!-- -->
 
 ```r
-p + aes(PPMSACAT) + fil + geom_bar(position = "fill")
+p + aes(PPMSACAT) + fil + geom_bar(position = "fill") + title
 ```
 
 ![](summary-pt1_files/figure-html/unnamed-chunk-3-9.png)<!-- -->
@@ -865,12 +947,15 @@ p + aes(fill = PPMSACAT) + geom_bar(position = "stack")
 ![](summary-pt1_files/figure-html/unnamed-chunk-3-10.png)<!-- -->
 
 ```r
-p + aes(fill = Q7_q) + geom_bar(position = "dodge") + facet_wrap(~ppreg9)
+p + aes(fill = Q7_q) + geom_bar(position = "dodge") + facet_wrap(~ppreg9) + 
+    title
 ```
 
 ![](summary-pt1_files/figure-html/unnamed-chunk-3-11.png)<!-- -->
 
+
 ## Q8. For what types of activities do you regularly use public transportation?
+
 
 
 ```r
@@ -888,10 +973,11 @@ q8 <- data.frame(svytable(~Q8_q + Q8_r + PPGENDER + ppagect4 + PPETHM + income +
     PPEDUCAT + work + ppreg9 + PPMSACAT, des8, round = T))
 
 # plot
+title <- ggtitle("Q8. For what types of activities do you regularly use public transportation?")
 p <- ggplot(q8[(q8$Q8_r) == "Yes", ], aes(Q8_q, weight = Freq)) + ptext
 fil <- aes(fill = Q8_q)
-# gender
-p + geom_bar()
+
+p + geom_bar() + title
 ```
 
 ![](summary-pt1_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
@@ -904,7 +990,7 @@ p + aes(fill = PPGENDER) + geom_bar(position = "dodge")
 
 ```r
 # age
-p + page + fil + geom_bar(position = "dodge")
+p + page + fil + geom_bar(position = "dodge") + title
 ```
 
 ![](summary-pt1_files/figure-html/unnamed-chunk-4-3.png)<!-- -->
@@ -930,7 +1016,7 @@ p + aes(fill = PPETHM) + geom_bar(position = "fill")
 
 ```r
 # income
-p + pinc + fil + geom_bar(position = "stack")
+p + pinc + fil + geom_bar(position = "stack") + title
 ```
 
 ![](summary-pt1_files/figure-html/unnamed-chunk-4-7.png)<!-- -->
@@ -956,19 +1042,23 @@ p + aes(fill = PPMSACAT) + geom_bar(position = "stack")
 
 ```r
 # region
-p + fil + geom_bar(position = "dodge") + facet_wrap(~ppreg9)
+p + fil + geom_bar(position = "dodge") + facet_wrap(~ppreg9) + title
 ```
 
 ![](summary-pt1_files/figure-html/unnamed-chunk-4-11.png)<!-- -->
 
+
 ## Q9. Do other members of your household regularly use public transportation?
+
 
 
 ```r
 q9 <- data.frame(svytable(~Q9 + PPETHM + income + PPMSACAT, des, round = T))
 
+title <- ggtitle("Q9. Do other members of your household regularly use public transportation?")
 p <- ggplot(q9, aes(Q9, weight = Freq)) + ptext
-p + geom_bar()
+
+p + geom_bar() + title
 ```
 
 ![](summary-pt1_files/figure-html/q9-plot-1.png)<!-- -->
@@ -986,7 +1076,9 @@ svychisq(~Q15 + Q3, des)
 ## F = 3.2, ndf = 3.9, ddf = 8600.0, p-value = 0.01
 ```
 
+
 ## Q10. What types of public transportation do other members of your household regularly use?
+
 
 
 ```r
@@ -1004,10 +1096,11 @@ q10 <- data.frame(svytable(~Q10_q + Q10_r + PPGENDER + ppagect4 + PPETHM + incom
     PPEDUCAT + work + ppreg9 + PPMSACAT, des10, round = T))
 
 # plot
+title <- ggtitle("Q10. What types of public transportation do other members of your household regularly use?")
 p <- ggplot(q10[(q10$Q10_r) == "Yes", ], aes(Q10_q, weight = Freq)) + ptext
 fil <- aes(fill = Q10_q)
-# gender
-p + geom_bar()
+
+p + geom_bar() + title
 ```
 
 ![](summary-pt1_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
@@ -1033,7 +1126,7 @@ p + aes(fill = ppagect4) + geom_bar(position = "stack")
 
 ```r
 # race
-p + peth + fil + geom_bar(position = "stack")
+p + peth + fil + geom_bar(position = "stack") + title
 ```
 
 ![](summary-pt1_files/figure-html/unnamed-chunk-5-5.png)<!-- -->
@@ -1059,7 +1152,7 @@ p + aes(fill = income) + geom_bar(position = "dodge")
 
 ```r
 # metro location
-p + aes(PPMSACAT) + fil + geom_bar(position = "fill")
+p + aes(PPMSACAT) + fil + geom_bar(position = "fill") + title
 ```
 
 ![](summary-pt1_files/figure-html/unnamed-chunk-5-9.png)<!-- -->
@@ -1072,7 +1165,7 @@ p + aes(fill = PPMSACAT) + geom_bar(position = "stack")
 
 ```r
 # region
-p + fil + geom_bar(position = "dodge") + facet_wrap(~ppreg9)
+p + fil + geom_bar(position = "dodge") + facet_wrap(~ppreg9) + title
 ```
 
 ![](summary-pt1_files/figure-html/unnamed-chunk-5-11.png)<!-- -->
