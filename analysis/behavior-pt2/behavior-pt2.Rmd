@@ -90,10 +90,9 @@ q11_df <- df %>%
          Doctors_office = Q11_8,
          Public_trans = Q11_9,
          Family_friends = Q11_10,
-         Other = Q11_11)
-
-#  gather(Q11_q, Q11_r, Work:Other, na.rm = T) %>%
-#  mutate(Q11_q = as.factor(Q11_q))
+         Other = Q11_11) %>%
+  gather(Q11_q, Q11_r, Work:Other, na.rm = T) %>%
+  mutate(Q11_q = as.factor(Q11_q))
 
 # survey design
 des11 <- svydesign(ids = ~1, weights = ~weight, data = q11_df[is.na(q11_df$weight)==F, ])
@@ -101,9 +100,33 @@ des11 <- svydesign(ids = ~1, weights = ~weight, data = q11_df[is.na(q11_df$weigh
 
 Gender, age, ethnicity, income, education
 
+```{r}
+# weighted data frame
+q11 <- data.frame(svytable(~Q11_q + Q11_r + PPGENDER + ppagecat + PPETHM +
+                            PPINCIMP + PPEDUC + PPEDUCAT , des11, round = T))
+
+# plot templates
+title <- ggtitle("How do you rate your risk of getting influenza if you visited each of the following locations?")
+p <- ggplot(q11[q11$Q11_r != "Don_t Know",], aes(Q11_q, weight = Freq)) + ptext
+
+# select High Risk
+p <- ggplot(q11[q11$Q11_r == "High Risk",], aes(Q11_q, weight = Freq)) + ptext
+
+
+# main plot
+p + geom_bar(position = "fill") + aes(Q11_q, fill = Q11_r)
+
+```
+
+
+```{r}
+# update survey design to select 'High Risk'
+des11_high <- svydesign(ids = ~1, weights = ~weight, data = q11_df[is.na(q11_df$weight)==F, ])
+
+```
+
 
 ############## FIX THIS PART!!!
-
 
 ```{r}
 # weighted data frame
@@ -196,7 +219,6 @@ p + geom_bar(position = "fill") + aes(fill = PPHOUSE) + ggtitle("By house type")
 p + geom_bar(position = "fill") + aes(fill = PPNET) + ggtitle("By internet availability")
 
 ```
-
 
 
 

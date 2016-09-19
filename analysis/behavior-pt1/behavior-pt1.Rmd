@@ -120,14 +120,19 @@ p2 + geom_bar(position = "fill") + aes(ppagecat, fill = Q7_q)
 # by ethnic group
 p + geom_bar() + aes(PPETHM, fill = PPETHM) + facet_wrap(~Q7_q) +
   ggtitle("By ethnic group") + theme(axis.text.x = element_blank())
+p + geom_bar(position = "fill") + aes(PPETHM, fill = Q7_q)
 p + geom_bar() + aes(fill = Q7_q) + facet_grid(~PPETHM) +
   ggtitle("By ethnic group")
 
 # by income
-p + geom_bar() + aes(PPINCIMP, fill = PPINCIMP) + facet_grid(~Q7_q) +
+p + geom_bar() + aes(PPINCIMP, fill = PPINCIMP) + facet_wrap(~Q7_q) +
   ggtitle("By income") + theme(axis.text.x = element_blank())
+p + geom_bar(position = "fill") + aes(PPINCIMP, fill = Q7_q)
 
 # by education
+p + geom_bar(position = "fill") + aes(PPEDUCAT, fill = Q7_q) + ggtitle("By education")
+p + geom_bar() + aes(PPEDUCAT, fill = PPEDUCAT) + facet_wrap(~Q7_q) +
+  theme(axis.text.x = element_blank())
 ```
 
 Employment status, marital status, metro status, region, state of residency, housing status, internet availability
