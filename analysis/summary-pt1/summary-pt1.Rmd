@@ -11,6 +11,8 @@ output:
     toc_depth: 2
 ---
 
+Questions 1 - 10.
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = T, cache = T, warning = F, message = F, tidy = T, size = "small")
 rm(list = ls(all.names = TRUE))
@@ -59,7 +61,8 @@ des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight)==F, ])
 ```
 
 ```{r ggplot, include=FALSE}
-### create ggplot templates ###
+## Create ggplot templates.
+
 ptext <- theme(axis.text = element_text(size = rel(0.9)), axis.text.x = element_text(angle = 45, hjust = 1))
 
 pgen <- aes(PPGENDER)
@@ -80,9 +83,7 @@ pmar <- aes(marital)
 
 
 # Survey Questions
-
 ## Q1. Before receiving this survey, did you know influenza is different from the stomach flu?
-
 
 ```{r q1-plot, fig.height=4, fig.width=5}
 # save dataframe
@@ -131,7 +132,6 @@ plot(svytable(~Q1 + PPGENDER + PPETHM, des), main = "mosaic plot of Q1 by gender
 
 
 ## Q2. Have you had an illness with influenza-like symptoms since August 2015?
-
 
 ```{r q2-plot, fig.height=4, fig.width=5}
 q2 <- data.frame(svytable(~Q2 + PPGENDER + ppagecat + ppagect4 + PPETHM + income + PPEDUCAT + work + marital + PPMSACAT, des, round = T))
@@ -201,7 +201,7 @@ dotchart(a)
 
 
 ### Examine the % of US adults sick with ILI last year by sex, ethnicity, and age. Do a survey-corrected chi-square test for independence.
-```{r q2-dotplots}
+```{r q2-plot2}
 ## create ggplot template
 er <- geom_errorbar(aes(ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2Yes), width = .25)
 
@@ -283,7 +283,6 @@ ggplot(ren, aes(PPRENT, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + pt
 
 ## Q3. Has any other person in your household had an illness with influenza like symptoms since August 2015?
 
-
 ```{r q3-plot, fig.height=4, fig.width=5}
 q3 <- as.data.frame(svytable(~Q3 + ppagect4 + PPETHM + income + work + marital, des, round = T))
 
@@ -308,7 +307,6 @@ ggplot(q, aes(Q3, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er +
 
 ## Q4. Does your job require you to have a lot of contact with the public?
 
-
 ```{r q4-plot, fig.width=7, fig.width=7}
 q4 <- as.data.frame(svytable(~Q4 + Q2 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT, des, round = T))
 
@@ -330,12 +328,12 @@ edu2 <- p + aes(fill = PPEDUCAT) + geom_bar(position = "dodge")
 
 grid.arrange(gen, age, nrow=2)
 grid.arrange(gen2, age2, nrow=1)
-grid.arrange(eth, eth2, nrow = 2)
+grid.arrange(eth, eth2, nrow=2)
 grid.arrange(inc, inc2)
 grid.arrange(edu, edu2)
 ```
 
-```{r, echo=TRUE}
+```{r q4-plot2, echo=TRUE}
 ## % sick plot
 svychisq(~Q2 + Q4, des)
 q <- svyby(~Q2, ~Q4, des, svymean, na.rm = T)
@@ -356,7 +354,6 @@ psub + peth + aes(fill = Q2) + geom_bar(position = "fill") + ggtitle("People wit
 
 ## Q5. Do you have a car that you can use to travel to work?
 
-
 ```{r q5-plot}
 q5 <- as.data.frame(svytable(~Q5 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT, des, round = T))
 
@@ -368,7 +365,6 @@ p + geom_bar() + title
 
 
 ## Q6. Do you regularly use public transportation?
-
 
 ```{r q6-plot, fig.width=6, fig.height=6}
 q6 <- as.data.frame(svytable(~Q6 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital + PPMSACAT, des, round = T))
@@ -397,7 +393,7 @@ grid.arrange(inc, inc2)
 grid.arrange(met, met2)
 ```
 
-```{r}
+```{r q6-plot2}
 ## % sick plot
 svychisq(~Q2 + Q6, des)
 q <- svyby(~Q2, ~Q6, des, svymean, na.rm = T)
@@ -408,8 +404,7 @@ ggplot(q, aes(Q6, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er +
 
 ## Q7. What types of public transportation do you regularly use?
 
-
-```{r}
+```{r q7-plot}
 # subset question data
 q7df <- df %>%
   select(CaseID, PPGENDER, ppagect4, PPETHM, income, PPEDUCAT, work, marital, ppreg9, PPMSACAT, Q2, Q7_1:Q7_7, weight) %>%
@@ -422,7 +417,7 @@ des7 <- svydesign(ids = ~1, weights = ~weight, data = q7df[is.na(q7df$weight)==F
 # weighted data frame
 q7 <- data.frame(svytable(~Q7_q + Q7_r + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + ppreg9 + PPMSACAT, des7, round = T))
 
-# plot
+# plot template
 title <- ggtitle("Q7. What types of public transportation do you regularly use?")
 p <- ggplot(q7[(q7$Q7_r)=='Yes', ], aes(Q7_q, weight = Freq)) + ptext
 fil <- aes(fill = Q7_q)
@@ -448,7 +443,6 @@ p + aes(fill = Q7_q) + geom_bar(position = "dodge") + facet_wrap(~ ppreg9) + tit
 
 
 ## Q8. For what types of activities do you regularly use public transportation?
-
 
 ```{r}
 # subset question data

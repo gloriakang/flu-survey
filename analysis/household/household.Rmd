@@ -12,7 +12,8 @@ output:
     toc_depth: 4
 ---
 
-This report contains survey data analysis for household members.
+Questions 35 - 42 & 43 - 50.
+Household member data.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = T, warning = F, message = F, tidy = F, size = "small")

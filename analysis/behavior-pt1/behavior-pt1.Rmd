@@ -1,0 +1,252 @@
+---
+title: "Behavior part 1: Transportation"
+output: 
+  html_document:
+    fig_caption: yes
+    keep_md: yes
+    theme: paper
+    toc: yes
+    toc_depth: 2
+---
+
+Questions 7, 8, 9, 10.
+Transportation behavior.
+
+```{r setup, include=F}
+## Setup.
+
+knitr::opts_chunk$set(echo = T, cache = T, warning = F, message = F, size = "small")
+rm(list = ls(all.names = T))
+library(rmarkdown); library(knitr); library(gridExtra)
+library(tidyr); library(dplyr); library(ggplot2); library(survey)
+```
+
+```{r load-data, include=F}
+## Load data.
+
+load("~/git/flu-survey/data/cleaning2.RData")
+load("~/git/flu-survey/data/recoding.RData")  # load "datar"
+df <- datar  # recoded variables
+```
+
+```{r group-data, include=F}
+## Regroup variables.
+
+# income
+income.map <- c(rep("under $10k", 3), rep("$10k to $25k", 4),
+                rep("$25k to $50k", 4), rep("$50k to $75k", 2),
+                rep("$75k to $100k", 2), rep("$100k to $150k", 2),
+                rep("over $150k", 2))
+df$income <- code(datar$PPINCIMP, income.map, "under $10k")
+income.lab <- c("under $10k", "$10k to $25k", "$25k to $50k",
+                "$50k to $75k", "$75k to $100k", "$100k to $150k",
+                "over $150k")
+df$income <- factor(df$income, levels = income.lab)
+
+# marital staus
+marital.map <- c("single", "partnered", "partnered", "single", "single", "single")
+df$marital <- code(dataf$PPMARIT, marital.map, "single")
+
+# work status
+work.map <- c(rep("unemployed", 5),
+              rep("employed", 2))
+df$work <- code(dataf$PPWORK, work.map, "unemployed")
+```
+
+```{r des-survey}
+## Create survey object.
+
+options(digits = 4)
+options(survey.lonely.psu = "adjust")
+
+des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight)==F, ])
+```
+
+```{r plot-temp, include=F}
+## Create ggplot templates.
+
+ptext <- theme(axis.text = element_text(size = rel(0.9)),
+               axis.text.x = element_text(angle = 45, hjust = 1))
+pgen <- aes(PPGENDER)
+page <- aes(ppagect4)
+peth <- aes(PPETHM)
+pinc <- aes(income)
+pedu <- aes(PPEDUCAT)
+pwor <- aes(work)
+pmar <- aes(marital)
+```
+
+
+-----
+## Q7. What types of public transportation do you regularly use?
+
+```{r q7-data}
+# subset question data, rename columns, gather into single column
+q7_df <- df %>%
+  select(CaseID, PPGENDER, PPAGE, ppagecat, PPETHM, PPINCIMP, PPEDUC, PPEDUCAT,
+         work, marital, PPMSACAT, ppreg9, PPSTATEN, PPHOUSE, PPNET,
+         Q7_1:Q7_7, Q7_otherText, weight) %>%
+  rename(Bus = Q7_1, Carpool = Q7_2, Subway = Q7_3, Train = Q7_4,
+         Taxi = Q7_5, Airplane = Q7_6, Other = Q7_7) %>%
+  gather(Q7_q, Q7_r, Bus:Other, na.rm = T) %>%
+  mutate(Q7_q = as.factor(Q7_q))
+
+# select only Yes responses
+q7_df <- q7_df[(q7_df$Q7_r)=='Yes', ]
+str(q7_df)
+
+# survey design
+des7 <- svydesign(ids = ~1, weights = ~weight, data = q7_df[is.na(q7_df$weight)==F, ])
+```
+
+Gender, age, ethnicity, income, education
+
+```{r q7-plot-1}
+# weighted data frame
+q7 <- data.frame(svytable(~Q7_q + Q7_r + PPGENDER + ppagecat + PPETHM +
+                            PPINCIMP + PPEDUC + PPEDUCAT, des7, round = T))
+# plot templates
+title <- ggtitle("What types of public transportation do you regularly use?")
+p <- ggplot(q7[(q7$Q7_r)=='Yes', ], aes(Q7_q, weight = Freq)) + ptext
+
+# main plot
+p + geom_bar() + title
+```
+
+```{r q7-plot-2}
+# exclude "Other" choice
+p2 <- ggplot(q7[!(q7$Q7_q)=='Other', ], aes(Q7_q, weight = Freq)) + ptext
+
+# by gender
+p2 + geom_bar() + aes(PPGENDER, fill = PPGENDER) + facet_wrap(~Q7_q) + ggtitle("By gender")
+
+# by age group
+p2 + geom_bar() + aes(ppagecat, fill = ppagecat) + facet_wrap(~Q7_q) + ggtitle("By age group")
+p2 + geom_bar(position = "fill") + aes(ppagecat, fill = Q7_q)
+
+# by ethnic group
+p + geom_bar() + aes(PPETHM, fill = PPETHM) + facet_wrap(~Q7_q) +
+  ggtitle("By ethnic group") + theme(axis.text.x = element_blank())
+p + geom_bar() + aes(fill = Q7_q) + facet_grid(~PPETHM) +
+  ggtitle("By ethnic group")
+
+# by income
+p + geom_bar() + aes(PPINCIMP, fill = PPINCIMP) + facet_grid(~Q7_q) +
+  ggtitle("By income") + theme(axis.text.x = element_blank())
+
+# by education
+```
+
+Employment status, marital status, metro status, region, state of residency, housing status, internet availability
+
+```{r q7-plot-3}
+# weighted data frame
+q7 <- data.frame(svytable(~Q7_q + Q7_r + work + marital + PPMSACAT +
+                            ppreg9 + PPSTATEN + PPHOUSE + PPNET, des7, round = T))
+# p and p2
+p <- ggplot(q7[(q7$Q7_r)=='Yes', ], aes(Q7_q, weight = Freq)) + ptext
+p2 <- ggplot(q7[!(q7$Q7_q)=='Other', ], aes(Q7_q, weight = Freq)) + ptext
+
+
+# by work
+p + geom_bar() + aes(work, fill = work) + facet_wrap(~Q7_q) + ggtitle("By employment status")
+
+# by marital
+p + geom_bar() + aes(marital, fill = marital) + facet_wrap(~Q7_q) + ggtitle("By marital status")
+p + geom_bar(position = "fill") + aes(marital, fill = Q7_q)
+
+# by metro status
+p + geom_bar() + aes(fill = PPMSACAT)
+
+# by region
+p + geom_bar() + aes(fill = ppreg9)
+
+# by state
+p + geom_bar() + aes(fill = PPNET)
+
+# by house type
+p + geom_bar() + aes(fill = PPHOUSE)
+
+# by internet availability
+p + geom_bar() + aes(fill = PPNET)
+
+```
+
+-----
+## Q8. For what types of activities do you regularly use public transportation?
+
+```{r q8-data}
+# subset question data, rename columns, gather into single column
+q8_df <- df %>%
+  select(CaseID, PPGENDER, PPAGE, ppagecat, PPETHM, PPINCIMP, PPEDUC, PPEDUCAT,
+         work, marital, PPMSACAT, ppreg9, PPSTATEN, PPHOUSE, PPNET,
+         Q8_1:Q8_6, Q8_otherText, weight) %>%
+  rename(Work = Q8_1, School = Q8_2, Shopping = Q8_3, Visiting_people = Q8_4,
+         Recreation = Q8_5, Other = Q8_6) %>%
+  gather(Q8_q, Q8_r, Work:Other, na.rm = T) %>%
+  mutate(Q8_q = as.factor(Q8_q))
+
+# select only Yes responses
+q8_df <- q8_df[(q8_df$Q8_r)=='Yes', ]
+str(q8_df)
+
+# survey design
+des8 <- svydesign(ids = ~1, weights = ~weight, data = q8_df[is.na(q8_df$weight)==F, ])
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+
+---
+## Q9. Do other members of your household regularly use public transportation?
+
+```{r q9}
+#
+q9 <- data.frame(svytable(~Q9 + PPETHM + income + PPMSACAT, des, round = T))
+
+#
+title <- ggtitle("Do other members of your household regularly use public transportation?")
+p <- ggplot(q9, aes(Q9, weight = Freq)) + ptext
+
+```
+
+
+---
+## Q10. What types of public transportation do other members of your household regularly use?
+
+```{r q10-data}
+# subset question data, rename columns, gather into single column
+q10_df <- df %>%
+  select(CaseID, PPGENDER, PPAGE, ppagecat, PPETHM, PPINCIMP, PPEDUC, PPEDUCAT,
+         work, marital, PPMSACAT, ppreg9, PPSTATEN, PPHOUSE, PPNET,
+       Q10_1:Q10_8, Q10_otherText, weight) %>%
+  rename(Bus = Q10_1, Carpool = Q10_2, Subway = Q10_3, Train = Q10_4,
+         Taxi = Q10_5, Airplane = Q10_6, Dont_know = Q10_7, Other = Q10_8) %>%
+  gather(Q10_q, Q10_r, Bus:Other, na.rm = T) %>%
+  mutate(Q10_q = as.factor(Q10_q))
+
+# select only Yes responses
+q10_df <- q10_df[(q10_df$Q10_r)=='Yes', ]
+str(q10_df)
+
+# survey design
+des10 <- svydesign(ids = ~1, weights = ~weight, data = q10_df[is.na(q10_df$weight)==F, ])
+
+```
+
+```{r}
+# weighted data frame
+q10 <- data.frame(svytable(~Q10_q + Q10_r + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + ppreg9 + PPMSACAT, des10, round = T))
+
+```
+
+
+
+

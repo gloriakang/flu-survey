@@ -1,0 +1,110 @@
+---
+title: "Behavior part 3: flu behavior"
+output: 
+  html_document:
+    fig_caption: yes
+    keep_md: yes
+    theme: paper
+    toc: yes
+    toc_depth: 2
+---
+
+
+
+```{r setup, include=F}
+## Setup.
+
+knitr::opts_chunk$set(echo = T, cache = T, warning = F, message = F, size = "small")
+rm(list = ls(all.names = T))
+library(rmarkdown); library(knitr); library(gridExtra)
+library(tidyr); library(dplyr); library(ggplot2); library(survey)
+```
+
+```{r load-data, include=F}
+## Load data.
+
+load("~/git/flu-survey/data/cleaning2.RData")
+load("~/git/flu-survey/data/recoding.RData")  # load "datar"
+df <- datar  # recoded variables
+```
+
+```{r group-data, include=F}
+## Regroup variables.
+
+# income
+income.map <- c(rep("under $10k", 3), rep("$10k to $25k", 4),
+                rep("$25k to $50k", 4), rep("$50k to $75k", 2),
+                rep("$75k to $100k", 2), rep("$100k to $150k", 2),
+                rep("over $150k", 2))
+df$income <- code(datar$PPINCIMP, income.map, "under $10k")
+income.lab <- c("under $10k", "$10k to $25k", "$25k to $50k",
+                "$50k to $75k", "$75k to $100k", "$100k to $150k",
+                "over $150k")
+df$income <- factor(df$income, levels = income.lab)
+
+# marital staus
+marital.map <- c("single", "partnered", "partnered", "single", "single", "single")
+df$marital <- code(dataf$PPMARIT, marital.map, "single")
+
+# work status
+work.map <- c(rep("unemployed", 5),
+              rep("employed", 2))
+df$work <- code(dataf$PPWORK, work.map, "unemployed")
+```
+
+```{r des-survey}
+## Create survey object.
+
+options(digits = 4)
+options(survey.lonely.psu = "adjust")
+
+des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight)==F, ])
+```
+
+```{r plot-temp, include=F}
+## Create ggplot templates.
+
+ptext <- theme(axis.text = element_text(size = rel(0.9)),
+               axis.text.x = element_text(angle = 45, hjust = 1))
+pgen <- aes(PPGENDER)
+page <- aes(ppagect4)
+peth <- aes(PPETHM)
+pinc <- aes(income)
+pedu <- aes(PPEDUCAT)
+pwor <- aes(work)
+pmar <- aes(marital)
+```
+
+
+## Q12. Which of the following actions do you take to avoid getting sick?
+
+```{r}
+
+```
+
+## Q13. Do you get the flu vaccine?
+
+## Q15. Are you more likely to get a vaccine if others around you get a vaccine?
+
+## Q16. Are you more likely to get a vaccine if others around you do not get a vaccine?
+
+## Q17. Do you get a vaccine to protect yourself, protect others, or protect yourself and others?
+
+## Q18. What are the reasons you would not get an influenza vaccine?
+
+
+
+## Q22. Do you do any of the following when you have influenza symptoms?
+
+## Q23. Which of the following actions do you take when you have influenza symptoms to avoid someone else from getting sick?
+
+## Q25. If you received information from the news, internet or other public media that there was an influenza outbreak in your community would you do any of the following?
+
+
+## Q27. What actions do you take when a child in your household has influenza symptoms?
+
+## Q29. How do you care for a sick child? (married parent)
+
+## Q30. How do you care for a sick child? (single parent)
+
+
