@@ -12,10 +12,10 @@ output:
 Questions 7, 8, 9, 10.
 Transportation behavior.
 
-```{r setup, include=F}
+```{r setup, include=FALSE}
 ## Setup.
 
-knitr::opts_chunk$set(echo = T, cache = T, warning = F, message = F, size = "small")
+knitr::opts_chunk$set(echo = F, cache = T, warning = F, message = F, size = "small")
 rm(list = ls(all.names = T))
 library(rmarkdown); library(knitr); library(gridExtra)
 library(tidyr); library(dplyr); library(ggplot2); library(survey)
@@ -67,17 +67,10 @@ des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight)==F, ])
 
 ptext <- theme(axis.text = element_text(size = rel(0.9)),
                axis.text.x = element_text(angle = 45, hjust = 1))
-pgen <- aes(PPGENDER)
-page <- aes(ppagect4)
-peth <- aes(PPETHM)
-pinc <- aes(income)
-pedu <- aes(PPEDUCAT)
-pwor <- aes(work)
-pmar <- aes(marital)
+
 ```
 
 
------
 ## Q7. What types of public transportation do you regularly use?
 
 ```{r q7-data}
@@ -146,8 +139,9 @@ q7 <- data.frame(svytable(~Q7_q + Q7_r + work + marital + PPMSACAT +
 # p and p2
 p <- ggplot(q7[(q7$Q7_r)=='Yes', ], aes(Q7_q, weight = Freq)) + ptext
 p2 <- ggplot(q7[!(q7$Q7_q)=='Other', ], aes(Q7_q, weight = Freq)) + ptext
+```
 
-
+```{r}
 # by work
 p + geom_bar() + aes(work, fill = work) + facet_wrap(~Q7_q) + ggtitle("By employment status")
 
@@ -156,23 +150,24 @@ p + geom_bar() + aes(marital, fill = marital) + facet_wrap(~Q7_q) + ggtitle("By 
 p + geom_bar(position = "fill") + aes(marital, fill = Q7_q)
 
 # by metro status
-p + geom_bar() + aes(fill = PPMSACAT)
+p + geom_bar(position = "fill") + aes(fill = PPMSACAT)
 
 # by region
 p + geom_bar() + aes(fill = ppreg9)
 
 # by state
-p + geom_bar() + aes(fill = PPNET)
+p + geom_bar() + aes(PPSTATEN, fill = Q7_q) + coord_flip()
 
 # by house type
-p + geom_bar() + aes(fill = PPHOUSE)
+p + geom_bar(position = "fill") + aes(fill = PPHOUSE)
 
 # by internet availability
-p + geom_bar() + aes(fill = PPNET)
+p + geom_bar(position = "fill") + aes(fill = PPNET)
 
 ```
 
------
+
+
 ## Q8. For what types of activities do you regularly use public transportation?
 
 ```{r q8-data}
@@ -192,33 +187,99 @@ str(q8_df)
 
 # survey design
 des8 <- svydesign(ids = ~1, weights = ~weight, data = q8_df[is.na(q8_df$weight)==F, ])
+```
 
+Gender, age, ethnicity, income, education
+
+```{r q8-plot-1}
+# weighted data frame
+q8 <- data.frame(svytable(~Q8_q + Q8_r + PPGENDER + ppagecat + PPETHM +
+                            PPINCIMP + PPEDUC + PPEDUCAT, des8, round = T))
+# plot templates
+title <- ggtitle("For what types of activities do you regularly use public transportation?")
+p <- ggplot(q8[(q8$Q8_r)=='Yes', ], aes(Q8_q, weight = Freq)) + ptext
+
+# main plot
+p + geom_bar() + title
 ```
 
 ```{r}
+# exclude "Other" choice
+p2 <- ggplot(q8[!(q8$Q8_q)=='Other', ], aes(Q8_q, weight = Freq)) + ptext
 
+# by gender
+p2 + geom_bar() + aes(PPGENDER, fill = PPGENDER) + facet_wrap(~Q8_q) + ggtitle("By gender")
+
+# by age group
+p2 + geom_bar() + aes(ppagecat, fill = ppagecat) + facet_wrap(~Q8_q) + ggtitle("By age group")
+p2 + geom_bar(position = "fill") + aes(ppagecat, fill = Q8_q)
+
+# by ethnic group
+p + geom_bar() + aes(PPETHM, fill = PPETHM) + facet_wrap(~Q8_q) +
+  ggtitle("By ethnic group") + theme(axis.text.x = element_blank())
+p + geom_bar() + aes(fill = Q8_q) + facet_grid(~PPETHM) +
+  ggtitle("By ethnic group")
+
+# by income
+p + geom_bar() + aes(PPINCIMP, fill = PPINCIMP) + facet_grid(~Q8_q) +
+  ggtitle("By income") + theme(axis.text.x = element_blank())
+
+# by education
+```
+
+Employment status, marital status, metro status, region, state of residency, housing status, internet availability
+
+```{r q8-plot-3}
+# weighted data frame
+q8 <- data.frame(svytable(~Q8_q + Q8_r + work + marital + PPMSACAT +
+                            ppreg9 + PPSTATEN + PPHOUSE + PPNET, des8, round = T))
+# p and p2
+p <- ggplot(q8[(q8$Q8_r)=='Yes', ], aes(Q8_q, weight = Freq)) + ptext
+p2 <- ggplot(q8[!(q8$Q8_q)=='Other', ], aes(Q8_q, weight = Freq)) + ptext
 ```
 
 ```{r}
+# by work
+p + geom_bar() + aes(work, fill = work) + facet_wrap(~Q8_q) + ggtitle("By employment status")
 
+# by marital
+p + geom_bar() + aes(marital, fill = marital) + facet_wrap(~Q8_q) + ggtitle("By marital status")
+p + geom_bar(position = "fill") + aes(marital, fill = Q8_q)
+
+# by metro status
+p + geom_bar(position = "fill") + aes(fill = PPMSACAT) + ggtitle("By metro status")
+
+# by region
+p + geom_bar() + aes(fill = ppreg9) + ggtitle("By region")
+
+# by state
+p + geom_bar() + aes(PPSTATEN, fill = Q8_q) + coord_flip() + ggtitle("By state")
+
+# by house type
+p + geom_bar(position = "fill") + aes(fill = PPHOUSE) + ggtitle("By housing type")
+
+# by internet availability
+p + geom_bar(position = "fill") + aes(fill = PPNET) + ggtitle("By internet status")
 ```
 
 
----
+
 ## Q9. Do other members of your household regularly use public transportation?
 
 ```{r q9}
-#
+# weighted data frame
 q9 <- data.frame(svytable(~Q9 + PPETHM + income + PPMSACAT, des, round = T))
 
-#
+# plot templates
 title <- ggtitle("Do other members of your household regularly use public transportation?")
 p <- ggplot(q9, aes(Q9, weight = Freq)) + ptext
 
+# main plot
+p + geom_bar() + title
 ```
 
 
----
+
 ## Q10. What types of public transportation do other members of your household regularly use?
 
 ```{r q10-data}
@@ -238,15 +299,80 @@ str(q10_df)
 
 # survey design
 des10 <- svydesign(ids = ~1, weights = ~weight, data = q10_df[is.na(q10_df$weight)==F, ])
-
 ```
+
+Gender, age, ethnicity, income, education
 
 ```{r}
 # weighted data frame
-q10 <- data.frame(svytable(~Q10_q + Q10_r + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + ppreg9 + PPMSACAT, des10, round = T))
+q10 <- data.frame(svytable(~Q10_q + Q10_r + PPGENDER + ppagecat + PPETHM +
+                             PPINCIMP + PPEDUC + PPEDUCAT, des10, round = T))
+# plot templates
+title <- ggtitle("What types of public transportation do other members of your household regularly use?")
+p <- ggplot(q10[(q10$Q10_r)=='Yes', ], aes(Q10_q, weight = Freq)) + ptext
 
+# main plot
+p + geom_bar() + title
 ```
 
+```{r}
+# exclude "Other" choice
+p2 <- ggplot(q10[!(q10$Q10_q)=='Other', ], aes(Q10_q, weight = Freq)) + ptext
+
+# by gender
+p2 + geom_bar() + aes(PPGENDER, fill = PPGENDER) + facet_wrap(~Q10_q) + ggtitle("By gender")
+
+# by age group
+p2 + geom_bar() + aes(ppagecat, fill = ppagecat) + facet_wrap(~Q10_q) + ggtitle("By age group")
+p2 + geom_bar(position = "fill") + aes(ppagecat, fill = Q10_q)
+
+# by ethnic group
+p + geom_bar() + aes(PPETHM, fill = PPETHM) + facet_wrap(~Q10_q) +
+  ggtitle("By ethnic group") + theme(axis.text.x = element_blank())
+p + geom_bar() + aes(fill = Q10_q) + facet_grid(~PPETHM) +
+  ggtitle("By ethnic group")
+
+# by income
+p + geom_bar() + aes(PPINCIMP, fill = PPINCIMP) + facet_grid(~Q10_q) +
+  ggtitle("By income") + theme(axis.text.x = element_blank())
+
+# by education
+```
+
+Employment status, marital status, metro status, region, state of residency, housing status, internet availability
+
+```{r}
+# weighted data frame
+q10 <- data.frame(svytable(~Q10_q + Q10_r + work + marital + PPMSACAT +
+                            ppreg9 + PPSTATEN + PPHOUSE + PPNET, des10, round = T))
+# p and p2
+p <- ggplot(q10[(q10$Q10_r)=='Yes', ], aes(Q10_q, weight = Freq)) + ptext
+p2 <- ggplot(q10[!(q10$Q10_q)=='Other', ], aes(Q10_q, weight = Freq)) + ptext
+```
+
+```{r}
+# by work
+p + geom_bar() + aes(work, fill = work) + facet_wrap(~Q10_q) + ggtitle("By employment status")
+
+# by marital
+p + geom_bar() + aes(marital, fill = marital) + facet_wrap(~Q10_q) + ggtitle("By marital status")
+p + geom_bar(position = "fill") + aes(marital, fill = Q10_q)
+
+# by metro status
+p + geom_bar(position = "fill") + aes(fill = PPMSACAT) + ggtitle("By metro status")
+
+# by region
+p + geom_bar() + aes(fill = ppreg9) + ggtitle("By region")
+
+# by state
+p + geom_bar() + aes(PPSTATEN, fill = Q10_q) + coord_flip() + ggtitle("By state")
+
+# by house type
+p + geom_bar(position = "fill") + aes(fill = PPHOUSE) + ggtitle("By house type")
+
+# by internet availability
+p + geom_bar(position = "fill") + aes(fill = PPNET) + ggtitle("By internet availability")
+```
 
 
 

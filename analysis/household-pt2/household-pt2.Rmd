@@ -1,5 +1,5 @@
 ---
-title: "Behavior part 3: flu behavior"
+title: "Behavior: Household"
 output: 
   html_document:
     fig_caption: yes
@@ -9,12 +9,14 @@ output:
     toc_depth: 2
 ---
 
+Questions 26, 27, (28), 29, 30.
+Flu behavior related to household children.
 
 
-```{r setup, include=F}
+```{r setup, include=FALSE}
 ## Setup.
 
-knitr::opts_chunk$set(echo = T, cache = T, warning = F, message = F, size = "small")
+knitr::opts_chunk$set(echo = F, cache = T, warning = F, message = F, size = "small")
 rm(list = ls(all.names = T))
 library(rmarkdown); library(knitr); library(gridExtra)
 library(tidyr); library(dplyr); library(ggplot2); library(survey)
@@ -66,45 +68,47 @@ des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight)==F, ])
 
 ptext <- theme(axis.text = element_text(size = rel(0.9)),
                axis.text.x = element_text(angle = 45, hjust = 1))
-pgen <- aes(PPGENDER)
-page <- aes(ppagect4)
-peth <- aes(PPETHM)
-pinc <- aes(income)
-pedu <- aes(PPEDUCAT)
-pwor <- aes(work)
-pmar <- aes(marital)
+
 ```
 
 
-## Q12. Which of the following actions do you take to avoid getting sick?
+
+## Q26. Does your household have children?
 
 ```{r}
 
 ```
 
-## Q13. Do you get the flu vaccine?
-
-## Q15. Are you more likely to get a vaccine if others around you get a vaccine?
-
-## Q16. Are you more likely to get a vaccine if others around you do not get a vaccine?
-
-## Q17. Do you get a vaccine to protect yourself, protect others, or protect yourself and others?
-
-## Q18. What are the reasons you would not get an influenza vaccine?
-
-
-
-## Q22. Do you do any of the following when you have influenza symptoms?
-
-## Q23. Which of the following actions do you take when you have influenza symptoms to avoid someone else from getting sick?
-
-## Q25. If you received information from the news, internet or other public media that there was an influenza outbreak in your community would you do any of the following?
-
 
 ## Q27. What actions do you take when a child in your household has influenza symptoms?
 
+```{r}
+
+```
+
+
+## Q28. Are you a single parent?
+
+```{r}
+
+```
+
+
 ## Q29. How do you care for a sick child? (married parent)
 
+```{r}
+
+```
+
+
 ## Q30. How do you care for a sick child? (single parent)
+
+```{r}
+
+```
+
+
+
+
 
 
