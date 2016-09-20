@@ -12,11 +12,10 @@ output:
 Questions 12, 22, 23, 31, 32.
 Behaviors related to flu.
 
-
 ```{r setup, include=F}
 ## Setup.
 
-knitr::opts_chunk$set(echo = F, cache = T, warning = F, message = F, size = "small")
+knitr::opts_chunk$set(echo = T, cache = T, warning = F, message = F, size = "small")
 rm(list = ls(all.names = T))
 library(rmarkdown); library(knitr); library(gridExtra)
 library(tidyr); library(dplyr); library(ggplot2); library(survey)
@@ -59,7 +58,6 @@ df$work <- code(dataf$PPWORK, work.map, "unemployed")
 
 options(digits = 4)
 options(survey.lonely.psu = "adjust")
-
 des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight)==F, ])
 ```
 
@@ -68,13 +66,6 @@ des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight)==F, ])
 
 ptext <- theme(axis.text = element_text(size = rel(0.9)),
                axis.text.x = element_text(angle = 45, hjust = 1))
-pgen <- aes(PPGENDER)
-page <- aes(ppagect4)
-peth <- aes(PPETHM)
-pinc <- aes(income)
-pedu <- aes(PPEDUCAT)
-pwor <- aes(work)
-pmar <- aes(marital)
 ```
 
 

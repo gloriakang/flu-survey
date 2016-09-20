@@ -14,8 +14,7 @@ Perceived risk.
 
 ```{r setup, include=F}
 ## Setup.
-
-knitr::opts_chunk$set(echo = F, cache = T, warning = F, message = F, size = "small")
+knitr::opts_chunk$set(echo = T, cache = T, warning = F, message = F, size = "small")
 rm(list = ls(all.names = T))
 library(rmarkdown); library(knitr); library(gridExtra)
 library(tidyr); library(dplyr); library(ggplot2); library(survey)
@@ -23,7 +22,6 @@ library(tidyr); library(dplyr); library(ggplot2); library(survey)
 
 ```{r load-data, include=F}
 ## Load data.
-
 load("~/git/flu-survey/data/cleaning2.RData")
 load("~/git/flu-survey/data/recoding.RData")  # load "datar"
 df <- datar  # recoded variables
@@ -31,7 +29,6 @@ df <- datar  # recoded variables
 
 ```{r group-data, include=F}
 ## Regroup variables.
-
 # income
 income.map <- c(rep("under $10k", 3), rep("$10k to $25k", 4),
                 rep("$25k to $50k", 4), rep("$50k to $75k", 2),
@@ -55,7 +52,6 @@ df$work <- code(dataf$PPWORK, work.map, "unemployed")
 
 ```{r des-survey}
 ## Create survey object.
-
 options(digits = 4)
 options(survey.lonely.psu = "adjust")
 
@@ -64,10 +60,9 @@ des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight)==F, ])
 
 ```{r plot-temp, include=F}
 ## Create ggplot templates.
-
 ptext <- theme(axis.text = element_text(size = rel(0.9)),
                axis.text.x = element_text(angle = 45, hjust = 1))
-
+ptext2 <- ptext + theme(axis.text.x = element_blank())
 ```
 
 
@@ -78,7 +73,7 @@ ptext <- theme(axis.text = element_text(size = rel(0.9)),
 # subset question data, rename columns, gather into single column
 q11_df <- df %>%
   select(CaseID, PPGENDER, PPAGE, ppagecat, PPETHM, PPINCIMP, PPEDUC, PPEDUCAT,
-         work, marital, PPMSACAT, ppreg9, PPSTATEN, PPHOUSE, PPNET,
+         work, PPWORK, marital, PPMARITAL, PPMSACAT, ppreg9, PPSTATEN, PPHOUSE, PPRENT, PPNET,
          Q11_1:Q11_11, weight) %>%
   rename(Work = Q11_1,
          Schools = Q11_2,
@@ -88,42 +83,49 @@ q11_df <- df %>%
          Libraries = Q11_6,
          Hospitals = Q11_7,
          Doctors_office = Q11_8,
-         Public_trans = Q11_9,
+         Public_transp = Q11_9,
          Family_friends = Q11_10,
          Other = Q11_11) %>%
   gather(Q11_q, Q11_r, Work:Other, na.rm = T) %>%
   mutate(Q11_q = as.factor(Q11_q))
 
 # survey design
+options(digits = 4)
+options(survey.lonely.psu = "adjust")
 des11 <- svydesign(ids = ~1, weights = ~weight, data = q11_df[is.na(q11_df$weight)==F, ])
 ```
 
-Gender, age, ethnicity, income, education
+### Gender, age, ethnicity, income, education, work
 
-```{r}
+```{r q11-plot-1}
 # weighted data frame
 q11 <- data.frame(svytable(~Q11_q + Q11_r + PPGENDER + ppagecat + PPETHM +
-                            PPINCIMP + PPEDUC + PPEDUCAT , des11, round = T))
-
+                            PPINCIMP + PPEDUC + PPEDUCAT + work + PPWORK, des11, round = T))
 # plot templates
 title <- ggtitle("How do you rate your risk of getting influenza if you visited each of the following locations?")
-p <- ggplot(q11[q11$Q11_r != "Don_t Know",], aes(Q11_q, weight = Freq)) + ptext
 
-# select High Risk
-p <- ggplot(q11[q11$Q11_r == "High Risk",], aes(Q11_q, weight = Freq)) + ptext
+## main plot
+p <- ggplot(q11, aes(Q11_q, weight = Freq)) + ptext
+p + geom_bar() + title
+p + geom_bar() + aes(fill = Q11_r) + title
+```
+
+```{r q11-plot-1b}
+# plot2: exclude 'Don_t know' response
+p2 <- ggplot(q11[q11$Q11_r != "Don_t Know", ], aes(Q11_q, weight = Freq)) + ptext
+
+p2 + geom_bar(position = "fill") + aes(fill = Q11_r)
+
+# select 'High Risk' response only
+p3 <- ggplot(q11[q11$Q11_r == "High Risk", ], aes(weight = Freq)) + ptext
 
 
-# main plot
-p + geom_bar(position = "fill") + aes(Q11_q, fill = Q11_r)
+
+
+
 
 ```
 
-
-```{r}
-# update survey design to select 'High Risk'
-des11_high <- svydesign(ids = ~1, weights = ~weight, data = q11_df[is.na(q11_df$weight)==F, ])
-
-```
 
 
 ############## FIX THIS PART!!!
@@ -132,14 +134,11 @@ des11_high <- svydesign(ids = ~1, weights = ~weight, data = q11_df[is.na(q11_df$
 # weighted data frame
 q11 <- data.frame(svytable(~Work + Schools + Day_care + Stores + Restaurants +
                              Libraries + Hospitals + Doctors_office + Public_trans +
-                             Family_friends + Other, des11, round = T))
-# plot templates
-title <- ggtitle("How do you rate your risk of getting influenza if you visited each of the following locations?")
-p <- ggplot(q11, aes(weight = Freq)) + ptext
+                             Family_friends + Other + 
+                             PPGENDER + ppagecat + PPETHM + PPINCIMP + EDUCAT, des11, round = T))
 
 # main plot
 p + geom_bar() + aes(Q11_q, fill = Q11_r)
-
 
 # subset high risk group
 sub <- q11[(q11$Q11_r)=='High Risk', ]
@@ -151,14 +150,11 @@ p1 + geom_bar()
 p1 <- ggplot(q11[(q11$Q11_r)=='High Risk', ], aes(Q11_q, weight = Freq))
 p1 + geom_bar() + aes(fill = Q11_r)
 
-# select responses
-# q11_df <- q11_df[(q11_df$Q11_r)=='High Risk', ]
-
 # main plot for High Risk
 p <- ggplot(q11[(q11$Q11_r)=='High Risk', ], aes(Q11_q, weight = Freq)) + ptext
-
-
 ```
+
+
 
 ```{r}
 # exclude "Other" choice
@@ -184,7 +180,7 @@ p + geom_bar() + aes(PPINCIMP, fill = PPINCIMP) + facet_grid(~Q11_q) +
 # by education
 ```
 
-Employment status, marital status, metro status, region, state of residency, housing status, internet availability
+### Employment status, marital status, metro status, region, state of residency, housing status, internet availability
 
 ```{r}
 # weighted data frame
@@ -219,6 +215,7 @@ p + geom_bar(position = "fill") + aes(fill = PPHOUSE) + ggtitle("By house type")
 p + geom_bar(position = "fill") + aes(fill = PPNET) + ggtitle("By internet availability")
 
 ```
+
 
 
 
