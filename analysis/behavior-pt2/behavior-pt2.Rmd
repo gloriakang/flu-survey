@@ -1,10 +1,13 @@
 ---
 title: "Behavior part 2: Perceived risk"
 output: 
+  html_notebook:
   html_document:
     fig_caption: yes
-    keep_md: yes
+    fig_height: 4
+    fig_width: 6
     theme: paper
+    keep_md: yes
     toc: yes
     toc_depth: 2
 ---
@@ -14,7 +17,7 @@ Perceived risk.
 
 ```{r setup, include=F}
 ## Setup.
-knitr::opts_chunk$set(echo = T, cache = T, warning = F, message = F, size = "small")
+knitr::opts_chunk$set(echo = T, cache = T, cache.comments = F, warning = F, message = F, size = "small")
 rm(list = ls(all.names = T))
 library(rmarkdown); library(knitr); library(gridExtra)
 library(tidyr); library(dplyr); library(ggplot2); library(survey)
@@ -220,7 +223,6 @@ p4 + geom_bar(position = "fill") + aes(fill = PPHOUSE) + ggtitle("By house type"
 p4 + geom_bar(position = "fill") + aes(Q11_r, fill = PPHOUSE) + facet_wrap(~Q11_q)
 p4 + geom_bar() + aes(PPHOUSE, fill = Q11_r) + facet_wrap(~Q11_q) + ggtitle("By housing")
 
-
 # by internet availability
 p4 + geom_bar(position = "fill") + aes(Q11_r, fill = PPNET) + facet_wrap(~Q11_q)
 p4 + geom_bar(position = "fill") + aes(PPNET, fill = Q11_r) + facet_wrap(~Q11_q) + ggtitle("By internet availability")
@@ -231,30 +233,107 @@ p4 + geom_bar(position = "fill") + aes(PPNET, fill = Q11_r) + facet_wrap(~Q11_q)
 
 ## Q20. How effective do you think the influenza vaccine is in protecting people from becoming sick with influenza?
 
-### Gender, age, ethnicity, income
+### Gender, age, ethnicity, income, education
 
-```{r, eval=FALSE, include=FALSE}
+```{r q20-plot-1}
 # weighted data frame
-q20 <- data.frame(svytable(~Q9 + PPETHM + PPINCIMP + PPMSACAT + ppreg9 + 
-                            PPSTATEN + PPHOUSE + PPRENT, des, round = T))
+q20 <- data.frame(svytable(~Q20 + PPGENDER + ppagecat + PPETHM + PPINCIMP + 
+                             PPEDUC + PPEDUCAT, des, round = T))
+
 # plot templates
-title <- ggtitle("Do other members of your household regularly use public transportation?")
+title <- ggtitle("How effective do you think the influenza vaccine is in protecting people from becoming sick with influenza?")
 
 ## main plot
-p <- ggplot(q9, aes(Q9, weight = Freq)) + ptext
+p <- ggplot(q20, aes(Q20, weight = Freq)) + ptext
 p + geom_bar() + title
 ```
 
-```{r}
+```{r q20-plot-1b}
+## plot2: exclude 'Don_t know' column
+p2 <- ggplot(q20[!(q20$Q20)=='Don_t know', ], aes(Q20, weight = Freq)) + ptext
+
+# by gender
+p + geom_bar() + aes(PPGENDER, fill = PPGENDER) + facet_wrap(~Q20)+ ggtitle("By gender")
+p + geom_bar(position = "fill") + aes(PPGENDER, fill = Q20)
+
+# age boxplot
+svyboxplot(PPAGE~Q20, des, main = "Age boxplot per response")
+
+# by age group
+p + geom_bar() + aes(ppagecat, fill = ppagecat) + facet_wrap(~Q20) + ggtitle("By age group")
+p + geom_bar(position = "fill") + aes(ppagecat, fill = Q20) + ggtitle("By age group")
+
+# by ethnic group
+p + geom_bar() + aes(PPETHM, fill = PPETHM) + facet_wrap(~Q20) + ggtitle("By ethnic group")
+p + geom_bar(position = "fill") + aes(PPETHM, fill = Q20) + ggtitle("By ethnic group")
+p + geom_bar(position = "fill") + aes(fill = PPETHM)
+p + geom_bar() + aes(fill = PPETHM) + ggtitle("By ethnic group")
+p + geom_bar() + aes(fill = Q20) + facet_wrap(~PPETHM) + ggtitle("By ethnic group")
+
+# by income
+p2 + geom_bar() + aes(PPINCIMP, fill = PPINCIMP) + facet_wrap(~Q20) + ptext2 + ggtitle("By income")
+p2 + geom_bar(position = "fill") + aes(PPINCIMP, fill = Q20) + ggtitle("By income")
+p2 + geom_bar() + aes(fill = Q20) + facet_wrap(~PPINCIMP) + ggtitle("By income")
+p2 + geom_bar(position = "fill") + aes(fill = PPINCIMP) + ggtitle("By income")
+
+# by education
+p + geom_bar() + aes(PPEDUC, fill = PPEDUC) + facet_wrap(~Q20) + ptext2 + ggtitle("By education")
+p + geom_bar(position = "fill") + aes(PPEDUC, fill = Q20) + ggtitle("By education")
+p + geom_bar() + aes(fill = Q20) + facet_wrap(~PPEDUC) + ggtitle("By education")
+p + geom_bar(position = "dodge") + aes(fill = PPEDUCAT) + ggtitle("By education")
+p + geom_bar(position = "fill") + aes(fill = PPEDUCAT) + ggtitle("By education")
 
 ```
 
-```{r}
+### Marital status, metro status, region, state of residency, house type, housing status, internet availability
 
+```{r q20-plot-2}
+# update weighted data frame
+q20.2 <- data.frame(svytable(~Q20 + marital + PPMARIT + PPMSACAT + ppreg9 + 
+                            PPSTATEN + PPHOUSE + PPRENT + PPNET, des, round = T))
+# restate plots
+p3 <- ggplot(q20.2, aes(Q20, weight = Freq)) + ptext
+p4 <- ggplot(q20.2[!(q20.2$Q20)=='Don_t know', ], aes(Q20, weight = Freq)) + ptext
 ```
 
+```{r q20-plot-2b}
+# by marital
+p3 + geom_bar() + aes(marital, fill = marital) + facet_wrap(~Q20) + ggtitle("By marital status")
+p3 + geom_bar(position = "fill") + aes(marital, fill = Q20)
+p3 + geom_bar() + aes(PPMARIT, fill = PPMARIT) + facet_wrap(~Q20)
+p3 + geom_bar() + aes(PPMARIT, fill = Q20) + ggtitle("By marital status")
+p3 + geom_bar(position = "fill") + aes(PPMARIT, fill = Q20) + ggtitle("By marital status")
 
+# by metro
+p3 + geom_bar() + aes(fill = PPMSACAT) + ggtitle("By metro status")
+p3 + geom_bar(position = "fill") + aes(PPMSACAT, fill = Q20)
 
+# by region
+p3 + geom_bar() + aes(ppreg9, fill = ppreg9) + facet_wrap(~Q20)+ ggtitle("By region")
+p3 + geom_bar(position = "fill") + aes(ppreg9, fill = Q20) + ggtitle("US regions by response")
+p3 + geom_bar(position = "fill") + aes(fill = ppreg9) + ggtitle("Responses by US region")
 
+# by state
+p3 + geom_bar() + aes(PPSTATEN, fill = Q20) + coord_flip() + ggtitle("By state")
+p3 + geom_bar(position = 'fill') + aes(PPSTATEN, fill = Q20) + coord_flip() + ggtitle("By state")
 
+# by house type
+p3 + geom_bar(position = 'fill') + aes(fill = PPHOUSE) + ggtitle("By house type")
+p3 + geom_bar() + aes(fill = Q20) + facet_wrap(~PPHOUSE) + ggtitle("By house type")
+p3 + geom_bar() + aes(PPHOUSE, fill = Q20) + ggtitle("By house type")
+p3 + geom_bar(position = "fill") + aes(PPHOUSE, fill = Q20) + ggtitle("By house type")
+
+# by housing status
+p3 + geom_bar() + aes(fill = PPRENT) + ggtitle("By housing status")
+p3 + geom_bar(position = 'fill') + aes(fill = PPRENT)
+p3 + geom_bar() + aes(PPRENT, fill = Q20) + ggtitle("By housing status")
+p3 + geom_bar(position = "fill") + aes(PPRENT, fill = Q20) + ggtitle("By housing status")
+
+# by internet availability
+p3 + geom_bar() + aes(fill = PPNET) + ggtitle("Internet status")
+p3 + geom_bar(position = "fill") + aes(fill = PPNET) + ggtitle("Internet status")
+p3 + geom_bar(position = "dodge") + aes(PPNET, fill = Q20) + ggtitle("Internet status")
+p3 + geom_bar(position = "fill") + aes(PPNET, fill = Q20) + ggtitle("Internet status")
+
+```
 

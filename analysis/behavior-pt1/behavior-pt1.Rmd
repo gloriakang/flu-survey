@@ -1,10 +1,13 @@
 ---
 title: "Behavior part 1: Transportation"
-output: 
+output:
+  html_notebook:
   html_document:
     fig_caption: yes
-    keep_md: yes
+    fig_height: 4
+    fig_width: 6
     theme: paper
+    keep_md: yes
     toc: yes
     toc_depth: 2
 ---
@@ -14,7 +17,7 @@ Transportation behavior.
 
 ```{r setup, include=FALSE}
 ## Setup.
-knitr::opts_chunk$set(echo = T, cache = T, warning = F, message = F, size = "small")
+knitr::opts_chunk$set(echo = T, cache = T, cache.comments = F, warning = F, message = F, size = "small")
 rm(list = ls(all.names = T))
 library(rmarkdown); library(knitr); library(gridExtra)
 library(tidyr); library(dplyr); library(ggplot2); library(survey)

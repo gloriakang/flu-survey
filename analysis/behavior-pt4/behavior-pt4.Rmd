@@ -7,6 +7,7 @@ output:
     theme: paper
     toc: yes
     toc_depth: 2
+  html_notebook:
 ---
 
 Questions 13-18
@@ -16,7 +17,7 @@ Flu vaccine questions.
 ```{r setup, include=FALSE}
 ## Setup.
 
-knitr::opts_chunk$set(echo = F, cache = T, warning = F, message = F, size = "small")
+knitr::opts_chunk$set(echo = F, cache = T, cache.comments = F, warning = F, message = F, size = "small")
 rm(list = ls(all.names = T))
 library(rmarkdown); library(knitr); library(gridExtra)
 library(tidyr); library(dplyr); library(ggplot2); library(survey)

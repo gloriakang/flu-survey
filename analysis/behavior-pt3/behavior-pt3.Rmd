@@ -7,6 +7,7 @@ output:
     theme: paper
     toc: yes
     toc_depth: 2
+  html_notebook:
 ---
 
 Questions 12, 22, 23, 31, 32.
@@ -14,8 +15,7 @@ Behaviors related to flu.
 
 ```{r setup, include=F}
 ## Setup.
-
-knitr::opts_chunk$set(echo = T, cache = T, warning = F, message = F, size = "small")
+knitr::opts_chunk$set(echo = T, cache = T, cache.comments = F, warning = F, message = F, size = "small")
 rm(list = ls(all.names = T))
 library(rmarkdown); library(knitr); library(gridExtra)
 library(tidyr); library(dplyr); library(ggplot2); library(survey)
@@ -23,7 +23,6 @@ library(tidyr); library(dplyr); library(ggplot2); library(survey)
 
 ```{r load-data, include=F}
 ## Load data.
-
 load("~/git/flu-survey/data/cleaning2.RData")
 load("~/git/flu-survey/data/recoding.RData")  # load "datar"
 df <- datar  # recoded variables
@@ -31,7 +30,6 @@ df <- datar  # recoded variables
 
 ```{r group-data, include=F}
 ## Regroup variables.
-
 # income
 income.map <- c(rep("under $10k", 3), rep("$10k to $25k", 4),
                 rep("$25k to $50k", 4), rep("$50k to $75k", 2),
@@ -55,29 +53,172 @@ df$work <- code(dataf$PPWORK, work.map, "unemployed")
 
 ```{r des-survey}
 ## Create survey object.
-
 options(digits = 4)
 options(survey.lonely.psu = "adjust")
+
 des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight)==F, ])
 ```
 
 ```{r plot-temp, include=F}
 ## Create ggplot templates.
-
 ptext <- theme(axis.text = element_text(size = rel(0.9)),
                axis.text.x = element_text(angle = 45, hjust = 1))
+ptext2 <- ptext + theme(axis.text.x = element_blank())
 ```
+
 
 
 ## Q12. Which of the following actions do you take to avoid getting sick?
 
-```{r}
+```{r q12-data}
+# subset question data, rename columns, gather into single column
+q12_df <- df %>%
+  select(CaseID, PPGENDER, PPAGE, ppagecat, PPETHM, PPINCIMP, PPEDUC, PPEDUCAT,
+         work, PPWORK, marital, PPMARIT, PPMSACAT, ppreg9, PPSTATEN, PPHOUSE, PPRENT, PPNET, Q12_1:Q12_15, weight) %>%
+  gather(Q12_q, Q12_r, Q12_1:Q12_15, na.rm = T) %>%
+  mutate(Q12_q = as.factor(Q12_q))
+
+# survey design
+options(digits = 4)
+options(survey.lonely.psu = "adjust")
+des12 <- svydesign(ids = ~1, weights = ~weight, data = q12_df[is.na(q12_df$weight)==F, ])
+```
+
+### Gender, age, ethnicity, income
+
+```{r q12-plot-1}
+# weighted data frame
+q12 <- data.frame(svytable(~Q12_q + Q12_r + PPGENDER + ppagecat + PPETHM + PPINCIMP, des12, round = T))
+
+# plot templates
+title <- ggtitle("Which of the following actions do you take to avoid getting sick?")
+
+## main plot
+p <- ggplot(q12, aes(Q12_q, weight = Freq)) + ptext
+p + geom_bar(position = 'fill') + aes(fill = Q12_r) + title
+```
+
+```{r q12-plot-1b}
+# plot2: exclude 'Don_t know' response
+p2 <- ggplot(q12[q12$Q12_r != "Don_t Know", ], aes(Q12_q, weight = Freq)) + ptext
+p2 + geom_bar(position = "fill") + aes(Q12_q, fill = Q12_r)
+p2 + geom_bar() + aes(Q12_r, fill = Q12_r) + facet_wrap(~Q12_q) + ptext2
+p2 + geom_bar() + aes(Q12_q, fill = Q12_q) + facet_wrap(~Q12_r) + ptext2
+
+# select 'High Risk' response only?
+#px <- ggplot(q12[q12$Q12_r == "High Risk", ], aes(weight = Freq)) + ptext
+
+# by gender
+p2 + geom_bar() + aes(PPGENDER, fill = Q12_r) + facet_wrap(~Q12_q) + ggtitle("By gender")
+p2 + geom_bar(position = "fill") + aes(PPGENDER, fill = Q12_r) + facet_wrap(~Q12_q)
+p2 + geom_bar() + aes(Q12_q, fill = PPGENDER) + facet_wrap(~Q12_r)
+p2 + geom_bar(position = 'fill') + aes(Q12_q, fill = PPGENDER) + facet_wrap(~Q12_r) + ggtitle("By gender")
+p2 + geom_bar() + aes(PPGENDER, fill = PPGENDER) + facet_grid(Q12_q~Q12_r) + coord_flip() + ptext2
+
+
+# age boxplot
+# need to subset by group
+svyboxplot(PPAGE~Q12_q, des11, main = "Age boxplot per response")
+
+
+# by age group
+p2 + geom_bar() + aes(ppagecat, fill = Q12_r) + facet_wrap(~Q12_q) + ggtitle("By age group")
+p2 + geom_bar(position = "fill") + aes(ppagecat, fill = Q12_r) + facet_wrap(~Q12_q)
+p2 + geom_bar() + aes(Q12_q, fill = ppagecat) + facet_wrap(~Q12_r)
+p2 + geom_bar(position = 'fill') + aes(Q12_q, fill = ppagecat) + facet_wrap(~Q12_r) + ggtitle("By age group")
+p2 + geom_bar() + aes(ppagecat, fill = ppagecat) + facet_grid(Q12_q~Q12_r) + ptext2
+
+
+# by ethnic group
+p2 + geom_bar() + aes(PPETHM, fill = Q12_r) + facet_wrap(~Q12_q) + ggtitle("By ethnic group")
+p2 + geom_bar(position = "fill") + aes(PPETHM, fill = Q12_r) + facet_wrap(~Q12_q)
+p2 + geom_bar() + aes(Q12_q, fill = PPETHM) + facet_wrap(~Q12_r)
+p2 + geom_bar(position = 'fill') + aes(Q12_q, fill = PPETHM) + facet_wrap(~Q12_r) + ggtitle("By ethnic group")
+p2 + geom_bar() + aes(PPETHM, fill = PPETHM) + facet_grid(Q12_q~Q12_r) + ptext2
+p2 + geom_bar() + aes(Q12_r, fill = Q12_r) + facet_grid(Q12_q~PPETHM) + ptext2
+
+
+# by income
+p2 + geom_bar() + aes(PPINCIMP, fill = Q12_r) + facet_wrap(~Q12_q) + ggtitle("By income") + ptext2
+p2 + geom_bar(position = "fill") + aes(PPINCIMP, fill = Q12_r) + facet_wrap(~Q12_q) + ptext2
+p2 + geom_bar() + aes(Q12_q, fill = PPINCIMP) + facet_wrap(~Q12_r)
+p2 + geom_bar(position = 'fill') + aes(Q12_q, fill = PPINCIMP) + facet_wrap(~Q12_r) + ggtitle("By income group")
+p2 + geom_bar() + aes(PPINCIMP, fill = PPINCIMP) + facet_grid(Q12_q~Q12_r) + ptext2
 
 ```
 
-```{r}
+### Education, work, marital status
+
+```{r q12-plot-2}
+# update weighted data frame
+q12.2 <- data.frame(svytable(~Q12_q + Q12_r + PPEDUC + PPEDUCAT + work + PPWORK + marital + PPMARIT, des11, round = T))
+
+# restate plots
+p3 <- ggplot(q12.2[q12.2$Q12_r != "Don_t Know", ], aes(Q12_q, weight = Freq)) + ptext
+```
+
+```{r q12-plot-2b}
+# by education
+p3 + geom_bar() + aes(PPEDUCAT, fill = Q12_r) + facet_wrap(~Q12_q) + ggtitle("By education")
+p3 + geom_bar(position = "fill") + aes(PPEDUCAT, fill = Q12_r) + facet_wrap(~Q12_q)
+p3 + geom_bar() + aes(Q12_q, fill = PPEDUCAT) + facet_wrap(~Q12_r)
+p3 + geom_bar(position = 'fill') + aes(Q12_q, fill = PPEDUCAT) + facet_wrap(~Q12_r) + ggtitle("By education")
+p3 + geom_bar() + aes(PPEDUCAT, fill = PPEDUCAT) + facet_grid(Q12_q~Q12_r) + ptext2
+p3 + geom_bar() + aes(Q12_r, fill = Q12_r) + facet_grid(Q12_q~PPEDUCAT) + ptext2
+
+
+# by work
+p3 + geom_bar() + aes(work, fill = Q12_r) + facet_wrap(~Q12_q) + ggtitle("By employment status")
+p3 + geom_bar(position = "fill") + aes(work, fill = Q12_r) + facet_wrap(~Q12_q)
+
+
+# by marital
+p3 + geom_bar() + aes(marital, fill = Q12_r) + facet_wrap(~Q12_q) + ggtitle("By marital status")
+p3 + geom_bar(position = "fill") + aes(marital, fill = Q12_r) + facet_wrap(~Q12_q)
 
 ```
+
+### Metro status, region, state, house type, housing status, internet availability
+
+```{r q12-plot-3}
+# update weighted data frame
+q12.3 <- data.frame(svytable(~Q12_q + Q12_r + PPMSACAT + ppreg9 + PPSTATEN + PPHOUSE + PPRENT + PPNET, des11, round = T))
+
+# restate plots
+p4 <- ggplot(q12.3[q12.3$Q12_r != "Don_t Know", ], aes(Q12_q, weight = Freq)) + ptext
+```
+
+```{r q12-plot-3b}
+# by metro status
+p4 + geom_bar(position = "fill") + aes(Q12_r, fill = PPMSACAT) + facet_wrap(~Q12_q) + ggtitle("By metro status")
+p4 + geom_bar(position = "fill") + aes(PPMSACAT, fill = Q12_r) + facet_wrap(~Q12_q)
+
+# by region
+p4 + geom_bar(position = "fill") + aes(Q12_r, fill = ppreg9) + facet_wrap(~Q12_q) + ggtitle("By region")
+p4 + geom_bar() + aes(ppreg9, fill = Q12_r) + facet_wrap(~Q12_q) + ggtitle("By region")
+
+# by state
+p4 + geom_bar() + aes(Q12_r, fill = PPSTATEN) + facet_wrap(~Q12_q) + ggtitle("By state")
+p4 + geom_bar() + aes(PPSTATEN, fill = Q12_q) + coord_flip() + ggtitle("By state")
+
+# by house type
+p4 + geom_bar(position = "fill") + aes(Q12_r, fill = PPHOUSE) + facet_wrap(~Q12_q)
+p4 + geom_bar(position = "fill") + aes(fill = PPHOUSE) + ggtitle("By house type")
+
+# housing status
+p4 + geom_bar(position = "fill") + aes(Q12_r, fill = PPHOUSE) + facet_wrap(~Q12_q)
+p4 + geom_bar() + aes(PPHOUSE, fill = Q12_r) + facet_wrap(~Q12_q) + ggtitle("By housing")
+
+# by internet availability
+p4 + geom_bar(position = "fill") + aes(Q12_r, fill = PPNET) + facet_wrap(~Q12_q)
+p4 + geom_bar(position = "fill") + aes(PPNET, fill = Q12_r) + facet_wrap(~Q12_q) + ggtitle("By internet availability")
+
+```
+
+
+
+
+
 
 
 ## Q22. Do you do any of the following when you have influenza symptoms?
