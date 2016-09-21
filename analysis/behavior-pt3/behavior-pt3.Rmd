@@ -7,7 +7,6 @@ output:
     theme: paper
     toc: yes
     toc_depth: 2
-  html_notebook:
 ---
 
 Questions 12, 22, 23, 31, 32.
@@ -99,14 +98,10 @@ p + geom_bar(position = 'fill') + aes(fill = Q12_r) + title
 ```
 
 ```{r q12-plot-1b}
-# plot2: exclude 'Don_t know' response
-p2 <- ggplot(q12[q12$Q12_r != "Don_t Know", ], aes(Q12_q, weight = Freq)) + ptext
+p2 <- ggplot(q12, aes(Q12_q, weight = Freq)) + ptext
 p2 + geom_bar(position = "fill") + aes(Q12_q, fill = Q12_r)
 p2 + geom_bar() + aes(Q12_r, fill = Q12_r) + facet_wrap(~Q12_q) + ptext2
 p2 + geom_bar() + aes(Q12_q, fill = Q12_q) + facet_wrap(~Q12_r) + ptext2
-
-# select 'High Risk' response only?
-#px <- ggplot(q12[q12$Q12_r == "High Risk", ], aes(weight = Freq)) + ptext
 
 # by gender
 p2 + geom_bar() + aes(PPGENDER, fill = Q12_r) + facet_wrap(~Q12_q) + ggtitle("By gender")
@@ -115,11 +110,9 @@ p2 + geom_bar() + aes(Q12_q, fill = PPGENDER) + facet_wrap(~Q12_r)
 p2 + geom_bar(position = 'fill') + aes(Q12_q, fill = PPGENDER) + facet_wrap(~Q12_r) + ggtitle("By gender")
 p2 + geom_bar() + aes(PPGENDER, fill = PPGENDER) + facet_grid(Q12_q~Q12_r) + coord_flip() + ptext2
 
-
 # age boxplot
 # need to subset by group
-svyboxplot(PPAGE~Q12_q, des11, main = "Age boxplot per response")
-
+svyboxplot(PPAGE~Q12_q, des, main = "Age boxplot per response")
 
 # by age group
 p2 + geom_bar() + aes(ppagecat, fill = Q12_r) + facet_wrap(~Q12_q) + ggtitle("By age group")
@@ -151,10 +144,10 @@ p2 + geom_bar() + aes(PPINCIMP, fill = PPINCIMP) + facet_grid(Q12_q~Q12_r) + pte
 
 ```{r q12-plot-2}
 # update weighted data frame
-q12.2 <- data.frame(svytable(~Q12_q + Q12_r + PPEDUC + PPEDUCAT + work + PPWORK + marital + PPMARIT, des11, round = T))
+q12.2 <- data.frame(svytable(~Q12_q + Q12_r + PPEDUC + PPEDUCAT + work + PPWORK + marital + PPMARIT, des12, round = T))
 
 # restate plots
-p3 <- ggplot(q12.2[q12.2$Q12_r != "Don_t Know", ], aes(Q12_q, weight = Freq)) + ptext
+p3 <- ggplot(q12.2, aes(Q12_q, weight = Freq)) + ptext
 ```
 
 ```{r q12-plot-2b}

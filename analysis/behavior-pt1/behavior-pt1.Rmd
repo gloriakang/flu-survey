@@ -1,12 +1,12 @@
 ---
-title: "Behavior part 1: Transportation"
+title: 'Behavior part 1: Transportation'
 output:
   html_notebook:
+    toc: yes
+    toc_depth: 2
   html_document:
-    fig_caption: yes
     fig_height: 4
     fig_width: 6
-    theme: paper
     keep_md: yes
     toc: yes
     toc_depth: 2
@@ -85,7 +85,6 @@ q7_df <- df %>%
 
 # select only Yes responses
 q7_df <- q7_df[(q7_df$Q7_r)=='Yes', ]
-str(q7_df)
 
 # survey design
 options(digits = 4)
@@ -211,7 +210,6 @@ q8_df <- df %>%
 
 # select only Yes responses
 q8_df <- q8_df[q8_df$Q8_r == 'Yes', ]
-str(q8_df)
 
 # survey design
 options(digits = 4)
@@ -387,7 +385,6 @@ q10_df <- df %>%
 
 # select only Yes responses
 q10_df <- q10_df[q10_df$Q10_r == 'Yes', ]
-str(q10_df)
 
 # survey design
 options(digits = 4)
