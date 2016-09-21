@@ -1,7 +1,8 @@
 name: Publish Document
+title:
 account: rpubs
 server: rpubs.com
 appId: https://api.rpubs.com/api/v1/document/210762/c883650279694e56bf7ddb4ba3fed2cc
 bundleId: https://api.rpubs.com/api/v1/document/210762/c883650279694e56bf7ddb4ba3fed2cc
 url: http://rpubs.com/gkang/210762
-when: 1474423664.11641
+when: 1474435081.96701

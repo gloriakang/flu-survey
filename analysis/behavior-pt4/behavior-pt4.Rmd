@@ -1,14 +1,14 @@
 ---
 title: 'Behavior part 4: Vaccine'
-output: 
+output:
+  html_notebook:
+    theme: paper
+    toc: yes
+    toc_depth: 2
   html_document:
     fig_height: 4
     fig_width: 6
-    theme: paper
     keep_md: yes
-    toc: yes
-    toc_depth: 2
-  html_notebook:  
     theme: paper
     toc: yes
     toc_depth: 2
@@ -79,10 +79,14 @@ q13 <- as.data.frame(svytable(~Q13 + PPGENDER + ppagect4 + PPETHM + income +
     PPEDUCAT + work + marital, des, round = T))
 
 title <- ggtitle("Do you get the flu vaccine?")
+
 p <- ggplot(q13, aes(Q13, weight = Freq)) + ptext
-fil <- aes(fill = Q13)
 
 p + geom_bar() + title
+```
+
+```{r}
+
 ```
 
 
@@ -94,7 +98,6 @@ q14 <- as.data.frame(svytable(~Q14 + PPGENDER + ppagect4 + PPETHM + income +
 
 title <- ggtitle("Q14. How much do you pay to get an influenza vaccine?")
 p <- ggplot(q14, aes(Q14, weight = Freq)) + ptext
-fil <- aes(fill = Q14)
 
 p + geom_bar() + title
 ```
@@ -108,7 +111,6 @@ q15 <- as.data.frame(svytable(~Q15 + PPGENDER + ppagect4 + PPETHM + income +
 
 title <- ggtitle("Q15. Are you more likely to get a vaccine if others around you get a vaccine?")
 p <- ggplot(q15, aes(Q15, weight = Freq)) + ptext
-fil <- aes(fill = Q15)
 
 p + geom_bar() + title
 ```
@@ -122,7 +124,6 @@ q16 <- as.data.frame(svytable(~Q16 + PPGENDER + ppagect4 + PPETHM + income +
 
 title <- ggtitle("Q16. Are you more likely to get a vaccine if others around you do not get a vaccine?")
 p <- ggplot(q16, aes(Q16, weight = Freq)) + ptext
-fil <- aes(fill = Q16)
 
 p + geom_bar() + title
 ```
@@ -136,7 +137,6 @@ q17 <- as.data.frame(svytable(~Q17 + PPGENDER + ppagect4 + PPETHM + income +
 
 title <- ggtitle("Q17. Do you get a vaccine to protect yourself, protect others, or protect yourself and others?")
 p <- ggplot(q17, aes(Q17, weight = Freq)) + ptext
-fil <- aes(fill = Q17)
 
 p + geom_bar() + title
 ```
@@ -274,7 +274,5 @@ p4 + geom_bar(position = "fill") + aes(Q18_r, fill = PPNET) + facet_wrap(~Q18_q)
 p4 + geom_bar(position = "fill") + aes(PPNET, fill = Q18_r) + facet_wrap(~Q18_q) + ggtitle("By internet availability")
 
 ```
-
-
 
 

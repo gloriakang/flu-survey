@@ -705,8 +705,3 @@ p3 + geom_bar(position = "fill") + aes(PPNET, fill = Q20) + ggtitle("Internet st
 
 ![](behavior-pt2_files/figure-html/q20-plot-2b-24.png)<!-- -->
 
-
-
-
-
-
