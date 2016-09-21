@@ -1,22 +1,24 @@
 ---
-title: "Behavior part 4: Vaccine"
+title: 'Behavior part 4: Vaccine'
 output: 
   html_document:
-    fig_caption: yes
+    fig_height: 4
+    fig_width: 6
+    theme: paper
     keep_md: yes
+    toc: yes
+    toc_depth: 2
+  html_notebook:  
     theme: paper
     toc: yes
     toc_depth: 2
-  html_notebook:
 ---
 
 Questions 13-18
 Flu vaccine questions.
 
-
 ```{r setup, include=FALSE}
 ## Setup.
-
 knitr::opts_chunk$set(echo = F, cache = T, cache.comments = F, warning = F, message = F, size = "small")
 rm(list = ls(all.names = T))
 library(rmarkdown); library(knitr); library(gridExtra)
@@ -25,7 +27,6 @@ library(tidyr); library(dplyr); library(ggplot2); library(survey)
 
 ```{r load-data, include=F}
 ## Load data.
-
 load("~/git/flu-survey/data/cleaning2.RData")
 load("~/git/flu-survey/data/recoding.RData")  # load "datar"
 df <- datar  # recoded variables
@@ -33,7 +34,6 @@ df <- datar  # recoded variables
 
 ```{r group-data, include=F}
 ## Regroup variables.
-
 # income
 income.map <- c(rep("under $10k", 3), rep("$10k to $25k", 4),
                 rep("$25k to $50k", 4), rep("$50k to $75k", 2),
@@ -57,7 +57,6 @@ df$work <- code(dataf$PPWORK, work.map, "unemployed")
 
 ```{r des-survey}
 ## Create survey object.
-
 options(digits = 4)
 options(survey.lonely.psu = "adjust")
 
@@ -66,52 +65,213 @@ des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight)==F, ])
 
 ```{r plot-temp, include=F}
 ## Create ggplot templates.
-
 ptext <- theme(axis.text = element_text(size = rel(0.9)),
                axis.text.x = element_text(angle = 45, hjust = 1))
-
+ptext2 <- ptext + theme(axis.text.x = element_blank())
 ```
 
 
 
 ## Q13. Do you get the flu vaccine?
 
-```{r}
+```{r q13}
+q13 <- as.data.frame(svytable(~Q13 + PPGENDER + ppagect4 + PPETHM + income + 
+    PPEDUCAT + work + marital, des, round = T))
 
+title <- ggtitle("Do you get the flu vaccine?")
+p <- ggplot(q13, aes(Q13, weight = Freq)) + ptext
+fil <- aes(fill = Q13)
+
+p + geom_bar() + title
 ```
 
 
 ## Q14. How much do you pay to get an influenza vaccine?
 
 ```{r}
+q14 <- as.data.frame(svytable(~Q14 + PPGENDER + ppagect4 + PPETHM + income + 
+    PPEDUCAT + work + marital, des, round = T))
 
+title <- ggtitle("Q14. How much do you pay to get an influenza vaccine?")
+p <- ggplot(q14, aes(Q14, weight = Freq)) + ptext
+fil <- aes(fill = Q14)
+
+p + geom_bar() + title
 ```
 
 
 ## Q15. Are you more likely to get a vaccine if others around you get a vaccine?
 
 ```{r}
+q15 <- as.data.frame(svytable(~Q15 + PPGENDER + ppagect4 + PPETHM + income + 
+    PPEDUCAT + work + marital, des, round = T))
 
+title <- ggtitle("Q15. Are you more likely to get a vaccine if others around you get a vaccine?")
+p <- ggplot(q15, aes(Q15, weight = Freq)) + ptext
+fil <- aes(fill = Q15)
+
+p + geom_bar() + title
 ```
 
 
 ## Q16. Are you more likely to get a vaccine if others around you do not get a vaccine?
 
 ```{r}
+q16 <- as.data.frame(svytable(~Q16 + PPGENDER + ppagect4 + PPETHM + income + 
+    PPEDUCAT + work + marital, des, round = T))
 
+title <- ggtitle("Q16. Are you more likely to get a vaccine if others around you do not get a vaccine?")
+p <- ggplot(q16, aes(Q16, weight = Freq)) + ptext
+fil <- aes(fill = Q16)
+
+p + geom_bar() + title
 ```
 
 
 ## Q17. Do you get a vaccine to protect yourself, protect others, or protect yourself and others?
 
 ```{r}
+q17 <- as.data.frame(svytable(~Q17 + PPGENDER + ppagect4 + PPETHM + income + 
+    PPEDUCAT + work + marital, des, round = T))
 
+title <- ggtitle("Q17. Do you get a vaccine to protect yourself, protect others, or protect yourself and others?")
+p <- ggplot(q17, aes(Q17, weight = Freq)) + ptext
+fil <- aes(fill = Q17)
+
+p + geom_bar() + title
 ```
 
 
 ## Q18. What are the reasons you would not get an influenza vaccine?
 
-```{r}
+```{r q18-data}
+# subset question data, rename columns, gather into single column
+q18_df <- df %>%
+  select(CaseID, PPGENDER, PPAGE, ppagecat, PPETHM, PPINCIMP, PPEDUC, PPEDUCAT,
+         work, PPWORK, marital, PPMARIT, PPMSACAT, ppreg9, PPSTATEN, PPHOUSE, PPRENT, PPNET, Q18_1:Q18_10, weight) %>%
+  gather(Q18_q, Q18_r, Q18_1:Q18_10, na.rm = T) %>%
+  mutate(Q18_q = as.factor(Q18_q))
+
+# survey design
+options(digits = 4)
+options(survey.lonely.psu = "adjust")
+des18 <- svydesign(ids = ~1, weights = ~weight, data = q18_df[is.na(q18_df$weight)==F, ])
+```
+
+### Gender, age, ethnicity, income
+
+```{r q18-plot-1}
+# weighted data frame
+q18 <- data.frame(svytable(~Q18_q + Q18_r + PPGENDER + ppagecat + PPETHM + PPINCIMP, des18, round = T))
+
+# plot templates
+title <- ggtitle("Which of the following actions do you take when you have influenza symptoms to avoid someone else from getting sick?")
+
+## main plot
+p <- ggplot(q18, aes(Q18_q, weight = Freq)) + ptext
+p + geom_bar(position = 'fill') + aes(fill = Q18_r) + title
+```
+
+```{r q18-plot-1b}
+p2 <- ggplot(q18, aes(Q18_q, weight = Freq)) + ptext
+p2 + geom_bar(position = "fill") + aes(Q18_q, fill = Q18_r)
+p2 + geom_bar() + aes(Q18_r, fill = Q18_r) + facet_wrap(~Q18_q) + ptext2
+p2 + geom_bar() + aes(Q18_q, fill = Q18_q) + facet_wrap(~Q18_r) + ptext2
+
+# by gender
+p2 + geom_bar() + aes(PPGENDER, fill = Q18_r) + facet_wrap(~Q18_q) + ggtitle("By gender")
+p2 + geom_bar(position = "fill") + aes(PPGENDER, fill = Q18_r) + facet_wrap(~Q18_q)
+p2 + geom_bar() + aes(Q18_q, fill = PPGENDER) + facet_wrap(~Q18_r)
+p2 + geom_bar(position = 'fill') + aes(Q18_q, fill = PPGENDER) + facet_wrap(~Q18_r) + ggtitle("By gender")
+p2 + geom_bar() + aes(PPGENDER, fill = PPGENDER) + facet_grid(Q18_q~Q18_r) + coord_flip() + ptext2
+
+# by age group
+p2 + geom_bar() + aes(ppagecat, fill = Q18_r) + facet_wrap(~Q18_q) + ggtitle("By age group")
+p2 + geom_bar(position = "fill") + aes(ppagecat, fill = Q18_r) + facet_wrap(~Q18_q)
+p2 + geom_bar() + aes(Q18_q, fill = ppagecat) + facet_wrap(~Q18_r)
+p2 + geom_bar(position = 'fill') + aes(Q18_q, fill = ppagecat) + facet_wrap(~Q18_r) + ggtitle("By age group")
+p2 + geom_bar() + aes(ppagecat, fill = ppagecat) + facet_grid(Q18_q~Q18_r) + ptext2
+
+# by ethnic group
+p2 + geom_bar() + aes(PPETHM, fill = Q18_r) + facet_wrap(~Q18_q) + ggtitle("By ethnic group")
+p2 + geom_bar(position = "fill") + aes(PPETHM, fill = Q18_r) + facet_wrap(~Q18_q)
+p2 + geom_bar() + aes(Q18_q, fill = PPETHM) + facet_wrap(~Q18_r)
+p2 + geom_bar(position = 'fill') + aes(Q18_q, fill = PPETHM) + facet_wrap(~Q18_r) + ggtitle("By ethnic group")
+p2 + geom_bar() + aes(PPETHM, fill = PPETHM) + facet_grid(Q18_q~Q18_r) + ptext2
+p2 + geom_bar() + aes(Q18_r, fill = Q18_r) + facet_grid(Q18_q~PPETHM) + ptext2
+
+# by income
+p2 + geom_bar() + aes(PPINCIMP, fill = Q18_r) + facet_wrap(~Q18_q) + ggtitle("By income") + ptext2
+p2 + geom_bar(position = "fill") + aes(PPINCIMP, fill = Q18_r) + facet_wrap(~Q18_q) + ptext2
+p2 + geom_bar() + aes(Q18_q, fill = PPINCIMP) + facet_wrap(~Q18_r)
+p2 + geom_bar(position = 'fill') + aes(Q18_q, fill = PPINCIMP) + facet_wrap(~Q18_r) + ggtitle("By income group")
+p2 + geom_bar() + aes(PPINCIMP, fill = PPINCIMP) + facet_grid(Q18_q~Q18_r) + ptext2
+
+```
+
+### Education, work, marital status
+
+```{r q18-plot-2}
+# update weighted data frame
+q18.2 <- data.frame(svytable(~Q18_q + Q18_r + PPEDUC + PPEDUCAT + work + PPWORK + marital + PPMARIT, des18, round = T))
+
+# restate plots
+p3 <- ggplot(q18.2, aes(Q18_q, weight = Freq)) + ptext
+```
+
+```{r q18-plot-2b}
+# by education
+p3 + geom_bar() + aes(PPEDUCAT, fill = Q18_r) + facet_wrap(~Q18_q) + ggtitle("By education")
+p3 + geom_bar(position = "fill") + aes(PPEDUCAT, fill = Q18_r) + facet_wrap(~Q18_q)
+p3 + geom_bar() + aes(Q18_q, fill = PPEDUCAT) + facet_wrap(~Q18_r)
+p3 + geom_bar(position = "fill") + aes(Q18_q, fill = PPEDUCAT) + facet_wrap(~Q18_r) + ggtitle("By education")
+p3 + geom_bar() + aes(PPEDUCAT, fill = PPEDUCAT) + facet_grid(Q18_q~Q18_r) + ptext2
+p3 + geom_bar() + aes(Q18_r, fill = Q18_r) + facet_grid(Q18_q~PPEDUCAT) + ptext2
+
+# by work
+p3 + geom_bar() + aes(work, fill = Q18_r) + facet_wrap(~Q18_q) + ggtitle("By employment status")
+p3 + geom_bar(position = "fill") + aes(work, fill = Q18_r) + facet_wrap(~Q18_q)
+
+# by marital
+p3 + geom_bar() + aes(marital, fill = Q18_r) + facet_wrap(~Q18_q) + ggtitle("By marital status")
+p3 + geom_bar(position = "fill") + aes(marital, fill = Q18_r) + facet_wrap(~Q18_q)
+
+```
+
+### Metro status, region, state, house type, housing status, internet availability
+
+```{r q18-plot-3}
+# update weighted data frame
+q18.3 <- data.frame(svytable(~Q18_q + Q18_r + PPMSACAT + ppreg9 + PPSTATEN + PPHOUSE + PPRENT + PPNET, des18, round = T))
+
+# restate plots
+p4 <- ggplot(q18.3, aes(Q18_q, weight = Freq)) + ptext
+```
+
+```{r q18-plot-3b}
+# by metro status
+p4 + geom_bar(position = "fill") + aes(Q18_r, fill = PPMSACAT) + facet_wrap(~Q18_q) + ggtitle("By metro status")
+p4 + geom_bar(position = "fill") + aes(PPMSACAT, fill = Q18_r) + facet_wrap(~Q18_q)
+
+# by region
+p4 + geom_bar(position = "fill") + aes(Q18_r, fill = ppreg9) + facet_wrap(~Q18_q) + ggtitle("By region")
+p4 + geom_bar() + aes(ppreg9, fill = Q18_r) + facet_wrap(~Q18_q) + ggtitle("By region")
+
+# by state
+p4 + geom_bar() + aes(Q18_r, fill = PPSTATEN) + facet_wrap(~Q18_q) + ggtitle("By state")
+p4 + geom_bar() + aes(PPSTATEN, fill = Q18_q) + coord_flip() + ggtitle("By state")
+
+# by house type
+p4 + geom_bar(position = "fill") + aes(Q18_r, fill = PPHOUSE) + facet_wrap(~Q18_q)
+p4 + geom_bar(position = "fill") + aes(fill = PPHOUSE) + ggtitle("By house type")
+
+# housing status
+p4 + geom_bar(position = "fill") + aes(Q18_r, fill = PPHOUSE) + facet_wrap(~Q18_q)
+p4 + geom_bar() + aes(PPHOUSE, fill = Q18_r) + facet_wrap(~Q18_q) + ggtitle("By housing")
+
+# by internet availability
+p4 + geom_bar(position = "fill") + aes(Q18_r, fill = PPNET) + facet_wrap(~Q18_q)
+p4 + geom_bar(position = "fill") + aes(PPNET, fill = Q18_r) + facet_wrap(~Q18_q) + ggtitle("By internet availability")
 
 ```
 

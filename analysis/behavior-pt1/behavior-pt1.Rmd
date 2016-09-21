@@ -1,13 +1,15 @@
 ---
 title: 'Behavior part 1: Transportation'
 output:
-  html_notebook:
-    toc: yes
-    toc_depth: 2
   html_document:
     fig_height: 4
     fig_width: 6
     keep_md: yes
+    theme: paper
+    toc: yes
+    toc_depth: 2
+  html_notebook:
+    theme: paper
     toc: yes
     toc_depth: 2
 ---
