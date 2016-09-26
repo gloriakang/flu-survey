@@ -1,0 +1,157 @@
+---
+title: 'Q28-30'
+output:
+  html_notebook: 
+    theme: paper
+    toc: yes
+    toc_depth: 2
+  html_document:
+    fig_height: 5
+    fig_width: 7
+    theme: paper
+    keep_md: yes
+    toc: yes
+    toc_depth: 2
+---
+
+```{r setup, include=F}
+## Setup.
+knitr::opts_chunk$set(echo = T, cache = T, cache.comments = F, warning = F, message = F, size = "small")
+rm(list = ls(all.names = T))
+library(rmarkdown); library(knitr); library(gridExtra)
+library(tidyr); library(dplyr); library(ggplot2); library(survey)
+```
+
+```{r load-data, include=F}
+## Load data.
+load("~/git/flu-survey/data/cleaning2.RData")
+load("~/git/flu-survey/data/recoding.RData")  # load "datar"
+df <- datar  # recoded variables
+```
+
+```{r group-data, include=F}
+## Regroup variables.
+# income
+income.map <- c(rep("under $10k", 3), rep("$10k to $25k", 4),
+                rep("$25k to $50k", 4), rep("$50k to $75k", 2),
+                rep("$75k to $100k", 2), rep("$100k to $150k", 2),
+                rep("over $150k", 2))
+df$income <- code(datar$PPINCIMP, income.map, "under $10k")
+income.lab <- c("under $10k", "$10k to $25k", "$25k to $50k",
+                "$50k to $75k", "$75k to $100k", "$100k to $150k",
+                "over $150k")
+df$income <- factor(df$income, levels = income.lab)
+
+# marital staus
+marital.map <- c("single", "partnered", "partnered", "single", "single", "single")
+df$marital <- code(dataf$PPMARIT, marital.map, "single")
+
+# work status
+work.map <- c(rep("unemployed", 5),
+              rep("employed", 2))
+df$work <- code(dataf$PPWORK, work.map, "unemployed")
+```
+
+```{r des-survey}
+## Create survey object.
+options(digits = 4)
+options(survey.lonely.psu = "adjust")
+
+des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight)==F, ])
+```
+
+```{r plot-temp, include=F}
+## Create ggplot templates.
+ptext <- theme(axis.text = element_text(size = rel(0.9)),
+               axis.text.x = element_text(angle = 45, hjust = 1))
+ptext2 <- ptext + theme(axis.text.x = element_blank())
+```
+
+
+## Q28. Are you a single parent?
+
+
+```{r}
+# weighted data frame
+q28 <- as.data.frame(svytable(
+  ~Q28 + PPGENDER + ppagecat + PPETHM + PPINCIMP + PPEDUCAT, des, round = T))
+
+title <- ggtitle("Q28. Are you a single parent?")
+p <- ggplot(q28, aes(Q28, weight = Freq)) + ptext
+p + geom_bar() + title
+
+```
+
+
+## Q29. How do you care for a sick child? (married parent)
+
+
+```{r}
+# subset question data, rename columns, gather into single column
+q29_df <- df %>%
+  select(CaseID, PPGENDER, PPAGE, ppagecat, PPETHM, PPINCIMP, PPEDUC, PPEDUCAT, work, PPWORK, marital, PPMARIT, PPMSACAT, ppreg9, PPSTATEN, PPHOUSE, PPRENT, PPNET, Q29_1:Q29_6, weight) %>%
+  rename("Q29_1_A.parent.brings.the.child.to.work" = Q29_1,
+         "Q29_2_A.parent.stays.home" = Q29_2,
+         "Q29_3_Another.adult.stays.home" = Q29_3,
+         "Q29_4_Send.the.child.to.school.sick" = Q29_4,
+         "Q29_5_Take.the.child.to.a.relative.or.friends" =	Q29_5,
+         "Q29_6_Other" = Q29_6) %>%
+  gather(Q29_q, Q29_r, Q29_1_A.parent.brings.the.child.to.work:Q29_5_Take.the.child.to.a.relative.or.friends, na.rm = T) %>%
+  mutate(Q29_q = as.factor(Q29_q)) %>%
+  mutate(Q29_r = factor(Q29_r, levels = c("Always", "Sometimes", "Never")))
+
+# survey design
+options(digits = 4)
+options(survey.lonely.psu = "adjust")
+des29 <- svydesign(ids = ~1, weights = ~weight, data = q29_df[is.na(q29_df$weight)==F, ])
+
+```
+
+```{r fig.height=4}
+# weighted data frame
+q29 <- data.frame(svytable(~Q29_q + Q29_r + PPGENDER + ppagecat + PPETHM + PPINCIMP, des29, round = T))
+
+# plot templates
+title <- ggtitle("Q29. How do you care for a sick child? (married parent)")
+
+## main plot
+p <- ggplot(q29, aes(Q29_q, weight = Freq)) + ptext
+p + geom_bar(position = 'fill') + aes(fill = Q29_r) + title + coord_flip()
+```
+
+
+## Q30. How do you care for a sick child? (single parent)
+
+
+```{r}
+q30_df <- df %>%
+  select(CaseID, PPGENDER, PPAGE, ppagecat, PPETHM, PPINCIMP, PPEDUC, PPEDUCAT, work, PPWORK, marital, PPMARIT, PPMSACAT, ppreg9, PPSTATEN, PPHOUSE, PPRENT, PPNET, Q30_1:Q30_6, weight) %>%
+  rename("Q30_1_I.bring.the.child.to.work" = Q30_1,
+         "Q30_2_I.stay.home" = Q30_2,
+         "Q30_3_Another.adult.stays.home" = Q30_3,
+         "Q30_4_Send.the.child.to.school.sick" = Q30_4,
+         "Q30_5_Take.the.child.to.a.relative.or.friends" = Q30_5,
+         "Q30_6_Other" = Q30_6) %>%
+  gather(Q30_q, Q30_r, Q30_1_I.bring.the.child.to.work:Q30_5_Take.the.child.to.a.relative.or.friends, na.rm = T) %>%
+  mutate(Q30_q = as.factor(Q30_q)) %>%
+  mutate(Q30_r = factor(Q30_r, levels = c("Always", "Sometimes", "Never")))
+
+# survey design
+options(digits = 4)
+options(survey.lonely.psu = "adjust")
+des30 <- svydesign(ids = ~1, weights = ~weight, data = q30_df[is.na(q30_df$weight)==F, ])
+```
+
+```{r fig.height=4}
+# weighted data frame
+q30 <- data.frame(svytable(~Q30_q + Q30_r + PPGENDER + ppagecat + PPETHM + PPINCIMP, des30, round = T))
+
+# plot templates
+title <- ggtitle("Q30. How do you care for a sick child? (single parent)")
+
+## main plot
+p <- ggplot(q30, aes(Q30_q, weight = Freq)) + ptext
+p + geom_bar(position = 'fill') + aes(fill = Q30_r) + title + coord_flip()
+
+```
+
