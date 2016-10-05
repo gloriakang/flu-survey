@@ -1,22 +1,18 @@
 ---
 title: 'Q12'
 output:
-  html_notebook: 
-    theme: paper
+  html_document:
+    keep_md: yes
     toc: yes
     toc_depth: 2
-  html_document:
-    fig_height: 5
-    fig_width: 7
-    theme: paper
-    keep_md: yes
+  html_notebook: 
     toc: yes
     toc_depth: 2
 ---
 
 ```{r setup, include=F}
 ## Setup.
-knitr::opts_chunk$set(echo = T, cache = T, cache.comments = F, warning = F, message = F, size = "small")
+knitr::opts_chunk$set(echo = T, cache = T, cache.comments = F, warning = F, message = F)
 rm(list = ls(all.names = T))
 library(rmarkdown); library(knitr); library(gridExtra)
 library(tidyr); library(dplyr); library(ggplot2); library(survey)
@@ -101,7 +97,8 @@ options(survey.lonely.psu = "adjust")
 des12 <- svydesign(ids = ~1, weights = ~weight, data = q12_df[is.na(q12_df$weight)==F, ])
 ```
 
-```{r q12-plot-1, fig.height=4, fig.width=8}
+
+```{r q12-plot-1, fig.height=3, fig.width=5}
 # weighted data frame
 q12 <- data.frame(svytable(~Q12_q + Q12_r + PPGENDER + ppagecat + PPETHM + PPINCIMP, des12, round = T))
 
@@ -110,17 +107,13 @@ title <- ggtitle("Which of the following actions do you take to avoid getting si
 
 ## main plot
 p <- ggplot(q12, aes(Q12_q, weight = Freq)) + ptext
-p + geom_bar(position = 'stack') + aes(fill = Q12_r) + title + coord_flip()
-
-
+p + geom_bar(position = 'fill') + aes(fill = Q12_r) + title + coord_flip()
 ```
 
-```{r q12-plot-1b, fig.height=4, fig.width=7}
-p2 <- ggplot(q12, aes(Q12_q, weight = Freq)) + ptext
-p2 + geom_bar(position = "fill") + aes(Q12_q, fill = Q12_r) + coord_flip()
+```{r q12-plot-1b, fig.height=3, fig.width=5}
+p2 <- ggplot(q12, aes(Q12_q, weight = Freq)) + ptext + title
 p2 + geom_bar() + aes(Q12_r, fill = Q12_r) + facet_wrap(~Q12_q) + ptext2
 p2 + geom_bar() + aes(Q12_q, fill = Q12_q) + facet_wrap(~Q12_r) + ptext2
-
 ```
 
 
