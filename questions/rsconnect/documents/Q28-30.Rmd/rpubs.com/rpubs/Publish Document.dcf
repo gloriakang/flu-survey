@@ -1,0 +1,8 @@
+name: Publish Document
+title:
+account: rpubs
+server: rpubs.com
+appId: https://api.rpubs.com/api/v1/document/212523/e97ca1bf3f2b42e5a7b9e4195fd49dd8
+bundleId: https://api.rpubs.com/api/v1/document/212523/e97ca1bf3f2b42e5a7b9e4195fd49dd8
+url: http://rpubs.com/gkang/212523
+when: 1475657820.1007

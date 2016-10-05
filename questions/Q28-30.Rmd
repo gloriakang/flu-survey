@@ -1,18 +1,18 @@
 ---
-title: 'Q28-30'
+title: "Q28-30"
 output:
-  html_notebook: 
+  html_document:
+    keep_md: yes
     theme: paper
     toc: yes
     toc_depth: 2
-  html_document:
-    fig_height: 5
-    fig_width: 7
+  html_notebook:
     theme: paper
-    keep_md: yes
     toc: yes
     toc_depth: 2
 ---
+
+Questions 28, 29, 30
 
 ```{r setup, include=F}
 ## Setup.
@@ -62,9 +62,15 @@ des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight)==F, ])
 
 ```{r plot-temp, include=F}
 ## Create ggplot templates.
-ptext <- theme(axis.text = element_text(size = rel(0.9)),
-               axis.text.x = element_text(angle = 45, hjust = 1))
+# smaller text
+ptext <- theme(axis.text = element_text(size = rel(0.8)),
+               axis.text.x = element_text(angle = 45, hjust = 1),
+               legend.title = element_text(size = rel(0.8)),
+               legend.text = element_text(size = rel(0.8)))
+# remove x-axis labels
 ptext2 <- ptext + theme(axis.text.x = element_blank())
+# remove legend
+ptext3 <- guides(fill = FALSE)
 ```
 
 
@@ -74,12 +80,14 @@ ptext2 <- ptext + theme(axis.text.x = element_blank())
 ```{r}
 # weighted data frame
 q28 <- as.data.frame(svytable(
-  ~Q28 + PPGENDER + ppagecat + PPETHM + PPINCIMP + PPEDUCAT, des, round = T))
+  ~Q28 + PPGENDER + ppagecat + ppagect4 + PPETHM + PPINCIMP + PPEDUCAT, des, round = T))
 
+# plot templates
 title <- ggtitle("Q28. Are you a single parent?")
-p <- ggplot(q28, aes(Q28, weight = Freq)) + ptext
-p + geom_bar() + title
 
+## main plot
+p <- ggplot(q28, aes(Q28, weight = Freq))
+p + geom_bar() + title
 ```
 
 
@@ -89,7 +97,7 @@ p + geom_bar() + title
 ```{r}
 # subset question data, rename columns, gather into single column
 q29_df <- df %>%
-  select(CaseID, PPGENDER, PPAGE, ppagecat, PPETHM, PPINCIMP, PPEDUC, PPEDUCAT, work, PPWORK, marital, PPMARIT, PPMSACAT, ppreg9, PPSTATEN, PPHOUSE, PPRENT, PPNET, Q29_1:Q29_6, weight) %>%
+  select(CaseID, PPGENDER, PPAGE, ppagecat, ppagect4, PPETHM, PPINCIMP, PPEDUC, PPEDUCAT, work, PPWORK, marital, PPMARIT, PPMSACAT, ppreg9, PPSTATEN, PPHOUSE, PPRENT, PPNET, Q29_1:Q29_6, weight) %>%
   rename("Q29_1_A.parent.brings.the.child.to.work" = Q29_1,
          "Q29_2_A.parent.stays.home" = Q29_2,
          "Q29_3_Another.adult.stays.home" = Q29_3,
@@ -100,32 +108,35 @@ q29_df <- df %>%
   mutate(Q29_q = as.factor(Q29_q)) %>%
   mutate(Q29_r = factor(Q29_r, levels = c("Always", "Sometimes", "Never")))
 
+
 # survey design
 options(digits = 4)
 options(survey.lonely.psu = "adjust")
 des29 <- svydesign(ids = ~1, weights = ~weight, data = q29_df[is.na(q29_df$weight)==F, ])
-
 ```
 
-```{r fig.height=4}
+```{r, fig.height=4, fig.width=8}
 # weighted data frame
-q29 <- data.frame(svytable(~Q29_q + Q29_r + PPGENDER + ppagecat + PPETHM + PPINCIMP, des29, round = T))
+q29 <- data.frame(svytable(~Q29_q + Q29_r + PPGENDER + ppagecat + ppagect4 + PPETHM + PPINCIMP, des29, round = T))
 
 # plot templates
 title <- ggtitle("Q29. How do you care for a sick child? (married parent)")
 
 ## main plot
-p <- ggplot(q29, aes(Q29_q, weight = Freq)) + ptext
-p + geom_bar(position = 'fill') + aes(fill = Q29_r) + title + coord_flip()
+p <- ggplot(q29, aes(Q29_q, weight = Freq))
+p + geom_bar(position = "fill") + aes(fill = Q29_r) + title + coord_flip()
 ```
+
+
 
 
 ## Q30. How do you care for a sick child? (single parent)
 
 
 ```{r}
+# subset question data, rename columns, gather into single column
 q30_df <- df %>%
-  select(CaseID, PPGENDER, PPAGE, ppagecat, PPETHM, PPINCIMP, PPEDUC, PPEDUCAT, work, PPWORK, marital, PPMARIT, PPMSACAT, ppreg9, PPSTATEN, PPHOUSE, PPRENT, PPNET, Q30_1:Q30_6, weight) %>%
+  select(CaseID, PPGENDER, PPAGE, ppagecat, ppagect4, PPETHM, PPINCIMP, PPEDUC, PPEDUCAT, work, PPWORK, marital, PPMARIT, PPMSACAT, ppreg9, PPSTATEN, PPHOUSE, PPRENT, PPNET, Q30_1:Q30_6, weight) %>%
   rename("Q30_1_I.bring.the.child.to.work" = Q30_1,
          "Q30_2_I.stay.home" = Q30_2,
          "Q30_3_Another.adult.stays.home" = Q30_3,
@@ -136,22 +147,24 @@ q30_df <- df %>%
   mutate(Q30_q = as.factor(Q30_q)) %>%
   mutate(Q30_r = factor(Q30_r, levels = c("Always", "Sometimes", "Never")))
 
+
 # survey design
 options(digits = 4)
 options(survey.lonely.psu = "adjust")
 des30 <- svydesign(ids = ~1, weights = ~weight, data = q30_df[is.na(q30_df$weight)==F, ])
 ```
 
-```{r fig.height=4}
+```{r, fig.height=4, fig.width=8}
 # weighted data frame
-q30 <- data.frame(svytable(~Q30_q + Q30_r + PPGENDER + ppagecat + PPETHM + PPINCIMP, des30, round = T))
+q30 <- data.frame(svytable(~Q30_q + Q30_r + PPGENDER + ppagecat + ppagect4 + PPETHM + PPINCIMP, des30, round = T))
 
 # plot templates
 title <- ggtitle("Q30. How do you care for a sick child? (single parent)")
+# descending order
+
 
 ## main plot
-p <- ggplot(q30, aes(Q30_q, weight = Freq)) + ptext
-p + geom_bar(position = 'fill') + aes(fill = Q30_r) + title + coord_flip()
-
+p <- ggplot(q30, aes(Q30_q, weight = Freq))
+p + geom_bar(position = "fill") + aes(fill = Q30_r) + title + coord_flip()
 ```
 

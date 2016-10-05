@@ -1,11 +1,13 @@
 ---
-title: 'Q12'
+title: "Q12"
 output:
   html_document:
     keep_md: yes
+    theme: paper
     toc: yes
     toc_depth: 2
-  html_notebook: 
+  html_notebook:
+    theme: paper
     toc: yes
     toc_depth: 2
 ---
@@ -58,9 +60,15 @@ des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight)==F, ])
 
 ```{r plot-temp, include=F}
 ## Create ggplot templates.
-ptext <- theme(axis.text = element_text(size = rel(0.9)),
-               axis.text.x = element_text(angle = 45, hjust = 1))
+# smaller text
+ptext <- theme(axis.text = element_text(size = rel(0.8)),
+               axis.text.x = element_text(angle = 45, hjust = 1),
+               legend.title = element_text(size = rel(0.8)),
+               legend.text = element_text(size = rel(0.8)))
+# remove x-axis labels
 ptext2 <- ptext + theme(axis.text.x = element_blank())
+# remove legend
+ptext3 <- guides(fill = FALSE)
 ```
 
 
@@ -70,7 +78,7 @@ ptext2 <- ptext + theme(axis.text.x = element_blank())
 ```{r q12-data}
 # subset question data, rename columns, gather into single column
 q12_df <- df %>%
-  select(CaseID, PPGENDER, PPAGE, ppagecat, PPETHM, PPINCIMP, PPEDUC, PPEDUCAT,
+  select(CaseID, PPGENDER, PPAGE, ppagecat, ppagect4, PPETHM, PPINCIMP, PPEDUC, PPEDUCAT,
          work, PPWORK, marital, PPMARIT, PPMSACAT, ppreg9, PPSTATEN, PPHOUSE, PPRENT, PPNET, Q12_1:Q12_15, weight) %>%
     rename("Q12_1_Avoid.touching.my.eyes" = Q12_1,
          "Q12_2_Avoid.touching.my.nose" = Q12_2,
@@ -88,8 +96,27 @@ q12_df <- df %>%
          "Q12_14_Avoid.crowded.places" = Q12_14,
          "Q12_15_Other" = Q12_15) %>%
   gather(Q12_q, Q12_r, Q12_1_Avoid.touching.my.eyes:Q12_15_Other, na.rm = T) %>%
-  mutate(Q12_q = as.factor(Q12_q)) %>%
   mutate(Q12_r = factor(Q12_r, levels = c("Always", "Sometimes", "Never")))
+
+# relevel
+label = c("Q12_1_Avoid.touching.my.eyes", 
+         "Q12_2_Avoid.touching.my.nose", 
+         "Q12_3_Avoid.touching.my.mouth", 
+         "Q12_4_Wash.my.hands.with.soap.more.often",
+         "Q12_5_Use.hand.sanitizers",
+         "Q12_6_Clean.the.surfaces.in.my.home",
+         "Q12_7_Clean.the.surfaces.at.work",
+         "Q12_8_Eat.nutritious.food",
+         "Q12_9_Get.adequate.rest",
+         "Q12_10_Get.recommended.vaccine",
+         "Q12_11_Take.preventive.medicine",
+         "Q12_12_Cover.my.nose.and.mouth.with.a.surgical.mask",
+         "Q12_13_Avoid.contact.with.people.who.are.sick",
+         "Q12_14_Avoid.crowded.places",
+         "Q12_15_Other")
+
+q12_df <- q12_df %>%
+    mutate(Q12_q = factor(Q12_q, levels = label))
 
 # survey design
 options(digits = 4)
@@ -97,69 +124,66 @@ options(survey.lonely.psu = "adjust")
 des12 <- svydesign(ids = ~1, weights = ~weight, data = q12_df[is.na(q12_df$weight)==F, ])
 ```
 
-
-```{r q12-plot-1, fig.height=3, fig.width=5}
+```{r q12-plot-1,  fig.height=4, fig.width=8}
 # weighted data frame
-q12 <- data.frame(svytable(~Q12_q + Q12_r + PPGENDER + ppagecat + PPETHM + PPINCIMP, des12, round = T))
+q12 <- data.frame(svytable(~Q12_q + Q12_r + PPGENDER + ppagecat + ppagect4 + PPETHM + PPINCIMP, des12, round = T))
 
 # plot templates
 title <- ggtitle("Which of the following actions do you take to avoid getting sick?")
+# descending order of labels
+plabel <- scale_x_discrete(limits = rev(levels(q12$Q12_q)))
 
 ## main plot
-p <- ggplot(q12, aes(Q12_q, weight = Freq)) + ptext
-p + geom_bar(position = 'fill') + aes(fill = Q12_r) + title + coord_flip()
+p <- ggplot(q12, aes(Q12_q, weight = Freq)) + plabel + ptext
+p + geom_bar(position = "fill") + aes(fill = Q12_r) + title + coord_flip()
 ```
 
-```{r q12-plot-1b, fig.height=3, fig.width=5}
-p2 <- ggplot(q12, aes(Q12_q, weight = Freq)) + ptext + title
-p2 + geom_bar() + aes(Q12_r, fill = Q12_r) + facet_wrap(~Q12_q) + ptext2
-p2 + geom_bar() + aes(Q12_q, fill = Q12_q) + facet_wrap(~Q12_r) + ptext2
+### Gender
+```{r q12-plot-1b,  fig.height=4, fig.width=8}
+# p2
+p2 <- ggplot(q12, aes(Q12_q, weight = Freq)) + ptext
+
+# gender
+p2 + geom_bar(position = "fill") + aes(Q12_q, fill = PPGENDER) + facet_wrap(~Q12_r) + ggtitle("By gender") + coord_flip() + plabel
+p2 + geom_bar(position = "dodge") + aes(Q12_q, fill = PPGENDER) + facet_wrap(~Q12_r) + ggtitle("By gender") + coord_flip() + plabel
+
+p2 + geom_bar(position = "fill") + aes(PPGENDER, fill = Q12_r) + facet_wrap(~Q12_q) + coord_flip()
 ```
 
-
-```{r}
-# by gender
-p2 + geom_bar() + aes(PPGENDER, fill = Q12_r) + facet_wrap(~Q12_q) + ggtitle("By gender")
-p2 + geom_bar(position = "fill") + aes(PPGENDER, fill = Q12_r) + facet_wrap(~Q12_q)
-p2 + geom_bar() + aes(Q12_q, fill = PPGENDER) + facet_wrap(~Q12_r)
-p2 + geom_bar(position = 'fill') + aes(Q12_q, fill = PPGENDER) + facet_wrap(~Q12_r) + ggtitle("By gender")
-p2 + geom_bar() + aes(PPGENDER, fill = PPGENDER) + facet_grid(Q12_q~Q12_r) + coord_flip() + ptext2
-
-```
-
-```{r}
+### Age group
+```{r, fig.height=4, fig.width=8}
 # by age group
-p2 + geom_bar() + aes(ppagecat, fill = Q12_r) + facet_wrap(~Q12_q) + ggtitle("By age group")
-p2 + geom_bar(position = "fill") + aes(ppagecat, fill = Q12_r) + facet_wrap(~Q12_q)
-p2 + geom_bar() + aes(Q12_q, fill = ppagecat) + facet_wrap(~Q12_r)
-p2 + geom_bar(position = 'fill') + aes(Q12_q, fill = ppagecat) + facet_wrap(~Q12_r) + ggtitle("By age group")
-p2 + geom_bar() + aes(ppagecat, fill = ppagecat) + facet_grid(Q12_q~Q12_r) + ptext2
-
+p2 + geom_bar(position = "fill") + aes(Q12_q, fill = ppagect4) + facet_wrap(~Q12_r) + ggtitle("By age group") + plabel + coord_flip()
 ```
 
-```{r}
+```{r, fig.height=6, fig.width=8}
+p2 + geom_bar(position = "fill") + aes(Q12_q, fill = ppagect4) + facet_grid(Q12_r ~ .) + coord_flip() + plabel
+p2 + geom_bar(position = "fill") + aes(ppagecat, fill = Q12_r) + facet_wrap(~Q12_q) 
+```
+
+### Ethnicity
+```{r, fig.height=4, fig.width=8}
 # by ethnic group
-p2 + geom_bar() + aes(PPETHM, fill = Q12_r) + facet_wrap(~Q12_q) + ggtitle("By ethnic group")
-p2 + geom_bar(position = "fill") + aes(PPETHM, fill = Q12_r) + facet_wrap(~Q12_q)
-p2 + geom_bar() + aes(Q12_q, fill = PPETHM) + facet_wrap(~Q12_r)
-p2 + geom_bar(position = 'fill') + aes(Q12_q, fill = PPETHM) + facet_wrap(~Q12_r) + ggtitle("By ethnic group")
-p2 + geom_bar() + aes(PPETHM, fill = PPETHM) + facet_grid(Q12_q~Q12_r) + ptext2
-p2 + geom_bar() + aes(Q12_r, fill = Q12_r) + facet_grid(Q12_q~PPETHM) + ptext2
-
+p2 + geom_bar(position = "fill") + aes(Q12_q, fill = PPETHM) + facet_wrap(~Q12_r) + ggtitle("By ethnic group") + plabel + coord_flip()
 ```
 
-```{r}
-# by income
-p2 + geom_bar() + aes(PPINCIMP, fill = Q12_r) + facet_wrap(~Q12_q) + ggtitle("By income") + ptext2
+```{r, fig.height=6, fig.width=8}
+p2 + geom_bar(position = "fill") + aes(Q12_q, fill = PPETHM) + facet_grid(Q12_r ~ .) + coord_flip() + plabel
+p2 + geom_bar(position = "fill") + aes(PPETHM, fill = Q12_r) + facet_wrap(~Q12_q) 
+```
+
+### Income
+```{r, fig.height=4, fig.width=8}
+# by income group
+p2 + geom_bar(position = "fill") + aes(Q12_q, fill = PPINCIMP) + facet_wrap(~Q12_r) + ggtitle("By income group") + plabel + coord_flip() + ptext3
+```
+
+```{r, fig.height=6, fig.width=8}
+p2 + geom_bar(position = "fill") + aes(Q12_q, fill = PPINCIMP) + facet_grid(Q12_r ~ .) + coord_flip() + plabel + ptext3
+
 p2 + geom_bar(position = "fill") + aes(PPINCIMP, fill = Q12_r) + facet_wrap(~Q12_q) + ptext2
-p2 + geom_bar() + aes(Q12_q, fill = PPINCIMP) + facet_wrap(~Q12_r)
-p2 + geom_bar(position = 'fill') + aes(Q12_q, fill = PPINCIMP) + facet_wrap(~Q12_r) + ggtitle("By income group")
-p2 + geom_bar() + aes(PPINCIMP, fill = PPINCIMP) + facet_grid(Q12_q~Q12_r) + ptext2
-
 ```
 
-
-### Education, work, marital status
 
 ```{r q12-plot-2}
 # update weighted data frame
@@ -167,71 +191,25 @@ q12.2 <- data.frame(svytable(~Q12_q + Q12_r + PPEDUC + PPEDUCAT + work + PPWORK 
 
 # restate plots
 p3 <- ggplot(q12.2, aes(Q12_q, weight = Freq)) + ptext
+
+# descending order of labels
+plabel <- scale_x_discrete(limits = rev(levels(q12.2$Q12_q)))
 ```
 
-```{r q12-plot-2b}
+### Education
+```{r q12-plot-2b, fig.height=4, fig.width=8}
 # by education
-p3 + geom_bar() + aes(PPEDUCAT, fill = Q12_r) + facet_wrap(~Q12_q) + ggtitle("By education")
-p3 + geom_bar(position = "fill") + aes(PPEDUCAT, fill = Q12_r) + facet_wrap(~Q12_q)
-p3 + geom_bar() + aes(Q12_q, fill = PPEDUCAT) + facet_wrap(~Q12_r)
-p3 + geom_bar(position = "fill") + aes(Q12_q, fill = PPEDUCAT) + facet_wrap(~Q12_r) + ggtitle("By education")
-p3 + geom_bar() + aes(PPEDUCAT, fill = PPEDUCAT) + facet_grid(Q12_q~Q12_r) + ptext2
-p3 + geom_bar() + aes(Q12_r, fill = Q12_r) + facet_grid(Q12_q~PPEDUCAT) + ptext2
-
+p3 + geom_bar(position = "fill") + aes(Q12_q, fill = PPEDUCAT) + facet_wrap(~Q12_r) + ggtitle("By education") + plabel + coord_flip()
 ```
 
-```{r}
-# by work
-p3 + geom_bar() + aes(work, fill = Q12_r) + facet_wrap(~Q12_q) + ggtitle("By employment status")
-p3 + geom_bar(position = "fill") + aes(work, fill = Q12_r) + facet_wrap(~Q12_q)
+```{r, fig.height=6, fig.width=8}
+p3 + geom_bar(position = "fill") + aes(Q12_q, fill = PPEDUCAT) + facet_grid(Q12_r ~ .) + coord_flip() + plabel #+ ptext3
 
+p3 + geom_bar(position = "fill") + aes(PPEDUCAT, fill = Q12_r) + facet_wrap(~Q12_q) + ptext2 + ggtitle("By education")
 ```
 
-```{r}
-# by marital
-p3 + geom_bar() + aes(marital, fill = Q12_r) + facet_wrap(~Q12_q) + ggtitle("By marital status")
-p3 + geom_bar(position = "fill") + aes(marital, fill = Q12_r) + facet_wrap(~Q12_q)
 
-```
 
-### Metro status, region, state, house type, housing status, internet availability
-
-```{r q12-plot-3}
-# update weighted data frame
-q12.3 <- data.frame(svytable(~Q12_q + Q12_r + PPMSACAT + ppreg9 + PPSTATEN + PPHOUSE + PPRENT + PPNET, des12, round = T))
-
-# restate plots
-p4 <- ggplot(q12.3, aes(Q12_q, weight = Freq)) + ptext
-```
-
-```{r q12-plot-3b}
-# by metro status
-p4 + geom_bar(position = "fill") + aes(Q12_r, fill = PPMSACAT) + facet_wrap(~Q12_q) + ggtitle("By metro status")
-p4 + geom_bar(position = "fill") + aes(PPMSACAT, fill = Q12_r) + facet_wrap(~Q12_q)
-
-# by region
-p4 + geom_bar(position = "fill") + aes(Q12_r, fill = ppreg9) + facet_wrap(~Q12_q) + ggtitle("By region")
-p4 + geom_bar() + aes(ppreg9, fill = Q12_r) + facet_wrap(~Q12_q) + ggtitle("By region")
-
-# by state
-p4 + geom_bar() + aes(Q12_r, fill = PPSTATEN) + facet_wrap(~Q12_q) + ggtitle("By state")
-p4 + geom_bar() + aes(PPSTATEN, fill = Q12_q) + coord_flip() + ggtitle("By state")
-```
-
-```{r}
-# by house type
-p4 + geom_bar(position = "fill") + aes(Q12_r, fill = PPHOUSE) + facet_wrap(~Q12_q)
-p4 + geom_bar(position = "fill") + aes(fill = PPHOUSE) + ggtitle("By house type")
-
-# housing status
-p4 + geom_bar(position = "fill") + aes(Q12_r, fill = PPHOUSE) + facet_wrap(~Q12_q)
-p4 + geom_bar() + aes(PPHOUSE, fill = Q12_r) + facet_wrap(~Q12_q) + ggtitle("By housing")
-
-# by internet availability
-p4 + geom_bar(position = "fill") + aes(Q12_r, fill = PPNET) + facet_wrap(~Q12_q)
-p4 + geom_bar(position = "fill") + aes(PPNET, fill = Q12_r) + facet_wrap(~Q12_q) + ggtitle("By internet availability")
-
-```
 
 
 
