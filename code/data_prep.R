@@ -262,10 +262,10 @@ dataf$Q2 <- relevel(data$Q2, "Yes")
 
 str(dataf$Q3)
 dataf$Q3 <- factor(data$Q3, levels = yesnodk.lab)
-
 dataf$Q4 <- relevel(data$Q4, "Yes")
 dataf$Q5 <- relevel(data$Q5, "Yes")
 dataf$Q6 <- relevel(data$Q6, "Yes")
+
 dataf$Q7_1 <- relevel(data$Q7_1, "Yes")
 dataf$Q7_2 <- relevel(data$Q7_2, "Yes")
 dataf$Q7_3 <- relevel(data$Q7_3, "Yes")
@@ -274,6 +274,7 @@ dataf$Q7_5 <- relevel(data$Q7_5, "Yes")
 dataf$Q7_6 <- relevel(data$Q7_6, "Yes")
 dataf$Q7_7 <- relevel(data$Q7_7, "Yes")
 dataf$Q7_8 <- relevel(data$Q7_8, "Yes")
+
 dataf$Q8_1 <- relevel(data$Q8_1, "Yes")
 dataf$Q8_2 <- relevel(data$Q8_2, "Yes")
 dataf$Q8_3 <- relevel(data$Q8_3, "Yes")
@@ -329,9 +330,7 @@ dataf$Q12_14 <- factor(data$Q12_14, levels = always.lab)
 dataf$Q12_15 <- factor(data$Q12_15, levels = always.lab)
 
 dataf$Q13 <- factor(data$Q13, levels = c("Yes, every year", "Yes, some years", "No, never"))
-
 dataf$Q14 <- factor(data$Q14, levels = c("$0", "Less than $30", "$30 to $60", "More than $60", "Don_t know"))
-
 dataf$Q15 <- factor(data$Q15, levels = likely.lab)
 dataf$Q16 <- factor(data$Q16, levels = likely.lab)
 
@@ -364,7 +363,7 @@ dataf$Q22_7 <- factor(data$Q22_7, levels = always.lab)
 dataf$Q22_8 <- factor(data$Q22_8, levels = always.lab)
 dataf$Q22_9 <- factor(data$Q22_9, levels = always.lab)
 
-levels(dataf$Q23_12)
+levels(dataf$Q23_11)
 dataf$Q23_1 <- factor(data$Q23_1, levels = always.lab)
 dataf$Q23_2 <- factor(data$Q23_2, levels = always.lab)
 dataf$Q23_3 <- factor(data$Q23_3, levels = always.lab)
@@ -387,17 +386,17 @@ dataf$Q24_6 <- relevel(data$Q24_6, "Yes")
 dataf$Q24_7 <- relevel(data$Q24_7, "Yes")
 
 levels(dataf$Q25_11)
-dataf$Q25_1 <- factor(data$Q23_1, levels = always.lab)
-dataf$Q25_2 <- factor(data$Q23_2, levels = always.lab)
-dataf$Q25_3 <- factor(data$Q23_3, levels = always.lab)
-dataf$Q25_4 <- factor(data$Q23_4, levels = always.lab)
-dataf$Q25_5 <- factor(data$Q23_5, levels = always.lab)
-dataf$Q25_6 <- factor(data$Q23_6, levels = always.lab)
-dataf$Q25_7 <- factor(data$Q23_7, levels = always.lab)
-dataf$Q25_8 <- factor(data$Q23_8, levels = always.lab)
-dataf$Q25_9 <- factor(data$Q23_9, levels = always.lab)
-dataf$Q25_10 <- factor(data$Q23_10, levels = always.lab)
-dataf$Q25_11 <- factor(data$Q23_11, levels = always.lab)
+dataf$Q25_1 <- factor(data$Q25_1, levels = always.lab)
+dataf$Q25_2 <- factor(data$Q25_2, levels = always.lab)
+dataf$Q25_3 <- factor(data$Q25_3, levels = always.lab)
+dataf$Q25_4 <- factor(data$Q25_4, levels = always.lab)
+dataf$Q25_5 <- factor(data$Q25_5, levels = always.lab)
+dataf$Q25_6 <- factor(data$Q25_6, levels = always.lab)
+dataf$Q25_7 <- factor(data$Q25_7, levels = always.lab)
+dataf$Q25_8 <- factor(data$Q25_8, levels = always.lab)
+dataf$Q25_9 <- factor(data$Q25_9, levels = always.lab)
+dataf$Q25_10 <- factor(data$Q25_10, levels = always.lab)
+dataf$Q25_11 <- factor(data$Q25_11, levels = always.lab)
 
 dataf$Q26 <- relevel(data$Q26, "Yes")
 
@@ -460,13 +459,9 @@ levels(dataf$Q50)
 dataf$Q50 <- factor(data$Q50, levels = c("Yes, always", "Yes, sometimes", "No, never", "Don_t know"))
 
 
-head(data)
-
-# re-name temporary "data" back to "dat" to signify original data
-dat <- data
-rm(data)
-
-
+# dat = original
+# data = copy of original
+# dataf = refactored and releveled
 
 # save as .RData
-#save(dat, dataf, old_names, new_names, file = "data/data_prep.RData")
+save(data, dataf, old_names, new_names, file = "data/data_prep.RData")
