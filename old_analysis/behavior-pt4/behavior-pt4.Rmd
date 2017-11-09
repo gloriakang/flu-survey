@@ -27,8 +27,8 @@ library(tidyr); library(dplyr); library(ggplot2); library(survey)
 
 ```{r load-data, include=F}
 ## Load data.
-load("~/git/flu-survey/data/cleaning2.RData")
-load("~/git/flu-survey/data/recoding.RData")  # load "datar"
+load("~/git/flu-survey/old_data/cleaning2.RData")
+load("~/git/flu-survey/old_data/recoding.RData")  # load "datar"
 df <- datar  # recoded variables
 ```
 

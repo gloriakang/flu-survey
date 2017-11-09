@@ -5,7 +5,7 @@ rm(list = ls(all.names = TRUE))
 library(car)
 
 # load column names and data
-source("code/data_cleaning1.R")
+source("old_code/data_cleaning1.R")
 
 data <- dat  # to match rest of the code
 dataf <- dat  # new dataframe for factors
@@ -305,7 +305,7 @@ dat <- data
 rm(data)
 
 
-save(dat, dataf, new_name, old_name, file = "data/cleaning2.RData")
+save(dat, dataf, new_name, old_name, file = "old_data/cleaning2.RData")
 
 
 
