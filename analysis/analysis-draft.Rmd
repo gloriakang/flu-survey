@@ -29,11 +29,19 @@ library(tidyr)
 ```{r load-data}
 ## flu-survey/code/data_prep.R
 load("~/git/flu-survey/data/data_prep.RData")
+
+
+
+
+
+
+
+df <- dataf
 ```
 
 ```{r regroup-data, eval=FALSE, include=FALSE}
 ## recoded variables
-df <- datar
+#df <- datar
 
 ## income
 income.map <- c(rep("under $10k", 3),
