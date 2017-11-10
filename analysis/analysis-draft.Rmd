@@ -71,14 +71,6 @@ df$work <- code(dataf$PPWORK, work.map, "unemployed")
 ptext <- theme(axis.text = element_text(size = rel(0.9)), axis.text.x = element_text(angle = 45, hjust = 1))
 ptext2 <- ptext + theme(axis.text.x = element_blank())
 
-# pgen <- aes(PPGENDER)
-# page <- aes(ppagect4)
-# peth <- aes(PPETHM)
-# pinc <- aes(income)
-# pedu <- aes(PPEDUCAT)
-# pwor <- aes(work)
-# pmar <- aes(marital)
-
 ```
 
 ```{r survey-design}
@@ -90,35 +82,21 @@ des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight)==F, ])
 ```
 
 
+
+
 ## Q13. Do you get the flu vaccine?
 
 ```{r}
+## Q13. Do you get the flu vaccine?
 q13 <- as.data.frame(svytable(~Q13 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 title <- ggtitle("Q13. Do you get the flu vaccine?")
 p <- ggplot(q13, aes(Q13, weight = Freq)) + ptext
 p + geom_bar() + title
+
 ```
 
-```{r}
-### EXAMPLE ###
-
-# chi-square for Q13 and gender
-svychisq(~Q13 + PPGENDER, des)
-
-# table: Q13 by gender
-q <- svyby(~Q13, ~PPGENDER, des, svymean, na.rm = T)
-names(q)
-
-# plot
-er <- geom_errorbar(aes(ymin = q[4] - q[7],
-                        ymax = q[4] + q[7]), width = .25)
-ggplot(q, aes(PPGENDER, q[4])) + geom_point() + xlab("") + ylab("Q13No, never") + er + ggtitle(label = "") 
-```
-
-
-
-```{r}
-### chi-square for Q13
+```{r eval=FALSE, include=FALSE}
+## Q13: chi-squares
 
 svychisq(~Q13 + ppagecat, des)
 svychisq(~Q13 + ppagect4, des)
@@ -142,16 +120,46 @@ svychisq(~Q13 + PPRENT, des)
 #svychisq(~Q13 + PPT18OV, des)
 svychisq(~Q13 + PPWORK, des)
 svychisq(~Q13 + PPNET, des)
+
 ```
 
-Significant variables for Q13:
+Significant chi-square p-values for Q13:
 Age, education, ethnicity, housing type, income, marital status, metro status, region, rental status, employment status, internet status
+
+```{r}
+### Q13 and PPETHM: EXAMPLE ###
+
+## chi-square: Q13 and PPETHM
+svychisq(~Q13 + PPETHM, des)
+
+## glm: Q13 and PPETHM
+a <- glm(Q13 ~ PPETHM, family = quasibinomial(link = "logit"), data = df, weights = weight)
+summary(a)
+
+# what is the difference between the two above?
+
+
+
+## table: Q13 and PPETHM
+q <- svyby(~Q13, ~PPETHM, des, svymean, na.rm = T)
+q
+
+## plot: No, never
+er <- geom_errorbar(aes(ymin = q[4] - q[7],
+                        ymax = q[4] + q[7]), width = .25)
+ggplot(q, aes(PPETHM, q[4])) + geom_point() + xlab("") + ylab("Q13No, never") + er + ggtitle(label = "") 
+
+```
 
 
 ```{r}
-# table: Q13 by age
+## Q13 and ppagecat
+svychisq(~Q13 + ppagecat, des)
 q <- svyby(~Q13, ~ppagecat, des, svymean, na.rm = T)
 q
+
+a <- glm(Q13 ~ ppagecat, family = quasibinomial(link = "logit"), data = df, weights = weight)
+summary(a)
 
 # plot: Yes, every year
 er <- geom_errorbar(aes(ymin = q[2] - q[5],
@@ -160,11 +168,13 @@ ggplot(q, aes(ppagecat, q[2])) + geom_point() + xlab("") + ylab("Q13Yes, every y
 ```
 
 ```{r}
+## Q13 and ppagect4
 svychisq(~Q13 + ppagect4, des)
-
-# table: Q13 by age (cat4)
 q <- svyby(~Q13, ~ppagect4, des, svymean, na.rm = T)
 q
+
+a <- glm(Q13 ~ ppagect4, family = quasibinomial(link = "logit"), data = df, weights = weight)
+summary(a)
 
 # plot: Yes, every year
 er <- geom_errorbar(aes(ymin = q[2] - q[5],
@@ -172,20 +182,37 @@ er <- geom_errorbar(aes(ymin = q[2] - q[5],
 ggplot(q, aes(ppagect4, q[2])) + geom_point() + xlab("") + ylab("Q13Yes, every year") + er + ggtitle(label = "") 
 ```
 
+
+```{r}
+## testing: Q13 and multiple variables
+a <- glm(Q13 ~ PPETHM + PPEDUCAT, family = quasibinomial(link = "logit"), data = df, weights = weight)
+summary(a)
+```
+
 ```{r}
 
 ```
 
 
+
+
 ## Q14. How much do you pay to get an influenza vaccine?
 
 ```{r}
+## Q14. How much do you pay to get an influenza vaccine?
 q14 <- as.data.frame(svytable(
   ~Q14 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
 title <- ggtitle("Q14. How much do you pay to get an influenza vaccine?")
 p <- ggplot(q14, aes(Q14, weight = Freq)) + ptext
 p + geom_bar() + title
+
+
+##
+#svychisq(~Q14 + Q13, des)
+#svyby(~Q14, ~Q13, des, svymean, na.rm = T)
+a <- glm(Q14 ~ Q13, family = quasibinomial(link = "logit"), data = df, weights = weight)
+summary(a)
 
 ```
 
@@ -198,9 +225,7 @@ p + geom_bar() + title
 ## Q15. Are you more likely to get a vaccine if others around you get a vaccine?
 
 ```{r}
-# chisquare
-svychisq(~Q15 + Q2, des)
-
+## Q15. Are you more likely to get a vaccine if others around you get a vaccine?
 q15 <- as.data.frame(svytable(
   ~Q15 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
@@ -208,6 +233,12 @@ title <- ggtitle("Q15. Are you more likely to get a vaccine if others around you
 p <- ggplot(q15, aes(Q15, weight = Freq)) + ptext
 p + geom_bar() + title
 
+
+##
+#svychisq(~Q15 + Q13, des)
+#svyby(~Q15, ~Q13, des, svymean, na.rm = T)
+a <- glm(Q15 ~ Q13, family = quasibinomial(link = "logit"), data = df, weights = weight)
+summary(a)
 
 ```
 
@@ -220,27 +251,20 @@ p + geom_bar() + title
 ## Q16. Are you more likely to get a vaccine if others around you do not get a vaccine?
 
 ```{r}
-# chisquare
-svychisq(~Q16 + Q2, des)
-
+## Q16. Are you more likely to get a vaccine if others around you do not get a vaccine?
 q16 <- as.data.frame(svytable(
   ~Q16 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
 title <- ggtitle("Q16. Are you more likely to get a vaccine if others around you do not get a vaccine?")
 p <- ggplot(q16, aes(Q16, weight = Freq)) + ptext
-fil <- aes(fill = Q16)
-
 p + geom_bar() + title
-# gen <- p + pgen + fil + geom_bar(position = "dodge") + title
-# age <- p + page + fil + geom_bar(position = "dodge")
-# eth <- p + peth + fil + geom_bar(position = "dodge") + coord_flip()
-# inc <- p + pinc + fil + geom_bar(position = "dodge") + title
-# edu <- p + pedu + fil + geom_bar(position = "dodge") + title
-# wor <- p + pwor + fil + geom_bar(position = "dodge")
-# mar <- p + pmar + fil + geom_bar(position = "dodge")
-# 
-# grid.arrange(gen, age, eth)
-# grid.arrange(inc, edu, wor, mar)
+
+
+##
+#svychisq(~Q16 + Q13, des)
+#svyby(~Q16, ~Q13, des, svymean, na.rm = T)
+a <- glm(Q16 ~ Q13, family = quasibinomial(link = "logit"), data = df, weights = weight)
+summary(a)
 
 ```
 
@@ -248,6 +272,7 @@ p + geom_bar() + title
 ## Q17. Do you get a vaccine to protect yourself, protect others, or protect yourself and others?
 
 ```{r}
+## Q17. Do you get a vaccine to protect yourself, protect others, or protect yourself and others?
 q17 <- as.data.frame(svytable(
   ~Q17 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
@@ -255,6 +280,11 @@ title <- ggtitle("Q17. Do you get a vaccine to protect yourself, protect others,
 p <- ggplot(q17, aes(Q17, weight = Freq)) + ptext
 p + geom_bar() + title
 
+##
+#svychisq(~Q17 + Q13, des)
+#svyby(~Q17, ~Q13, des, svymean, na.rm = F)
+a <- glm(Q17 ~ Q13, family = quasibinomial(link = "logit"), data = df, weights = weight)
+summary(a)
 
 ```
 
@@ -267,10 +297,17 @@ p + geom_bar() + title
 ## Q18. What are the reasons you would not get an influenza vaccine?
 
 ```{r}
-
+## Q18. What are the reasons you would not get an influenza vaccine?
 
 title <- ggtitle("Q18. What are the reasons you would not get an influenza vaccine?")
 
+
+
+##
+#svychisq(~Q18 + Q13, des)
+#svyby(~Q18, ~Q13, des, svymean, na.rm = F)
+#a <- glm(Q18 ~ Q13, family = quasibinomial(link = "logit"), data = df, weights = weight)
+#summary(a)
 
 ```
 
@@ -278,9 +315,7 @@ title <- ggtitle("Q18. What are the reasons you would not get an influenza vacci
 ## Q19. Do you have health insurance?
 
 ```{r}
-# chisquare
-svychisq(~Q19 + Q2, des)
-
+## Q19. Do you have health insurance?
 q19 <- as.data.frame(svytable(
   ~Q19 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
@@ -288,10 +323,10 @@ title <- ggtitle("Q19. Do you have health insurance?")
 p <- ggplot(q19, aes(Q19, weight = Freq)) + ptext
 p + geom_bar() + title
 
-## sick plot
-q <- svyby(~Q2, ~Q19, des, svymean, na.rm = T)
-ggplot(q, aes(Q19, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er +
-  ggtitle(label = "% of adults sick and having health insurance ") 
+##
+svyby(~Q19, ~Q13, des, svymean, na.rm = T)
+
+svychisq(~Q19 + Q13, des)
 
 ```
 
@@ -299,6 +334,7 @@ ggplot(q, aes(Q19, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er +
 ## Q20. How effective do you think the influenza vaccine is in protecting people from becoming sick with influenza?
 
 ```{r}
+## Q20. How effective do you think the influenza vaccine is in protecting people from becoming sick with influenza?
 q20 <- as.data.frame(svytable(
   ~Q20 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
@@ -306,11 +342,9 @@ title <- ggtitle("Q20. How effective do you think the influenza vaccine is in pr
 p <- ggplot(q20, aes(Q20, weight = Freq)) + ptext
 p + geom_bar() + title
 
-## sick plot
-svychisq(~Q2 + Q20, des)
-q <- svyby(~Q2, ~Q20, des, svymean, na.rm = T)
-ggplot(q, aes(Q20, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + ptext + er +
-  ggtitle(label = "% of adults sick vs. perception of flu vaccine efficacy") 
+##
+svyby(~Q20, ~Q13, des, svymean, na.rm = T)
+svychisq(~Q20 + Q13, des)
 
 ```
 
@@ -318,6 +352,7 @@ ggplot(q, aes(Q20, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + ptext +
 ## Q21. Are influenza vaccines covered by your insurance?
 
 ```{r}
+## Q21. Are influenza vaccines covered by your insurance?
 q21 <- as.data.frame(svytable(
   ~Q21 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 
@@ -325,26 +360,22 @@ title <- ggtitle("Q21. Are influenza vaccines covered by your health insurance?"
 p <- ggplot(q21, aes(Q21, weight = Freq)) + ptext
 p + geom_bar() + title
 
+##
+svyby(~Q21, ~Q13, des, svymean, na.rm = T)
+svychisq(~Q21 + Q13, des)
+
+
+
 ```
 
 
-
 ### Q13. Do you get the flu vaccine?
-
 ### Q14. How much do you pay to get an influenza vaccine?
-
 ### Q15. Are you more likely to get a vaccine if others around you get a vaccine?
-
 ### Q16. Are you more likely to get a vaccine if others around you do not get a vaccine?
-
 ### Q17. Do you get a vaccine to protect yourself, protect others, or protect yourself and others?
-
 ### Q18. What are the reasons you would not get an influenza vaccine?
-
 ### Q19. Do you have health insurance?
-
 ### Q20. How effective do you think the influenza vaccine is in protecting people from becoming sick with influenza?
-
 ### Q21. Are influenza vaccines covered by your insurance?
-
 
