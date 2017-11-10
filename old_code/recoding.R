@@ -1,7 +1,7 @@
 # Re-group and re-code categorical variables
 
 rm(list = ls(all.names = TRUE))
-load("data/cleaning2.RData")
+load("old_data/cleaning2.RData")
 library(car)
 library(dplyr)
 
@@ -108,7 +108,7 @@ datar$q13 <- code(data2$Q13, q13.map, "Yes")
 dataf <- data2
 rm(data2)
 
-save(datar, code, file = "data/recoding.RData")
+save(datar, code, file = "old_data/recoding.RData")
 #rm(list = ls(all.names = TRUE))
 
 

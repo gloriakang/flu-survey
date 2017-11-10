@@ -6,11 +6,10 @@
 #' 3. Household section
 
 rm(list = ls(all.names = TRUE))
-
-library(dplyr)
 library(car)
+library(dplyr)
 
-##' 1. Create new column names for multi-column questions
+##########' 1. Create new column names for multi-column questions ##########
 
 # load data and set NA
 dat <- read.csv("data/surveydata.csv", na = c("#NULL!", "", "Refused", "NA"))
@@ -146,7 +145,6 @@ dat_rename <- dat %>%
          "Q30_5_Take.the.child.to.a.relative.or.friends" = Q30_5,
          "Q30_6_Other" = Q30_6)
 
-
 # save lists of names
 old_names <- names(dat)
 new_names <- names(dat_rename)
@@ -154,10 +152,12 @@ new_names <- names(dat_rename)
 
 
 
-##' 2. Re-order factors and levels
+
+##########' 2. Re-order factors and levels ##########
 
 data <- dat # copy original
 dataf <- dat  # new dataframe for factors
+
 
 ##' 2.1. List and sort demographic factors
 
@@ -248,7 +248,7 @@ summary(dataf$PPNET)
 
 
 
-##' 2.2. Relevel question factors
+##########' 2.2. Relevel question factors ##########
 
 # generic labels
 yesnodk.lab <- c("Yes", "No", "Don_t know")
@@ -428,7 +428,7 @@ dataf$Q30_6 <- factor(data$Q30_6, levels = always.lab)
 
 
 
-##' 3. Household section
+##########' 3. Household section ##########
 
 #View(dataf[188:288])
 
@@ -459,10 +459,12 @@ levels(dataf$Q50)
 dataf$Q50 <- factor(data$Q50, levels = c("Yes, always", "Yes, sometimes", "No, never", "Don_t know"))
 
 
-# dat = original
-# data = copy of original
-# dataf = refactored and releveled
 
+
+
+### dat = original data
+### data = copy of original data
+### dataf = refactored and releveled data
 
 # save as .RData
 save(data, dataf, old_names, new_names, file = "data/data_prep.RData")

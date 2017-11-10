@@ -30,20 +30,23 @@ library(tidyr)
 ## flu-survey/code/data_prep.R
 load("~/git/flu-survey/data/data_prep.RData")
 
-
-
-
-
-
-
+## create copy of factored data
 df <- dataf
 ```
 
-```{r regroup-data, eval=FALSE, include=FALSE}
-## recoded variables
-#df <- datar
 
-## income
+
+```{r recode-data}
+## recode variables
+library(car)
+
+## use code function for response variables
+## reset the "default" level on categorical variables
+code <- function(col, map, ref) {
+  relevel(as.factor(map[col]), ref=ref)
+}
+
+## income - PPINCIMP
 income.map <- c(rep("under $10k", 3),
                 rep("$10k to $25k", 4),
                 rep("$25k to $50k", 4),
@@ -51,21 +54,21 @@ income.map <- c(rep("under $10k", 3),
                 rep("$75k to $100k", 2),
                 rep("$100k to $150k", 2),
                 rep("over $150k", 2))
-df$income <- code(datar$PPINCIMP, income.map, "under $10k")
+df$income <- code(dataf$PPINCIMP, income.map, "under $10k")
 income.lab <- c("under $10k", "$10k to $25k", "$25k to $50k", "$50k to $75k", "$75k to $100k", "$100k to $150k", "over $150k")
 df$income <- factor(df$income, levels = income.lab)
 
-## marital staus
+## marital status - PPMARIT
 marital.map <- c("single", "partnered", "partnered", "single", "single", "single")
 df$marital <- code(dataf$PPMARIT, marital.map, "single")
 
-## work status
+## employment status - PPWORK
 work.map <- c(rep("unemployed", 5),
               rep("employed", 2))
 df$work <- code(dataf$PPWORK, work.map, "unemployed")
 ```
 
-```{r ggplot, eval=FALSE, include=FALSE}
+```{r ggplot}
 ## create ggplot templates
 ptext <- theme(axis.text = element_text(size = rel(0.9)), axis.text.x = element_text(angle = 45, hjust = 1))
 ptext2 <- ptext + theme(axis.text.x = element_blank())
@@ -78,7 +81,7 @@ pedu <- aes(PPEDUCAT)
 pwor <- aes(work)
 pmar <- aes(marital)
 
-er <- geom_errorbar(aes(ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2Yes), width = .25)
+#er <- geom_errorbar(aes(ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2Yes), width = .25)
 ```
 
 
@@ -96,32 +99,25 @@ des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight)==F, ])
 
 ```
 
-```{r}
-
-```
-
-```{r}
-
-```
-
 
 ## Q13. Do you get the flu vaccine?
 
-```{r q13-plot}
-q13 <- as.data.frame(svytable(
-  ~Q13 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
+```{r Q13-plot}
+q13 <- as.data.frame(svytable(~Q13 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
+
 title <- ggtitle("Q13. Do you get the flu vaccine?")
 p <- ggplot(q13, aes(Q13, weight = Freq)) + ptext
+
 fil <- aes(fill = Q13)
 p + geom_bar() + title
 
-gen <- p + pgen + fil + geom_bar(position = "dodge") + title
-age <- p + page + fil + geom_bar(position = "dodge")
-eth <- p + peth + fil + geom_bar(position = "dodge") + coord_flip()
-inc <- p + pinc + fil + geom_bar(position = "dodge") + title
-edu <- p + pedu + fil + geom_bar(position = "dodge") + title
-wor <- p + pwor + fil + geom_bar(position = "dodge")
-mar <- p + pmar + fil + geom_bar(position = "dodge")
+gen <- p + aes(PPGENDER) + fil + geom_bar(position = "dodge") + title
+age <- p + aes(ppagect4) + fil + geom_bar(position = "dodge")
+eth <- p + aes(PPETHM) + fil + geom_bar(position = "dodge") + coord_flip()
+inc <- p + aes(income) + fil + geom_bar(position = "dodge") + title
+edu <- p + aes(PPEDUCAT) + fil + geom_bar(position = "dodge") + title
+wor <- p + aes(work) + fil + geom_bar(position = "dodge")
+mar <- p + aes(marital) + fil + geom_bar(position = "dodge")
 
 grid.arrange(gen, age, eth)
 grid.arrange(inc, edu, wor, mar)
