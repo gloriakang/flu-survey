@@ -3,8 +3,8 @@ title: "analysis draft"
 output: 
   html_document:
     fig_caption: yes
-    fig_height: 4
-    fig_width: 6
+    fig_height: 3
+    fig_width: 5
     theme: paper
     keep_md: yes
     toc: yes
@@ -33,8 +33,6 @@ load("~/git/flu-survey/data/data_prep.RData")
 ## create copy of factored data
 df <- dataf
 ```
-
-
 
 ```{r recode-data}
 ## recode variables
@@ -73,64 +71,108 @@ df$work <- code(dataf$PPWORK, work.map, "unemployed")
 ptext <- theme(axis.text = element_text(size = rel(0.9)), axis.text.x = element_text(angle = 45, hjust = 1))
 ptext2 <- ptext + theme(axis.text.x = element_blank())
 
-pgen <- aes(PPGENDER)
-page <- aes(ppagect4)
-peth <- aes(PPETHM)
-pinc <- aes(income)
-pedu <- aes(PPEDUCAT)
-pwor <- aes(work)
-pmar <- aes(marital)
+# pgen <- aes(PPGENDER)
+# page <- aes(ppagect4)
+# peth <- aes(PPETHM)
+# pinc <- aes(income)
+# pedu <- aes(PPEDUCAT)
+# pwor <- aes(work)
+# pmar <- aes(marital)
 
-#er <- geom_errorbar(aes(ymin = Q2Yes - se.Q2Yes, ymax = Q2Yes + se.Q2Yes), width = .25)
 ```
-
-
 
 ```{r survey-design}
 ## create survey object
 options(digits = 4)
 options(survey.lonely.psu = "adjust")
 
-## subset data?
 des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight)==F, ])
-```
-
-```{r}
-
 ```
 
 
 ## Q13. Do you get the flu vaccine?
 
-```{r Q13-plot}
+```{r}
 q13 <- as.data.frame(svytable(~Q13 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
-
 title <- ggtitle("Q13. Do you get the flu vaccine?")
 p <- ggplot(q13, aes(Q13, weight = Freq)) + ptext
-
-fil <- aes(fill = Q13)
 p + geom_bar() + title
+```
 
-gen <- p + aes(PPGENDER) + fil + geom_bar(position = "dodge") + title
-age <- p + aes(ppagect4) + fil + geom_bar(position = "dodge")
-eth <- p + aes(PPETHM) + fil + geom_bar(position = "dodge") + coord_flip()
-inc <- p + aes(income) + fil + geom_bar(position = "dodge") + title
-edu <- p + aes(PPEDUCAT) + fil + geom_bar(position = "dodge") + title
-wor <- p + aes(work) + fil + geom_bar(position = "dodge")
-mar <- p + aes(marital) + fil + geom_bar(position = "dodge")
+```{r}
+### EXAMPLE ###
 
-grid.arrange(gen, age, eth)
-grid.arrange(inc, edu, wor, mar)
+# chi-square for Q13 and gender
+svychisq(~Q13 + PPGENDER, des)
+
+# table: Q13 by gender
+q <- svyby(~Q13, ~PPGENDER, des, svymean, na.rm = T)
+names(q)
+
+# plot
+er <- geom_errorbar(aes(ymin = q[4] - q[7],
+                        ymax = q[4] + q[7]), width = .25)
+ggplot(q, aes(PPGENDER, q[4])) + geom_point() + xlab("") + ylab("Q13No, never") + er + ggtitle(label = "") 
+```
 
 
-## sick plot
-svychisq(~Q2 + Q13, des)
-q <- svyby(~Q2, ~Q13, des, svymean, na.rm = T)
-ggplot(q, aes(Q13, Q2Yes)) + geom_point() + xlab(" ") + ylab("% sick") + er + ggtitle(label = "% of adults sick and getting flu vaccine") 
+
+```{r}
+### chi-square for Q13
+
+svychisq(~Q13 + ppagecat, des)
+svychisq(~Q13 + ppagect4, des)
+svychisq(~Q13 + PPEDUC, des)
+svychisq(~Q13 + PPEDUCAT, des)
+svychisq(~Q13 + PPETHM, des)
+#svychisq(~Q13 + PPGENDER, des)
+#svychisq(~Q13 + PPHHHEAD, des)
+svychisq(~Q13 + PPHOUSE, des)
+svychisq(~Q13 + income, des)
+svychisq(~Q13 + marital, des)
+svychisq(~Q13 + PPMSACAT, des)
+svychisq(~Q13 + PPREG4, des)
+svychisq(~Q13 + ppreg9, des)
+svychisq(~Q13 + PPRENT, des)
+#svychisq(~Q13 + PPSTATEN, des)
+#svychisq(~Q13 + PPT01, des)
+#svychisq(~Q13 + PPT25, des)
+#svychisq(~Q13 + PPT612, des)
+#svychisq(~Q13 + PPT1317, des)
+#svychisq(~Q13 + PPT18OV, des)
+svychisq(~Q13 + PPWORK, des)
+svychisq(~Q13 + PPNET, des)
+```
+
+Significant variables for Q13:
+Age, education, ethnicity, housing type, income, marital status, metro status, region, rental status, employment status, internet status
 
 
-# chisquare for getting flu vaccine and sick household member
-svychisq(~Q15 + Q3, des)
+```{r}
+# table: Q13 by age
+q <- svyby(~Q13, ~ppagecat, des, svymean, na.rm = T)
+q
+
+# plot: Yes, every year
+er <- geom_errorbar(aes(ymin = q[2] - q[5],
+                        ymax = q[2] + q[5]), width = .25)
+ggplot(q, aes(ppagecat, q[2])) + geom_point() + xlab("") + ylab("Q13Yes, every year") + er + ggtitle(label = "") 
+```
+
+```{r}
+svychisq(~Q13 + ppagect4, des)
+
+# table: Q13 by age (cat4)
+q <- svyby(~Q13, ~ppagect4, des, svymean, na.rm = T)
+q
+
+# plot: Yes, every year
+er <- geom_errorbar(aes(ymin = q[2] - q[5],
+                        ymax = q[2] + q[5]), width = .25)
+ggplot(q, aes(ppagect4, q[2])) + geom_point() + xlab("") + ylab("Q13Yes, every year") + er + ggtitle(label = "") 
+```
+
+```{r}
 
 ```
 
@@ -143,21 +185,14 @@ q14 <- as.data.frame(svytable(
 
 title <- ggtitle("Q14. How much do you pay to get an influenza vaccine?")
 p <- ggplot(q14, aes(Q14, weight = Freq)) + ptext
-fil <- aes(fill = Q14)
-
 p + geom_bar() + title
-gen <- p + pgen + fil + geom_bar(position = "dodge")
-age <- p + page + fil + geom_bar(position = "dodge")
-eth <- p + peth + fil + geom_bar(position = "dodge") + coord_flip()
-inc <- p + pinc + fil + geom_bar(position = "dodge")
-edu <- p + pedu + fil + geom_bar(position = "dodge")
-wor <- p + pwor + fil + geom_bar(position = "dodge")
-mar <- p + pmar + fil + geom_bar(position = "dodge")
-
-grid.arrange(gen, age, eth)
-grid.arrange(inc, edu, wor, mar)
 
 ```
+
+```{r}
+
+```
+
 
 
 ## Q15. Are you more likely to get a vaccine if others around you get a vaccine?
@@ -171,21 +206,15 @@ q15 <- as.data.frame(svytable(
 
 title <- ggtitle("Q15. Are you more likely to get a vaccine if others around you get a vaccine?")
 p <- ggplot(q15, aes(Q15, weight = Freq)) + ptext
-fil <- aes(fill = Q15)
-
 p + geom_bar() + title
-gen <- p + pgen + fil + geom_bar(position = "dodge") + title
-age <- p + page + fil + geom_bar(position = "dodge")
-eth <- p + peth + fil + geom_bar(position = "dodge") + coord_flip()
-inc <- p + pinc + fil + geom_bar(position = "dodge") + title
-edu <- p + pedu + fil + geom_bar(position = "dodge")
-wor <- p + pwor + fil + geom_bar(position = "dodge")
-mar <- p + pmar + fil + geom_bar(position = "dodge")
 
-grid.arrange(gen, age, eth)
-grid.arrange(inc, edu, wor, mar)
 
 ```
+
+```{r}
+
+```
+
 
 
 ## Q16. Are you more likely to get a vaccine if others around you do not get a vaccine?
@@ -202,16 +231,17 @@ p <- ggplot(q16, aes(Q16, weight = Freq)) + ptext
 fil <- aes(fill = Q16)
 
 p + geom_bar() + title
-gen <- p + pgen + fil + geom_bar(position = "dodge") + title
-age <- p + page + fil + geom_bar(position = "dodge")
-eth <- p + peth + fil + geom_bar(position = "dodge") + coord_flip()
-inc <- p + pinc + fil + geom_bar(position = "dodge") + title
-edu <- p + pedu + fil + geom_bar(position = "dodge") + title
-wor <- p + pwor + fil + geom_bar(position = "dodge")
-mar <- p + pmar + fil + geom_bar(position = "dodge")
+# gen <- p + pgen + fil + geom_bar(position = "dodge") + title
+# age <- p + page + fil + geom_bar(position = "dodge")
+# eth <- p + peth + fil + geom_bar(position = "dodge") + coord_flip()
+# inc <- p + pinc + fil + geom_bar(position = "dodge") + title
+# edu <- p + pedu + fil + geom_bar(position = "dodge") + title
+# wor <- p + pwor + fil + geom_bar(position = "dodge")
+# mar <- p + pmar + fil + geom_bar(position = "dodge")
+# 
+# grid.arrange(gen, age, eth)
+# grid.arrange(inc, edu, wor, mar)
 
-grid.arrange(gen, age, eth)
-grid.arrange(inc, edu, wor, mar)
 ```
 
 
@@ -223,20 +253,15 @@ q17 <- as.data.frame(svytable(
 
 title <- ggtitle("Q17. Do you get a vaccine to protect yourself, protect others, or protect yourself and others?")
 p <- ggplot(q17, aes(Q17, weight = Freq)) + ptext
-fil <- aes(fill = Q17)
-
 p + geom_bar() + title
-gen <- p + pgen + fil + geom_bar(position = "dodge") + title
-age <- p + page + fil + geom_bar(position = "dodge")
-eth <- p + peth + fil + geom_bar(position = "dodge") + coord_flip()
-inc <- p + pinc + fil + geom_bar(position = "dodge")
-edu <- p + pedu + fil + geom_bar(position = "dodge") + title
-wor <- p + pwor + fil + geom_bar(position = "dodge")
-mar <- p + pmar + fil + geom_bar(position = "dodge")
 
-grid.arrange(gen, age, eth)
-grid.arrange(inc, edu, wor, mar)
+
 ```
+
+```{r}
+
+```
+
 
 
 ## Q18. What are the reasons you would not get an influenza vaccine?
@@ -261,19 +286,7 @@ q19 <- as.data.frame(svytable(
 
 title <- ggtitle("Q19. Do you have health insurance?")
 p <- ggplot(q19, aes(Q19, weight = Freq)) + ptext
-fil <- aes(fill = Q19)
-
 p + geom_bar() + title
-gen <- p + pgen + fil + geom_bar(position = "dodge") + title
-age <- p + page + fil + geom_bar(position = "dodge")
-eth <- p + peth + fil + geom_bar(position = "dodge") + coord_flip()
-inc <- p + pinc + fil + geom_bar(position = "dodge")
-edu <- p + pedu + fil + geom_bar(position = "dodge") + title
-wor <- p + pwor + fil + geom_bar(position = "dodge")
-mar <- p + pmar + fil + geom_bar(position = "dodge")
-
-grid.arrange(gen, age, eth)
-grid.arrange(inc, edu, wor, mar)
 
 ## sick plot
 q <- svyby(~Q2, ~Q19, des, svymean, na.rm = T)
@@ -291,19 +304,7 @@ q20 <- as.data.frame(svytable(
 
 title <- ggtitle("Q20. How effective do you think the influenza vaccine is in protecting people from becoming sick with influenza?")
 p <- ggplot(q20, aes(Q20, weight = Freq)) + ptext
-fil <- aes(fill = Q20)
-
 p + geom_bar() + title
-gen <- p + pgen + fil + geom_bar(position = "dodge") + title
-age <- p + page + fil + geom_bar(position = "dodge")
-eth <- p + peth + fil + geom_bar(position = "dodge") + coord_flip()
-inc <- p + pinc + fil + geom_bar(position = "dodge")
-edu <- p + pedu + fil + geom_bar(position = "dodge")
-wor <- p + pwor + fil + geom_bar(position = "dodge")
-mar <- p + pmar + fil + geom_bar(position = "dodge")
-
-grid.arrange(gen, age, eth)
-grid.arrange(inc, edu, wor, mar)
 
 ## sick plot
 svychisq(~Q2 + Q20, des)
