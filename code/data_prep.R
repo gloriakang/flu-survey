@@ -462,9 +462,9 @@ dataf$Q50 <- factor(data$Q50, levels = c("Yes, always", "Yes, sometimes", "No, n
 
 
 
-### dat = original data
-### data = copy of original data
-### dataf = refactored and releveled data
+## dat = original data
+## data = copy of original data
+## dataf = refactored and releveled data
 
 # save as .RData
 save(data, dataf, old_names, new_names, file = "data/data_prep.RData")

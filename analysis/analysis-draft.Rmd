@@ -4,14 +4,12 @@ output:
   html_document:
     fig_caption: yes
     fig_height: 3
-    fig_width: 5
+    fig_width: 7
     theme: paper
     keep_md: yes
     toc: yes
     toc_depth: 2
 ---
-
-Questions 13-21.
 
 ```{r setup}
 knitr::opts_chunk$set(echo = T, cache = T, warning = F, message = F, tidy = T, size = "small")
@@ -84,20 +82,18 @@ des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight)==F, ])
 
 
 
-## Q13. Do you get the flu vaccine?
+# Q13. Do you get the flu vaccine?
 
 ```{r}
 ## Q13. Do you get the flu vaccine?
-q13 <- as.data.frame(svytable(~Q13 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
+q13 <- as.data.frame(svytable(~Q13 + PPGENDER + ppagecat + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 title <- ggtitle("Q13. Do you get the flu vaccine?")
 p <- ggplot(q13, aes(Q13, weight = Freq)) + ptext
 p + geom_bar() + title
-
 ```
 
 ```{r eval=FALSE, include=FALSE}
 ## Q13: chi-squares
-
 svychisq(~Q13 + ppagecat, des)
 svychisq(~Q13 + ppagect4, des)
 svychisq(~Q13 + PPEDUC, des)
@@ -120,46 +116,51 @@ svychisq(~Q13 + PPRENT, des)
 #svychisq(~Q13 + PPT18OV, des)
 svychisq(~Q13 + PPWORK, des)
 svychisq(~Q13 + PPNET, des)
-
 ```
 
 Significant chi-square p-values for Q13:
-Age, education, ethnicity, housing type, income, marital status, metro status, region, rental status, employment status, internet status
+Age, education, ethnicity, housing type, income, marital status, metro status, region, rental status, employment status, internet 
+
+
+## Ethnicity
 
 ```{r}
 ### Q13 and PPETHM: EXAMPLE ###
 
-## chi-square: Q13 and PPETHM
+# chi-square: Q13 and PPETHM
 svychisq(~Q13 + PPETHM, des)
 
-## glm: Q13 and PPETHM
+# glm: Q13 and PPETHM
 a <- glm(Q13 ~ PPETHM, family = quasibinomial(link = "logit"), data = df, weights = weight)
 summary(a)
 
 # what is the difference between the two above?
 
+# weighted table
+(q <- svyby(~Q13, ~PPETHM, des, svymean, na.rm = T))
+# unweighted table
+with(df, addmargins(table(Q13, PPETHM)))
 
-
-## table: Q13 and PPETHM
-q <- svyby(~Q13, ~PPETHM, des, svymean, na.rm = T)
-q
-
-## plot: No, never
+# plot: No, never
 er <- geom_errorbar(aes(ymin = q[4] - q[7],
                         ymax = q[4] + q[7]), width = .25)
 ggplot(q, aes(PPETHM, q[4])) + geom_point() + xlab("") + ylab("Q13No, never") + er + ggtitle(label = "") 
-
 ```
 
+## Age
 
 ```{r}
 ## Q13 and ppagecat
 svychisq(~Q13 + ppagecat, des)
-q <- svyby(~Q13, ~ppagecat, des, svymean, na.rm = T)
-q
+(q <- svyby(~Q13, ~ppagecat, des, svymean, na.rm = T))
 
 a <- glm(Q13 ~ ppagecat, family = quasibinomial(link = "logit"), data = df, weights = weight)
 summary(a)
+
+# weighted table
+(q <- svyby(~Q13, ~ppagecat, des, svymean, na.rm = T))
+# unweighted table
+with(df, addmargins(table(Q13, ppagecat)))
 
 # plot: Yes, every year
 er <- geom_errorbar(aes(ymin = q[2] - q[5],
@@ -170,11 +171,15 @@ ggplot(q, aes(ppagecat, q[2])) + geom_point() + xlab("") + ylab("Q13Yes, every y
 ```{r}
 ## Q13 and ppagect4
 svychisq(~Q13 + ppagect4, des)
-q <- svyby(~Q13, ~ppagect4, des, svymean, na.rm = T)
-q
+(q <- svyby(~Q13, ~ppagect4, des, svymean, na.rm = T))
 
 a <- glm(Q13 ~ ppagect4, family = quasibinomial(link = "logit"), data = df, weights = weight)
 summary(a)
+
+# weighted table
+(q <- svyby(~Q13, ~ppagect4, des, svymean, na.rm = T))
+# unweighted table
+with(df, addmargins(table(Q13, ppagect4)))
 
 # plot: Yes, every year
 er <- geom_errorbar(aes(ymin = q[2] - q[5],
@@ -182,9 +187,205 @@ er <- geom_errorbar(aes(ymin = q[2] - q[5],
 ggplot(q, aes(ppagect4, q[2])) + geom_point() + xlab("") + ylab("Q13Yes, every year") + er + ggtitle(label = "") 
 ```
 
+## Education
 
 ```{r}
-## testing: Q13 and multiple variables
+## Q13 and PPEDUCAT
+svychisq(~Q13 + PPEDUCAT, des)
+(q <- svyby(~Q13, ~PPEDUCAT, des, svymean, na.rm = T))
+
+a <- glm(Q13 ~ PPEDUCAT, family = quasibinomial(link = "logit"), data = df, weights = weight)
+summary(a)
+
+# weighted table
+(q <- svyby(~Q13, ~PPEDUCAT, des, svymean, na.rm = T))
+# unweighted table
+with(df, addmargins(table(Q13, PPEDUCAT)))
+
+# plot: Yes, every year
+er <- geom_errorbar(aes(ymin = q[2] - q[5],
+                        ymax = q[2] + q[5]), width = .25)
+ggplot(q, aes(PPEDUCAT, q[2])) + geom_point() + xlab("") + ylab("Q13Yes, every year") + er + ggtitle(label = "") 
+```
+
+## Housing type
+
+```{r}
+## Q13 and PPHOUSE
+svychisq(~Q13 + PPHOUSE, des)
+(q <- svyby(~Q13, ~PPHOUSE, des, svymean, na.rm = T))
+
+a <- glm(Q13 ~ PPHOUSE, family = quasibinomial(link = "logit"), data = df, weights = weight)
+summary(a)
+
+# weighted table
+(q <- svyby(~Q13, ~PPHOUSE, des, svymean, na.rm = T))
+# unweighted table
+with(df, addmargins(table(Q13, PPHOUSE)))
+
+# plot: Yes, every year
+er <- geom_errorbar(aes(ymin = q[2] - q[5],
+                        ymax = q[2] + q[5]), width = .25)
+ggplot(q, aes(PPHOUSE, q[2])) + geom_point() + xlab("") + ylab("Q13Yes, every year") + er + ggtitle(label = "") 
+```
+
+## Income
+
+```{r}
+## Q13 and income
+svychisq(~Q13 + income, des)
+(q <- svyby(~Q13, ~income, des, svymean, na.rm = T))
+
+a <- glm(Q13 ~ income, family = quasibinomial(link = "logit"), data = df, weights = weight)
+summary(a)
+
+# weighted table
+(q <- svyby(~Q13, ~income, des, svymean, na.rm = T))
+# unweighted table
+with(df, addmargins(table(Q13, income)))
+
+# plot: Yes, every year
+er <- geom_errorbar(aes(ymin = q[2] - q[5],
+                        ymax = q[2] + q[5]), width = .25)
+ggplot(q, aes(income, q[2])) + geom_point() + xlab("") + ylab("Q13Yes, every year") + er + ggtitle(label = "") 
+```
+
+## Marital status
+
+```{r}
+## Q13 and marital
+svychisq(~Q13 + marital, des)
+(q <- svyby(~Q13, ~marital, des, svymean, na.rm = T))
+
+a <- glm(Q13 ~ marital, family = quasibinomial(link = "logit"), data = df, weights = weight)
+summary(a)
+
+# weighted table
+(q <- svyby(~Q13, ~marital, des, svymean, na.rm = T))
+# unweighted table
+with(df, addmargins(table(Q13, marital)))
+
+# plot: Yes, every year
+er <- geom_errorbar(aes(ymin = q[2] - q[5],
+                        ymax = q[2] + q[5]), width = .25)
+ggplot(q, aes(marital, q[2])) + geom_point() + xlab("") + ylab("Q13Yes, every year") + er + ggtitle(label = "") 
+```
+
+## Metro status
+
+```{r}
+## Q13 and PPMSACAT
+svychisq(~Q13 + PPMSACAT, des)
+(q <- svyby(~Q13, ~PPMSACAT, des, svymean, na.rm = T))
+
+a <- glm(Q13 ~ PPMSACAT, family = quasibinomial(link = "logit"), data = df, weights = weight)
+summary(a)
+
+# weighted table
+(q <- svyby(~Q13, ~PPMSACAT, des, svymean, na.rm = T))
+# unweighted table
+with(df, addmargins(table(Q13, PPMSACAT)))
+
+# plot: Yes, every year
+er <- geom_errorbar(aes(ymin = q[2] - q[5],
+                        ymax = q[2] + q[5]), width = .25)
+ggplot(q, aes(PPMSACAT, q[2])) + geom_point() + xlab("") + ylab("Q13Yes, every year") + er + ggtitle(label = "") 
+```
+
+## Region
+
+```{r}
+## Q13 and ppreg9
+svychisq(~Q13 + ppreg9, des)
+(q <- svyby(~Q13, ~ppreg9, des, svymean, na.rm = T))
+
+a <- glm(Q13 ~ ppreg9, family = quasibinomial(link = "logit"), data = df, weights = weight)
+summary(a)
+
+# weighted table
+(q <- svyby(~Q13, ~ppreg9, des, svymean, na.rm = T))
+# unweighted table
+with(df, addmargins(table(Q13, ppreg9)))
+
+# plot: Yes, every year
+er <- geom_errorbar(aes(ymin = q[2] - q[5],
+                        ymax = q[2] + q[5]), width = .25)
+ggplot(q, aes(ppreg9, q[2])) + geom_point() + xlab("") + ylab("Q13Yes, every year") + er + ggtitle(label = "") 
+```
+
+## Rental Status
+
+```{r}
+## Q13 and PPRENT
+svychisq(~Q13 + PPRENT, des)
+(q <- svyby(~Q13, ~PPRENT, des, svymean, na.rm = T))
+
+a <- glm(Q13 ~ PPRENT, family = quasibinomial(link = "logit"), data = df, weights = weight)
+summary(a)
+
+# weighted table
+(q <- svyby(~Q13, ~PPRENT, des, svymean, na.rm = T))
+# unweighted table
+with(df, addmargins(table(Q13, PPRENT)))
+
+# plot: Yes, every year
+er <- geom_errorbar(aes(ymin = q[2] - q[5],
+                        ymax = q[2] + q[5]), width = .25)
+ggplot(q, aes(PPRENT, q[2])) + geom_point() + xlab("") + ylab("Q13Yes, every year") + er + ggtitle(label = "") 
+```
+
+## Employment status
+
+```{r}
+## Q13 and work
+svychisq(~Q13 + work, des)
+(q <- svyby(~Q13, ~work, des, svymean, na.rm = T))
+
+a <- glm(Q13 ~ work, family = quasibinomial(link = "logit"), data = df, weights = weight)
+summary(a)
+
+# weighted table
+(q <- svyby(~Q13, ~work, des, svymean, na.rm = T))
+# unweighted table
+with(df, addmargins(table(Q13, work)))
+
+# plot: Yes, every year
+er <- geom_errorbar(aes(ymin = q[2] - q[5],
+                        ymax = q[2] + q[5]), width = .25)
+ggplot(q, aes(work, q[2])) + geom_point() + xlab("") + ylab("Q13Yes, every year") + er + ggtitle(label = "") 
+```
+
+## Internet status
+
+```{r}
+## Q13 and PPNET
+svychisq(~Q13 + PPNET, des)
+(q <- svyby(~Q13, ~PPNET, des, svymean, na.rm = T))
+
+a <- glm(Q13 ~ PPNET, family = quasibinomial(link = "logit"), data = df, weights = weight)
+summary(a)
+
+# weighted table
+(q <- svyby(~Q13, ~PPNET, des, svymean, na.rm = T))
+# unweighted table
+with(df, addmargins(table(Q13, PPNET)))
+
+# plot: Yes, every year
+er <- geom_errorbar(aes(ymin = q[2] - q[5],
+                        ymax = q[2] + q[5]), width = .25)
+ggplot(q, aes(PPNET, q[2])) + geom_point() + xlab("") + ylab("Q13Yes, every year") + er + ggtitle(label = "") 
+```
+
+
+
+
+
+# TESTING
+
+```{r}
+## testing:
+
+## Q13 and multiple variables
 a <- glm(Q13 ~ PPETHM + PPEDUCAT, family = quasibinomial(link = "logit"), data = df, weights = weight)
 summary(a)
 ```
@@ -193,10 +394,7 @@ summary(a)
 
 ```
 
-
-
-
-## Q14. How much do you pay to get an influenza vaccine?
+# Q14. How much do you pay to get an influenza vaccine?
 
 ```{r}
 ## Q14. How much do you pay to get an influenza vaccine?
@@ -206,7 +404,6 @@ q14 <- as.data.frame(svytable(
 title <- ggtitle("Q14. How much do you pay to get an influenza vaccine?")
 p <- ggplot(q14, aes(Q14, weight = Freq)) + ptext
 p + geom_bar() + title
-
 
 ##
 #svychisq(~Q14 + Q13, des)
@@ -220,9 +417,7 @@ summary(a)
 
 ```
 
-
-
-## Q15. Are you more likely to get a vaccine if others around you get a vaccine?
+# Q15. Are you more likely to get a vaccine if others around you get a vaccine?
 
 ```{r}
 ## Q15. Are you more likely to get a vaccine if others around you get a vaccine?
@@ -233,20 +428,16 @@ title <- ggtitle("Q15. Are you more likely to get a vaccine if others around you
 p <- ggplot(q15, aes(Q15, weight = Freq)) + ptext
 p + geom_bar() + title
 
-
 ##
 #svychisq(~Q15 + Q13, des)
 #svyby(~Q15, ~Q13, des, svymean, na.rm = T)
 a <- glm(Q15 ~ Q13, family = quasibinomial(link = "logit"), data = df, weights = weight)
 summary(a)
-
 ```
 
 ```{r}
 
 ```
-
-
 
 ## Q16. Are you more likely to get a vaccine if others around you do not get a vaccine?
 
@@ -259,7 +450,6 @@ title <- ggtitle("Q16. Are you more likely to get a vaccine if others around you
 p <- ggplot(q16, aes(Q16, weight = Freq)) + ptext
 p + geom_bar() + title
 
-
 ##
 #svychisq(~Q16 + Q13, des)
 #svyby(~Q16, ~Q13, des, svymean, na.rm = T)
@@ -268,8 +458,7 @@ summary(a)
 
 ```
 
-
-## Q17. Do you get a vaccine to protect yourself, protect others, or protect yourself and others?
+# Q17. Do you get a vaccine to protect yourself, protect others, or protect yourself and others?
 
 ```{r}
 ## Q17. Do you get a vaccine to protect yourself, protect others, or protect yourself and others?
@@ -292,16 +481,12 @@ summary(a)
 
 ```
 
-
-
-## Q18. What are the reasons you would not get an influenza vaccine?
+# Q18. What are the reasons you would not get an influenza vaccine?
 
 ```{r}
 ## Q18. What are the reasons you would not get an influenza vaccine?
 
 title <- ggtitle("Q18. What are the reasons you would not get an influenza vaccine?")
-
-
 
 ##
 #svychisq(~Q18 + Q13, des)
@@ -311,8 +496,7 @@ title <- ggtitle("Q18. What are the reasons you would not get an influenza vacci
 
 ```
 
-
-## Q19. Do you have health insurance?
+# Q19. Do you have health insurance?
 
 ```{r}
 ## Q19. Do you have health insurance?
@@ -330,8 +514,7 @@ svychisq(~Q19 + Q13, des)
 
 ```
 
-
-## Q20. How effective do you think the influenza vaccine is in protecting people from becoming sick with influenza?
+# Q20. How effective do you think the influenza vaccine is in protecting people from becoming sick with influenza?
 
 ```{r}
 ## Q20. How effective do you think the influenza vaccine is in protecting people from becoming sick with influenza?
@@ -347,7 +530,6 @@ svyby(~Q20, ~Q13, des, svymean, na.rm = T)
 svychisq(~Q20 + Q13, des)
 
 ```
-
 
 ## Q21. Are influenza vaccines covered by your insurance?
 
@@ -365,17 +547,16 @@ svyby(~Q21, ~Q13, des, svymean, na.rm = T)
 svychisq(~Q21 + Q13, des)
 
 
-
 ```
 
 
-### Q13. Do you get the flu vaccine?
-### Q14. How much do you pay to get an influenza vaccine?
-### Q15. Are you more likely to get a vaccine if others around you get a vaccine?
-### Q16. Are you more likely to get a vaccine if others around you do not get a vaccine?
-### Q17. Do you get a vaccine to protect yourself, protect others, or protect yourself and others?
-### Q18. What are the reasons you would not get an influenza vaccine?
-### Q19. Do you have health insurance?
-### Q20. How effective do you think the influenza vaccine is in protecting people from becoming sick with influenza?
-### Q21. Are influenza vaccines covered by your insurance?
+#### Q13. Do you get the flu vaccine?
+#### Q14. How much do you pay to get an influenza vaccine?
+#### Q15. Are you more likely to get a vaccine if others around you get a vaccine?
+#### Q16. Are you more likely to get a vaccine if others around you do not get a vaccine?
+#### Q17. Do you get a vaccine to protect yourself, protect others, or protect yourself and others?
+#### Q18. What are the reasons you would not get an influenza vaccine?
+#### Q19. Do you have health insurance?
+#### Q20. How effective do you think the influenza vaccine is in protecting people from becoming sick with influenza?
+#### Q21. Are influenza vaccines covered by your insurance?
 
