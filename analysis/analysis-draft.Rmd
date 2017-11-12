@@ -33,18 +33,16 @@ library(knitr)
 library(rmarkdown)
 library(survey)
 library(tidyr)
-```
 
-```{r load-data}
 ## flu-survey/code/data_prep.R
 load("~/git/flu-survey/data/data_prep.RData")
 
+## subset columns
+df <- dataf[, c(1,4:27, 28:33, 92:111, 429)]
+names(df)
 ```
 
 ```{r recode-data}
-## subset df
-df <- dataf[, c(1,4:27, 28:33, 92:111, 429)]
-
 ## recode variables
 library(car)
 
@@ -80,12 +78,12 @@ colnames(df)
 ```
 
 ```{r ggplot}
-## create ggplot templates
+## ggplot templates
 ptext <- theme(axis.text = element_text(size = rel(0.9)), axis.text.x = element_text(angle = 45, hjust = 1))
 ptext2 <- ptext + theme(axis.text.x = element_blank())
 ```
 
-```{r}
+```{r survey-des}
 ## create survey object
 options(digits = 4)
 options(survey.lonely.psu = "adjust")
@@ -94,15 +92,25 @@ des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight)==F, ])
 
 
 
-
 # Q13. Do you get the flu vaccine?
 
 ```{r Q13}
 ## Q13. Do you get the flu vaccine?
-q13 <- as.data.frame(svytable(~Q13 + PPGENDER + ppagecat + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
-title <- ggtitle("Q13. Do you get the flu vaccine?")
+q13 <- as.data.frame(svytable(~Q13 + ppagecat +  + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
+names(q13)
+
+# univariate
 p <- ggplot(q13, aes(Q13, weight = Freq)) + ptext
-p + geom_bar() + title
+p + geom_bar() + ggtitle("Q13. Do you get the flu vaccine?")
+
+# counts
+with(df, addmargins(table(Q13)))
+
+# weighted table
+svyby(~Q13, ~PPGENDER, des, svymean, na.rm = T)
+
+
+
 ```
 
 ```{r eval=FALSE, include=FALSE}
@@ -131,7 +139,7 @@ svychisq(~Q13 + PPWORK, des)
 svychisq(~Q13 + PPNET, des)
 ```
 
-Significant chi-square p-values for Q13:
+Significant p-values for Q13:
 Age, education, ethnicity, housing type, income, marital status, metro status, region, rental status, employment status, internet 
 
 
