@@ -438,50 +438,47 @@ p + geom_bar() + title
 
 # counts
 with(df, addmargins(table(Q14)))
+
+# bivariate
+ggplot(q14, aes(Q14, fill = Q13, weight = Freq)) + ptext + geom_bar() + title
 ```
 
 ```{r}
-#### Need to subset Q13 by Yes, every year and Yes, some years
-
 ## Q14 by Q13: vaccination status
+#head(df[c('CaseID','Q13','Q14')])
+#nrow(df)
 
-# dropping NAs
-head(df[c('CaseID','Q13','Q14')])
-nrow(df)
+## drop NAs from variables of interest
 df_sub <- df[!is.na(df$Q14) & !is.na(df$Q13), ]
 head(df_sub[c('CaseID','Q13','Q14')])
 nrow(df_sub)
 
-# count
+## count
 with(df_sub, addmargins(table(Q14, Q13)))
 
-# dropping "More than $60" and "No, never"
-# need to drop factor instead...
-df_sub <- df_sub[!df_sub$Q14=="More than $60" & !df_sub$Q13=="No, never", ]
+## drop where too few observations
+#df_sub <- df_sub[!df_sub$Q14=="More than $60" & !df_sub$Q13=="No, never", ]
+df_sub <- df_sub[!df_sub$Q14=="More than $60", ]
 nrow(df_sub)
 
+## drop unused levels
+df_sub <- droplevels(df_sub)
+
+## updated count
+with(df_sub, addmargins(table(Q14, Q13)))
 
 ## update survey object
 options(digits = 4)
 options(survey.lonely.psu = "adjust")
 des14 <- svydesign(ids = ~1, weights = ~weight, data = df_sub)
 
-# updated unweighted count
-with(df_sub, addmargins(table(Q14, Q13)))
+## weighted table
+#svytable(~Q14 + Q13, des14, round = T)  # weighted counts
+svyby(~Q13, ~Q14, des14, svymean, na.rm.all = T)
 
-# weighted table
-#svytable(~Q14 + Q13, des14, round = T)
-svyby(~Q14, ~Q13, des14, svymean, na.rm = T)
-
-## need to drop factor before running?
-#svychisq(~Q14 + Q13, des14)
+svychisq(~Q14 + Q13, des14)
 #a <- glm(Q14 ~ Q13, family = quasibinomial(link = "logit"), data = df_sub, weights = weight)
 #summary(a)
-
-# bivariate
-title <- ggtitle("Q14. How much do you pay to get an influenza vaccine?")
-p <- ggplot(q14, aes(Q14, fill = Q13, weight = Freq)) + ptext + geom_bar() + title
-p
 ```
 
 
@@ -497,23 +494,30 @@ ggplot(q20, aes(Q20, weight = Freq)) + ptext + geom_bar() + title
 
 # counts
 with(df, addmargins(table(Q20)))
+
+# bivariate
+ggplot(q20, aes(Q20, fill = Q13, weight = Freq)) + ptext + geom_bar() + title
 ```
 
 ```{r}
-### Q20 by Q13: vaccination status ###
-# dropping NAs
-head(df[c('CaseID','Q13','Q20')])
-nrow(df)
+## Q20 by Q13: vaccination status
+#head(df[c('CaseID','Q13','Q20')])
+#nrow(df)
+
+## drop NAs from variables of interest
 df_sub <- df[!is.na(df$Q20) & !is.na(df$Q13), ]
 head(df_sub[c('CaseID','Q13','Q20')])
 nrow(df_sub)
+
+## count
+with(df_sub, addmargins(table(Q20, Q13)))
 
 ## update survey object
 options(digits = 4)
 options(survey.lonely.psu = "adjust")
 des20 <- svydesign(ids = ~1, weights = ~weight, data = df_sub)
 
-# raw count
+## updated count
 as.data.frame(with(df_sub, addmargins(table(Q20, Q13))))
 
 # weighted table
@@ -567,6 +571,7 @@ svyby(~Q13, ~Q15, des15, svymean, na.rm = T)
 ggplot(q15, aes(Q15, fill = Q13, weight = Freq)) + ptext + geom_bar() + title
 ```
 
+
 # Q16. Are you more likely to get a vaccine if others around you do not get a vaccine?
 
 ```{r}
@@ -577,15 +582,14 @@ q16 <- as.data.frame(svytable(
 title <- ggtitle("Q16. Are you more likely to get a vaccine if others around you do not get a vaccine?")
 p <- ggplot(q16, aes(Q16, weight = Freq)) + ptext
 p + geom_bar() + title
-
 ```
 
 ```{r}
 # dropping NAs
-head(df[c('CaseID','Q13','Q20')])
+head(df[c('CaseID','Q13','Q16')])
 nrow(df)
-df_sub <- df[!is.na(df$Q20) & !is.na(df$Q13), ]
-head(df_sub[c('CaseID','Q13','Q20')])
+df_sub <- df[!is.na(df$Q16) & !is.na(df$Q13), ]
+head(df_sub[c('CaseID','Q13','Q16')])
 nrow(df_sub)
 
 # raw count
@@ -690,6 +694,7 @@ ggplot(q19, aes(Q19, fill = Q13, weight = Freq)) + ptext + geom_bar() + title
 
 ```
 
+
 # Q21. Are influenza vaccines covered by your insurance?
 
 ```{r}
@@ -706,7 +711,7 @@ p + geom_bar() + title
 
 ```
 
-```{r]}
+```{r}
 # raw count
 as.data.frame(with(df, addmargins(table(Q21, Q13))))
 
