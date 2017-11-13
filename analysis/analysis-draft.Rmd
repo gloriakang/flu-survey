@@ -96,7 +96,7 @@ des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight)==F, ])
 
 ```{r Q13}
 ## Q13. Do you get the flu vaccine?
-q13 <- as.data.frame(svytable(~Q13 + ppagecat +  + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
+q13 <- as.data.frame(svytable(~Q13 + ppagecat + PPGENDER + PPETHM + income + PPEDUCAT + work + marital, des, round = T))
 names(q13)
 
 # univariate
@@ -105,12 +105,6 @@ p + geom_bar() + ggtitle("Q13. Do you get the flu vaccine?")
 
 # counts
 with(df, addmargins(table(Q13)))
-
-# weighted table
-svyby(~Q13, ~PPGENDER, des, svymean, na.rm = T)
-
-
-
 ```
 
 ```{r eval=FALSE, include=FALSE}
@@ -157,10 +151,13 @@ summary(a)
 
 # what is the difference between the two above?
 
-# weighted table
-(q <- svyby(~Q13, ~PPETHM, des, svymean, na.rm = T))
 # unweighted table
-with(df, addmargins(table(Q13, PPETHM)))
+as.data.frame(with(df, addmargins(table(PPETHM, Q13))))
+
+# weighted tables
+(q <- svyby(~Q13, ~PPETHM, des, svymean, na.rm = T))
+
+
 
 # plot: No, never
 er <- geom_errorbar(aes(ymin = q[4] - q[7],
@@ -180,7 +177,7 @@ summary(a)
 # weighted table
 (q <- svyby(~Q13, ~ppagecat, des, svymean, na.rm = T))
 # unweighted table
-with(df, addmargins(table(Q13, ppagecat)))
+as.data.frame(with(df, addmargins(table(ppagecat, Q13))))
 
 # plot: Yes, every year
 er <- geom_errorbar(aes(ymin = q[2] - q[5],
@@ -198,7 +195,7 @@ summary(a)
 # weighted table
 (q <- svyby(~Q13, ~ppagect4, des, svymean, na.rm = T))
 # unweighted table
-with(df, addmargins(table(Q13, ppagect4)))
+as.data.frame(with(df, addmargins(table(ppagect4, Q13))))
 
 # plot: Yes, every year
 er <- geom_errorbar(aes(ymin = q[2] - q[5],
@@ -218,7 +215,7 @@ summary(a)
 # weighted table
 (q <- svyby(~Q13, ~PPEDUCAT, des, svymean, na.rm = T))
 # unweighted table
-with(df, addmargins(table(Q13, PPEDUCAT)))
+as.data.frame(with(df, addmargins(table(PPEDUCAT, Q13))))
 
 # plot: Yes, every year
 er <- geom_errorbar(aes(ymin = q[2] - q[5],
@@ -258,7 +255,7 @@ summary(a)
 # weighted table
 (q <- svyby(~Q13, ~income, des, svymean, na.rm = T))
 # unweighted table
-with(df, addmargins(table(Q13, income)))
+as.data.frame(with(df, addmargins(table(income, Q13))))
 
 # plot: Yes, every year
 er <- geom_errorbar(aes(ymin = q[2] - q[5],
