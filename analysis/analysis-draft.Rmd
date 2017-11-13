@@ -213,6 +213,7 @@ summary(a)
 
 # weighted table
 (q <- svyby(~Q13, ~ppagect4, des, svymean, na.rm = T))
+
 # unweighted table
 as.data.frame(with(df, addmargins(table(ppagect4, Q13))))
 
