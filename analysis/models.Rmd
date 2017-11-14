@@ -117,6 +117,7 @@ names(df)
 # Q13. Do you get the flu vaccine?
 
 ```{r}
+# frequency counts of Q13
 table(df$Q13, useNA = 'always') %>%
   addmargins()
 ```
@@ -136,6 +137,7 @@ dim(df)
 
 
 ```{r}
+# subset rows for every and never reponses only
 never_every <- df[df$Q13 %in% c('Yes, every year', 'No, never'), ]
 dim(never_every)
 ```
@@ -148,6 +150,7 @@ table(never_every$Q13, useNA = 'always') %>%
 ### Never and Sometimes
 
 ```{r}
+# subset for some year and never only
 never_sometimes <- df[df$Q13 %in% c('Yes, some years', 'No, never'), ]
 dim(never_sometimes)
 ```
@@ -165,12 +168,14 @@ dim(df)
 
 
 ```{r}
+# recode q13 for never vs some/always
 df$q13_never_somealways <- sapply(X = df$Q13, FUN = recode_never_somealways)
 ```
 
 ```{r}
 dim(df)
 
+# test to see increase in number of columns
 testthat::expect_equal(dim(df), c(2168, 56))
 ```
 
@@ -184,6 +189,7 @@ table(df$Q13, df$q13_never_somealways, useNA = 'always') %>%
 ## Logistic Regression Models (Demographic Only)
 
 ```{r}
+# convert the subsetted data into a survey design using survey package
 svy_never_every <- svydesign(ids = ~1, weights = ~weight,
                              data = never_every[!is.na(never_every$weight), ])
 svy_never_sometimes <- svydesign(ids = ~1, weights = ~weight,
