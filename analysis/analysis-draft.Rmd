@@ -19,10 +19,11 @@ output:
     toc: yes
     toc_depth: 2
 editor_options: 
-  chunk_output_type: inline
+  chunk_output_type: console
 ---
 
 ```{r setup}
+knitr::opts_knit$set(root.dir = '..')
 knitr::opts_chunk$set(echo = T, cache = T, warning = F, message = F, tidy = T, size = "small")
 rm(list = ls(all.names = TRUE))
 
@@ -35,7 +36,7 @@ library(survey)
 library(tidyr)
 
 ## flu-survey/code/data_prep.R
-load("~/git/flu-survey/data/data_prep.RData")
+load('./data/data_prep.RData')
 
 ## subset columns
 df <- dataf[, c(1,4:27, 28:33, 92:111, 429)]
