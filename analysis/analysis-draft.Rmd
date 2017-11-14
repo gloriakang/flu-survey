@@ -416,16 +416,6 @@ ggplot(q, aes(PPNET, q[2])) + geom_point() + xlab("") + ylab("Q13Yes, every year
 ```
 
 
-# TESTING
-
-```{r eval=FALSE, include=FALSE}
-## testing:
-## Q13 and multiple variables
-a <- glm(Q13 ~ PPETHM + PPEDUCAT, family = quasibinomial(link = "logit"), data = df, weights = weight)
-summary(a)
-```
-
-
 # Q14. How much do you pay to get an influenza vaccine?
 
 ```{r}
@@ -792,16 +782,60 @@ summary(a)
 
 ```{r}
 ## Q18. What are the reasons you would not get an influenza vaccine?
-
 title <- ggtitle("Q18. What are the reasons you would not get an influenza vaccine?")
+```
 
-##
-#svychisq(~Q18 + Q13, des)
-#svyby(~Q18, ~Q13, des, svymean, na.rm = F)
-#a <- glm(Q18 ~ Q13, family = quasibinomial(link = "logit"), data = df, weights = weight)
+```{r}
+## Q18 by Q13: vaccination status
+## drop NAs from variables of interest
+df_sub <- df[!is.na(df$Q18_1) & !is.na(df$Q13), ]
+#head(df_sub[c('CaseID','Q13','Q18_1')])
+nrow(df_sub)
+
+## count for Q18_1
+with(df_sub, addmargins(table(Q18_1, Q13)))
+
+## drop unused levels
+df_sub <- droplevels(df_sub)
+
+## updated counts for all Q18
+with(df_sub, addmargins(table(Q18_1, Q13)))
+with(df_sub, addmargins(table(Q18_2, Q13)))
+with(df_sub, addmargins(table(Q18_3, Q13)))
+with(df_sub, addmargins(table(Q18_4, Q13)))
+with(df_sub, addmargins(table(Q18_5, Q13)))
+with(df_sub, addmargins(table(Q18_6, Q13)))
+with(df_sub, addmargins(table(Q18_7, Q13)))
+with(df_sub, addmargins(table(Q18_8, Q13)))
+with(df_sub, addmargins(table(Q18_9, Q13)))
+
+## update survey object
+options(digits = 4)
+options(survey.lonely.psu = "adjust")
+des18 <- svydesign(ids = ~1, weights = ~weight, data = df_sub)
+
+## weighted tables
+svyby(~Q13, ~Q18_1, des18, svymean, na.rm.all = T)
+svyby(~Q13, ~Q18_2, des18, svymean, na.rm.all = T)
+svyby(~Q13, ~Q18_3, des18, svymean, na.rm.all = T)
+svyby(~Q13, ~Q18_4, des18, svymean, na.rm.all = T)
+svyby(~Q13, ~Q18_5, des18, svymean, na.rm.all = T)
+
+
+
+svychisq(~Q18 + Q13, des18)
+#a <- glm(Q13 ~ Q18, family = quasibinomial(link = "logit"), data = df_sub, weights = weight)
 #summary(a)
 
+
 ```
+
+```{r}
+
+```
+
+
+
 
 
 # Regression model
@@ -811,7 +845,6 @@ title <- ggtitle("Q18. What are the reasons you would not get an influenza vacci
 
 saveRDS(object = df, file = './data/data_for_models.RDS')
 ```
-
 
 ```{r}
 # Q13
