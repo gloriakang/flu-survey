@@ -36,7 +36,7 @@ library(survey)
 library(tidyr)
 
 ## flu-survey/code/data_prep.R
-load('../data/data_prep.RData')
+load('./data/data_prep.RData')
 
 ## subset columns
 df <- dataf[, c(1,4:27, 28:33, 92:111, 429)]
@@ -112,8 +112,8 @@ as.data.frame(svytable(~Q13, des, round = T))
 
 ```{r eval=FALSE, include=FALSE}
 ## Q13: chi-squares
-#svychisq(~Q13 + ppagecat, des)
-svychisq(~Q13 + ppagect4, des)
+svychisq(~Q13 + ppagecat, des)
+#svychisq(~Q13 + ppagect4, des)
 #svychisq(~Q13 + PPEDUC, des)
 svychisq(~Q13 + PPEDUCAT, des)
 svychisq(~Q13 + PPETHM, des)
@@ -205,7 +205,7 @@ er <- geom_errorbar(aes(ymin = q[2] - q[5],
 ggplot(q, aes(ppagecat, q[2])) + geom_point() + xlab("") + ylab("Q13Yes, every year") + er + ggtitle(label = "")
 ```
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 ## Q13 and ppagect4
 svychisq(~Q13 + ppagect4, des)
 
@@ -533,7 +533,7 @@ summary(a)
 ```{r}
 ## Q15. Are you more likely to get a vaccine if others around you get a vaccine?
 q15 <- as.data.frame(svytable(
-  ~Q15 + Q13 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT, des, round = T))
+  ~Q15 + Q13 + PPGENDER + ppagecat + PPETHM + income + PPEDUCAT, des, round = T))
 
 # univariate
 title <- ggtitle("Q15. Are you more likely to get a vaccine if others around you get a vaccine?")
@@ -582,7 +582,7 @@ summary(a)
 ```{r}
 ## Q16. Are you more likely to get a vaccine if others around you do not get a vaccine?
 q16 <- as.data.frame(svytable(
-  ~Q16 + Q13 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT, des, round = T))
+  ~Q16 + Q13 + PPGENDER + ppagecat + PPETHM + income + PPEDUCAT, des, round = T))
 
 # univariate
 title <- ggtitle("Q16. Are you more likely to get a vaccine if others around you do not get a vaccine?")
@@ -635,7 +635,7 @@ summary(a)
 ```{r}
 ## Q17. Do you get a vaccine to protect yourself, protect others, or protect yourself and others?
 q17 <- as.data.frame(svytable(
-  ~Q17 + Q13 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT, des, round = T))
+  ~Q17 + Q13 + PPGENDER + ppagecat + PPETHM + income + PPEDUCAT, des, round = T))
 
 title <- ggtitle("Q17. Do you get a vaccine to protect yourself, protect others, or protect yourself and others?")
 p <- ggplot(q17, aes(Q17, weight = Freq)) + ptext
@@ -707,7 +707,7 @@ title <- ggtitle("Q18. What are the reasons you would not get an influenza vacci
 ```{r}
 ## Q19. Do you have health insurance?
 q19 <- as.data.frame(svytable(
-  ~Q19 + Q13 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT, des, round = T))
+  ~Q19 + Q13 + PPGENDER + ppagecat + PPETHM + income + PPEDUCAT, des, round = T))
 
 title <- ggtitle("Q19. Do you have health insurance?")
 p <- ggplot(q19, aes(Q19, weight = Freq)) + ptext
@@ -736,7 +736,7 @@ svychisq(~Q19 + Q13, des)
 
 ## Q21. Are influenza vaccines covered by your insurance?
 q21 <- as.data.frame(svytable(
-  ~Q21 + Q13 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT, des, round = T))
+  ~Q21 + Q13 + PPGENDER + ppagecat + PPETHM + income + PPEDUCAT, des, round = T))
 
 title <- ggtitle("Q21. Are influenza vaccines covered by your health insurance?")
 p <- ggplot(q21, aes(Q21, weight = Freq)) + ptext
