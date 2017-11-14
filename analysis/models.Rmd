@@ -118,7 +118,7 @@ df$q13_never_somealways <- sapply(X = df$Q13, FUN = recode_never_somealways)
 ```{r}
 dim(df)
 
-testthat::expect_equal(dim(df), c(2168, 53))
+testthat::expect_equal(dim(df), c(2168, 56))
 ```
 
 ```{r}
