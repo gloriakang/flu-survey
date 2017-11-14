@@ -583,36 +583,49 @@ summary(a)
 q16 <- as.data.frame(svytable(
   ~Q16 + Q13 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT, des, round = T))
 
+# univariate
 title <- ggtitle("Q16. Are you more likely to get a vaccine if others around you do not get a vaccine?")
 p <- ggplot(q16, aes(Q16, weight = Freq)) + ptext
 p + geom_bar() + title
+
+# counts
+with(df, addmargins(table(Q16)))
+
+# bivariate
+ggplot(q16, aes(Q16, fill = Q13, weight = Freq)) + ptext + geom_bar() + title
 ```
 
 ```{r}
-# dropping NAs
-head(df[c('CaseID','Q13','Q16')])
-nrow(df)
+## Q16 by Q13: vaccination status
+#head(df[c('CaseID','Q13','Q16')])
+#nrow(df)
+
+## drop NAs from variables of interest
 df_sub <- df[!is.na(df$Q16) & !is.na(df$Q13), ]
 head(df_sub[c('CaseID','Q13','Q16')])
 nrow(df_sub)
 
-# raw count
-as.data.frame(with(df, addmargins(table(Q16, Q13))))
+## count
+with(df_sub, addmargins(table(Q16, Q13)))
 
-##
-#svychisq(~Q16 + Q13, des)
-#svyby(~Q16, ~Q13, des, svymean, na.rm = T)
-a <- glm(Q16 ~ Q13, family = quasibinomial(link = "logit"), data = df, weights = weight)
+## drop unused levels
+df_sub <- droplevels(df_sub)
+
+## updated count
+with(df_sub, addmargins(table(Q16, Q13)))
+
+## update survey object
+options(digits = 4)
+options(survey.lonely.psu = "adjust")
+des16 <- svydesign(ids = ~1, weights = ~weight, data = df_sub)
+
+## weighted table
+#svytable(~Q16 + Q13, des16, round = T)  # weighted counts
+svyby(~Q13, ~Q16, des16, svymean, na.rm.all = T)
+
+svychisq(~Q16 + Q13, des16)
+a <- glm(Q13 ~ Q16, family = quasibinomial(link = "logit"), data = df_sub, weights = weight)
 summary(a)
-
-###
-svytable(~Q16 + Q13, des14, round = T)
-
-svyby(~Q16, ~Q13, des14, svymean, na.rm=T)
-
-# bivariate
-ggplot(q16, aes(Q16, fill = Q13, weight = Freq)) + ptext + geom_bar() + title
-
 ```
 
 
@@ -627,32 +640,49 @@ title <- ggtitle("Q17. Do you get a vaccine to protect yourself, protect others,
 p <- ggplot(q17, aes(Q17, weight = Freq)) + ptext
 p + geom_bar() + title
 
-```
-
-```{r}
-##
-#svychisq(~Q17 + Q13, des)
-#svyby(~Q17, ~Q13, des, svymean, na.rm = F)
-a <- glm(Q17 ~ Q13, family = quasibinomial(link = "logit"), data = df, weights = weight)
-summary(a)
-
-# raw count
-as.data.frame(with(df, addmargins(table(Q17, Q13))))
-
-# dropping NAs
-head(df[c('CaseID','Q13','Q20')])
-nrow(df)
-df_sub <- df[!is.na(df$Q20) & !is.na(df$Q13), ]
-head(df_sub[c('CaseID','Q13','Q20')])
-nrow(df_sub)
-
-
-#####
-svytable(~Q17 + Q13, des14, round = T)
-svyby(~Q17, ~Q13, des14, svymean, na.rm = T)
+# counts
+with(df, addmargins(table(Q17)))
 
 # bivariate
 ggplot(q17, aes(Q17, fill = Q13, weight = Freq)) + ptext + geom_bar() + title
+```
+
+```{r}
+## Q17 by Q13: vaccination status
+#head(df[c('CaseID','Q13','Q17')])
+#nrow(df)
+
+## drop NAs from variables of interest
+df_sub <- df[!is.na(df$Q17) & !is.na(df$Q13), ]
+head(df_sub[c('CaseID','Q13','Q17')])
+nrow(df_sub)
+
+## count
+with(df_sub, addmargins(table(Q17, Q13)))
+
+## drop where too few observations
+#df_sub <- df_sub[!df_sub$Q17=="More than $60" & !df_sub$Q13=="No, never", ]
+df_sub <- df_sub[!df_sub$Q17=="More than $60", ]
+nrow(df_sub)
+
+## drop unused levels
+df_sub <- droplevels(df_sub)
+
+## updated count
+with(df_sub, addmargins(table(Q17, Q13)))
+
+## update survey object
+options(digits = 4)
+options(survey.lonely.psu = "adjust")
+des17 <- svydesign(ids = ~1, weights = ~weight, data = df_sub)
+
+## weighted table
+#svytable(~Q17 + Q13, des17, round = T)  # weighted counts
+svyby(~Q13, ~Q17, des17, svymean, na.rm.all = T)
+
+svychisq(~Q17 + Q13, des17)
+a <- glm(Q13 ~ Q17, family = quasibinomial(link = "logit"), data = df_sub, weights = weight)
+summary(a)
 ```
 
 
