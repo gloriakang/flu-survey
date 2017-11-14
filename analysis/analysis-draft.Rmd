@@ -682,9 +682,111 @@ summary(a)
 ```
 
 
+# Q19. Do you have health insurance?
+
+```{r}
+## Q19. Do you have health insurance?
+q19 <- as.data.frame(svytable(
+  ~Q19 + Q13 + PPGENDER + ppagecat + PPETHM + income + PPEDUCAT, des, round = T))
+
+# univariate
+title <- ggtitle("Q19. Do you have health insurance?")
+p <- ggplot(q19, aes(Q19, weight = Freq)) + ptext
+p + geom_bar() + title
+
+# counts
+with(df, addmargins(table(Q19)))
+
+# bivariate
+ggplot(q19, aes(Q19, fill = Q13, weight = Freq)) + ptext + geom_bar() + title
+```
+
+```{r}
+## Q19 by Q13: vaccination status
+#head(df[c('CaseID','Q13','Q19')])
+#nrow(df)
+
+## drop NAs from variables of interest
+df_sub <- df[!is.na(df$Q19) & !is.na(df$Q13), ]
+head(df_sub[c('CaseID','Q13','Q19')])
+nrow(df_sub)
+
+## count
+with(df_sub, addmargins(table(Q19, Q13)))
+
+## drop unused levels
+df_sub <- droplevels(df_sub)
+
+## updated count
+with(df_sub, addmargins(table(Q19, Q13)))
+
+## update survey object
+options(digits = 4)
+options(survey.lonely.psu = "adjust")
+des19 <- svydesign(ids = ~1, weights = ~weight, data = df_sub)
+
+## weighted table
+#svytable(~Q19 + Q13, des19, round = T)  # weighted counts
+svyby(~Q13, ~Q19, des19, svymean, na.rm.all = T)
+
+svychisq(~Q19 + Q13, des19)
+a <- glm(Q13 ~ Q19, family = quasibinomial(link = "logit"), data = df_sub, weights = weight)
+summary(a)
+```
 
 
-# TO DO:
+# Q21. Are influenza vaccines covered by your insurance?
+
+```{r}
+## Q21. Are influenza vaccines covered by your insurance?
+### subset by Q19 = Yes
+q21 <- as.data.frame(svytable(~Q21 + Q13 + ppagecat + PPGENDER + PPETHM + PPEDUCAT, des, round = T))
+
+# univariate
+title <- ggtitle("Q21. How much do you pay to get an influenza vaccine?")
+p <- ggplot(q21, aes(Q21, weight = Freq)) + ptext
+p + geom_bar() + title
+
+# counts
+with(df, addmargins(table(Q21)))
+
+# bivariate
+ggplot(q21, aes(Q21, fill = Q13, weight = Freq)) + ptext + geom_bar() + title
+```
+
+```{r}
+## Q21 by Q13: vaccination status
+#head(df[c('CaseID','Q13','Q21')])
+#nrow(df)
+
+## drop NAs from variables of interest
+df_sub <- df[!is.na(df$Q21) & !is.na(df$Q13), ]
+head(df_sub[c('CaseID','Q13','Q21')])
+nrow(df_sub)
+
+## count
+with(df_sub, addmargins(table(Q21, Q13)))
+
+## drop unused levels
+df_sub <- droplevels(df_sub)
+
+## updated count
+with(df_sub, addmargins(table(Q21, Q13)))
+
+## update survey object
+options(digits = 4)
+options(survey.lonely.psu = "adjust")
+des21 <- svydesign(ids = ~1, weights = ~weight, data = df_sub)
+
+## weighted table
+#svytable(~Q21 + Q13, des21, round = T)  # weighted counts
+svyby(~Q13, ~Q21, des21, svymean, na.rm.all = T)
+
+svychisq(~Q21 + Q13, des21)
+a <- glm(Q13 ~ Q21, family = quasibinomial(link = "logit"), data = df_sub, weights = weight)
+summary(a)
+```
+
 
 # Q18. What are the reasons you would not get an influenza vaccine?
 
@@ -698,66 +800,6 @@ title <- ggtitle("Q18. What are the reasons you would not get an influenza vacci
 #svyby(~Q18, ~Q13, des, svymean, na.rm = F)
 #a <- glm(Q18 ~ Q13, family = quasibinomial(link = "logit"), data = df, weights = weight)
 #summary(a)
-
-```
-
-
-# Q19. Do you have health insurance?
-
-```{r}
-## Q19. Do you have health insurance?
-q19 <- as.data.frame(svytable(
-  ~Q19 + Q13 + PPGENDER + ppagecat + PPETHM + income + PPEDUCAT, des, round = T))
-
-title <- ggtitle("Q19. Do you have health insurance?")
-p <- ggplot(q19, aes(Q19, weight = Freq)) + ptext
-p + geom_bar() + title
-
-# bivariate
-ggplot(q19, aes(Q19, fill = Q13, weight = Freq)) + ptext + geom_bar() + title
-```
-
-```{r}
-# raw count
-as.data.frame(with(df, addmargins(table(Q19, Q13))))
-
-# weighted prop
-svyby(~Q13, ~Q19, des, svymean, na.rm = T)
-
-svychisq(~Q19 + Q13, des)
-
-```
-
-
-# Q21. Are influenza vaccines covered by your insurance?
-
-```{r}
-### Subset by Q19 = Yes
-
-## Q21. Are influenza vaccines covered by your insurance?
-q21 <- as.data.frame(svytable(
-  ~Q21 + Q13 + PPGENDER + ppagecat + PPETHM + income + PPEDUCAT, des, round = T))
-
-title <- ggtitle("Q21. Are influenza vaccines covered by your health insurance?")
-p <- ggplot(q21, aes(Q21, weight = Freq)) + ptext
-p + geom_bar() + title
-
-# bivariate
-ggplot(q21, aes(Q21, fill = Q13, weight = Freq)) + ptext + geom_bar() + title
-```
-
-```{r}
-# raw count
-as.data.frame(with(df, addmargins(table(Q21, Q13))))
-
-# subset data
-
-
-# weighted props
-svyby(~Q13, ~Q21, des, svymean, na.rm = T)
-
-#svychisq(~Q21 + Q13, des)
-
 
 ```
 
