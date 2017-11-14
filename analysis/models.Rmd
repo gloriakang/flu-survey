@@ -365,7 +365,7 @@ f <- as.formula('as.factor(Q13) ~ as.factor(PPGENDER) + as.factor(ppagect4) + as
 fit_somenever_dat(f)
 ```
 
-### Q18
+### Q18 only
 
 ```{r}
 f <- as.formula('as.factor(Q13) ~ as.factor(Q18_1) + as.factor(Q18_2) + as.factor(Q18_3) + as.factor(Q18_4) + as.factor(Q18_5) + as.factor(Q18_6) + as.factor(Q18_7) + as.factor(Q18_8) + as.factor(Q18_9)')
