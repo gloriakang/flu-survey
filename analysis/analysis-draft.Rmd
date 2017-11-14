@@ -477,8 +477,8 @@ des14 <- svydesign(ids = ~1, weights = ~weight, data = df_sub)
 svyby(~Q13, ~Q14, des14, svymean, na.rm.all = T)
 
 svychisq(~Q14 + Q13, des14)
-#a <- glm(Q14 ~ Q13, family = quasibinomial(link = "logit"), data = df_sub, weights = weight)
-#summary(a)
+a <- glm(Q13 ~ Q14, family = quasibinomial(link = "logit"), data = df_sub, weights = weight)
+summary(a)
 ```
 
 
@@ -517,19 +517,13 @@ options(digits = 4)
 options(survey.lonely.psu = "adjust")
 des20 <- svydesign(ids = ~1, weights = ~weight, data = df_sub)
 
-## updated count
-as.data.frame(with(df_sub, addmargins(table(Q20, Q13))))
-
-# weighted table
+## weighted table
 svyby(~Q13, ~Q20, des20, svymean, na.rm = T)
 
 # chisq
 svychisq(~Q20 + Q13, des20)
-#a <- glm(Q20 ~ Q13, family = quasibinomial(link = "logit"), data = df_sub, weights = weight)
-#summary(a)
-
-# bivariate
-ggplot(q20, aes(Q20, fill = Q13, weight = Freq)) + ptext + geom_bar() + title
+a <- glm(Q13 ~ Q20, family = quasibinomial(link = "logit"), data = df_sub, weights = weight)
+summary(a)
 ```
 
 
@@ -538,39 +532,49 @@ ggplot(q20, aes(Q20, fill = Q13, weight = Freq)) + ptext + geom_bar() + title
 ```{r}
 ## Q15. Are you more likely to get a vaccine if others around you get a vaccine?
 q15 <- as.data.frame(svytable(
-  ~Q15 + Q13 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT, des14, round = T))
+  ~Q15 + Q13 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT, des, round = T))
 
+# univariate
 title <- ggtitle("Q15. Are you more likely to get a vaccine if others around you get a vaccine?")
 p <- ggplot(q15, aes(Q15, weight = Freq)) + ptext
 p + geom_bar() + title
+
+# bivariate
+ggplot(q15, aes(Q15, fill = Q13, weight = Freq)) + ptext + geom_bar() + title
 ```
 
 ```{r}
-## dropping NAs
-head(df[c('CaseID','Q15','Q20')])
-nrow(df)
+## Q15 by Q13: vaccination status
+#head(df[c('CaseID','Q13','Q15')])
+#nrow(df)
+
+## drop NAs from variables of interest
 df_sub <- df[!is.na(df$Q15) & !is.na(df$Q13), ]
-head(df_sub[c('CaseID','Q15','Q20')])
+head(df_sub[c('CaseID','Q13','Q15')])
 nrow(df_sub)
+
+## count
+with(df_sub, addmargins(table(Q15, Q13)))
+
+## drop unused levels
+df_sub <- droplevels(df_sub)
+
+## updated count
+with(df_sub, addmargins(table(Q15, Q13)))
 
 ## update survey object
 options(digits = 4)
 options(survey.lonely.psu = "adjust")
 des15 <- svydesign(ids = ~1, weights = ~weight, data = df_sub)
 
-# raw count
-as.data.frame(with(df, addmargins(table(Q15, Q13))))
+## weighted table
+#svytable(~Q15 + Q13, des15, round = T)  # weighted counts
+svyby(~Q13, ~Q15, des15, svymean, na.rm.all = T)
 
-#svychisq(~Q15 + Q13, des15)
-svyby(~Q13, ~Q15, des15, svymean, na.rm = T)
-
-#a <- glm(Q15 ~ Q13, family = quasibinomial(link = "logit"), data = df, weights = weight)
-#summary(a)
-
-# bivariate
-ggplot(q15, aes(Q15, fill = Q13, weight = Freq)) + ptext + geom_bar() + title
+svychisq(~Q15 + Q13, des15)
+a <- glm(Q13 ~ Q15, family = quasibinomial(link = "logit"), data = df_sub, weights = weight)
+summary(a)
 ```
-
 
 # Q16. Are you more likely to get a vaccine if others around you do not get a vaccine?
 
