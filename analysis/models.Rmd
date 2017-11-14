@@ -3,11 +3,13 @@ title: "Analysis"
 author: "Daniel Chen"
 date: "November 13, 2017"
 output:
-    html_document:
-      df_print: kable
-      smart: no
-      toc: yes
-editor_options: 
+  html_document:
+    df_print: kable
+    smart: no
+    toc: yes
+  pdf_document:
+    toc: yes
+editor_options:
   chunk_output_type: console
 ---
 
@@ -42,6 +44,21 @@ recode_never_somealways <- function(value) {
 ```
 
 ```{r}
+p_star <- function(pvalue) {
+  if (pvalue <= .001) {
+    return('***')
+  } else if (pvalue <= .01) {
+    return('**')
+  } else if (pvalue <= .05) {
+    return('*')
+  } else {
+    return('')
+  }
+}
+```
+
+
+```{r}
 # get or results from logistic model
 logistic_or <- function(mod) {
   mod_res <- tidy(mod)
@@ -49,6 +66,12 @@ logistic_or <- function(mod) {
   mod_res$or_std_err <- exp(mod_res$std.error)
   mod_res$or_lower <- mod_res$or - 1.96 * mod_res$or_std_err
   mod_res$or_upper <- mod_res$or + 1.96 * mod_res$or_std_err
+  
+  mod_res$term <- stringr::str_replace(mod_res$term, 'as.factor', '')
+
+  mod_res$sig <- sapply(mod_res$p.value, p_star)
+
+
   return(mod_res)
 }
 ```
@@ -128,7 +151,7 @@ table(df$Q13, df$q13_never_somealways, useNA = 'always') %>%
 ```
 
 
-## Logistic Regression Models
+## Logistic Regression Models (Demographic Only)
 
 ```{r}
 svy_never_every <- svydesign(ids = ~1, weights = ~weight,
@@ -149,28 +172,36 @@ c("PPGENDER", "ppagect4", "PPEDUCAT", "PPETHM", "income", "marital", "PPMSACAT",
 
 
 ```{r}
-form <- 'as.factor(Q13) ~ as.factor(PPGENDER) + as.factor(ppagect4) + as.factor(PPEDUCAT) + as.factor(PPETHM) + as.factor(income) + as.factor(marital) + as.factor(PPMSACAT) + as.factor(PPREG4) + as.factor(work)'
-form <- as.formula(form)
+form_demo <- 'as.factor(Q13) ~ as.factor(PPGENDER) + as.factor(ppagect4) + as.factor(PPEDUCAT) + as.factor(PPETHM) + as.factor(income) + as.factor(marital) + as.factor(PPMSACAT) + as.factor(PPREG4) + as.factor(work)'
+form_demo <- as.formula(form_demo)
 ```
 
 
 ```{r}
 # unweighted glm
-mod <- glm(data = never_every,
-           formula = form,
-           family = binomial(link = "logit"),
-           na.action = 'na.omit')
+# mod <- glm(data = never_every,
+#            formula = form,
+#            family = binomial(link = "logit"),
+#            na.action = 'na.omit')
+
+# summary(mod)
+# mod_res <- logistic_or(mod)
+# mod_res
 ```
 
 ```{r}
-summary(mod)
-mod_res <- logistic_or(mod)
-mod_res
+# what happens if we just use regular binomial?
+# mod <- survey::svyglm(form,
+#                       design = svy_never_every,
+#                       family = binomial(link = "logit"))
+# summary(mod)
+# mod_res <- logistic_or(mod)
+# mod_res
 ```
 
 ```{r}
 # documentation says to use qusibinomial
-mod <- survey::svyglm(form,
+mod <- survey::svyglm(form_demo,
                       design = svy_never_every,
                       family = quasibinomial(link = "logit"))
 summary(mod)
@@ -178,31 +209,16 @@ mod_res <- logistic_or(mod)
 mod_res
 ```
 
-```{r}
-# what happens if we just use regular binomial?
-mod <- survey::svyglm(form,
-                      design = svy_never_every,
-                      family = binomial(link = "logit"))
-summary(mod)
-mod_res <- logistic_or(mod)
-mod_res
-```
+
 
 
 ### Never vs Sometimes
 
 ```{r}
-mod <- glm(data = never_sometimes,
-           formula = as.factor(Q13) ~ Q1,
-           family = binomial(link = "logit"),
-           na.action = 'na.exclude')
-```
-
-```{r}
+mod <- survey::svyglm(form_demo,
+                      design = svy_never_sometimes,
+                      family = quasibinomial(link = "logit"))
 summary(mod)
-```
-
-```{r}
 mod_res <- logistic_or(mod)
 mod_res
 ```
@@ -211,16 +227,51 @@ mod_res
 ### Never vs SomeAlways
 
 ```{r}
-mod <- glm(data = df,
-           formula = as.factor(q13_never_somealways) ~ Q1,
-           family = binomial(link = "logit"),
-           na.action = 'na.exclude')
-
+mod <- survey::svyglm(form_demo,
+                      design = svy_df,
+                      family = quasibinomial(link = "logit"))
 summary(mod)
-```
-
-```{r}
 mod_res <- logistic_or(mod)
 mod_res
 ```
 
+
+## Logistic Regression Models (Demographic + Survey questions)
+
+```{r}
+form_demo_svy <- 'as.factor(Q13) ~ as.factor(PPGENDER) + as.factor(ppagect4) + as.factor(PPEDUCAT) + as.factor(PPETHM) + as.factor(income) + as.factor(marital) + as.factor(PPMSACAT) + as.factor(PPREG4) + as.factor(work) + as.factor(Q20) + as.factor(Q15) + as.factor(Q16) + as.factor(Q17) + as.factor(Q14) + as.factor(Q19) + as.factor(Q21)'
+form_demo_svy <- as.formula(form_demo_svy)
+```
+
+### Never vs Always
+
+```{r}
+mod <- survey::svyglm(form_demo_svy,
+                      design = svy_never_every,
+                      family = quasibinomial(link = "logit"))
+summary(mod)
+mod_res <- logistic_or(mod)
+mod_res
+```
+
+### Never vs Sometimes
+
+```{r}
+mod <- survey::svyglm(form_demo_svy,
+                      design = svy_never_sometimes,
+                      family = quasibinomial(link = "logit"))
+summary(mod)
+mod_res <- logistic_or(mod)
+mod_res
+```
+
+### Never vs Somealways
+
+```{r}
+mod <- survey::svyglm(form_demo_svy,
+                      design = svy_df,
+                      family = quasibinomial(link = "logit"))
+summary(mod)
+mod_res <- logistic_or(mod)
+mod_res
+```
