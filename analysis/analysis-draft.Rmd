@@ -88,7 +88,7 @@ ptext2 <- ptext + theme(axis.text.x = element_blank())
 ## create survey object
 options(digits = 4)
 options(survey.lonely.psu = "adjust")
-des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight)==F, ])
+des <- svydesign(ids = ~1, weights = ~weight, data = df[!is.na(df$weight), ])
 ```
 
 
