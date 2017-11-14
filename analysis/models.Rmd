@@ -315,6 +315,8 @@ mod_res
 
 ## Logistic Regression (demo + Beliefs and perceptions)
 
+The odds of always getting a vaccine for those who feel that the vaccine is somewhat effective are 0.14 times the odds of always getting the vaccine who feel the vaccine is highly effective.
+The population odds of always getting the vaccine for those who feel the vaccine is somewhat effective is at least **LOWER**  and at most **UPPER** times thd odds of always getting a vaccine for those who feel the vaccine is somewhat effective with 95% confidence.
 
 ```{r}
 f <- as.formula('as.factor(Q13) ~ as.factor(PPGENDER) + as.factor(ppagect4) + as.factor(PPEDUCAT) + as.factor(PPETHM) + as.factor(income) + as.factor(marital) + as.factor(PPMSACAT) + as.factor(PPREG4) + as.factor(work) + as.factor(Q20)')
