@@ -59,7 +59,7 @@ df$Q13 <- as.character(df$Q13)
 ```
 
 
-# Response Variable
+# Q13. Do you get the flu vaccine?
 
 ```{r}
 table(df$Q13, useNA = 'always') %>%
@@ -121,9 +121,9 @@ table(df$Q13, df$q13_never_somealways, useNA = 'always') %>%
 ```
 
 
-# Logistic Regression Models
+## Logistic Regression Models
 
-## Never vs Always
+### Never vs Always
 
 ```{r}
 # number of missing weights
@@ -155,7 +155,7 @@ mod_res <- logistic_or(mod)
 mod_res
 ```
 
-## Never vs Sometimes
+### Never vs Sometimes
 
 ```{r}
 mod <- glm(data = never_sometimes,
@@ -174,7 +174,7 @@ mod_res
 ```
 
 
-## Never vs SomeAlways
+### Never vs SomeAlways
 
 ```{r}
 mod <- glm(data = df,
