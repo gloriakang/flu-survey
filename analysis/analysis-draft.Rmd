@@ -732,6 +732,13 @@ ggplot(q21, aes(Q21, fill = Q13, weight = Freq)) + ptext + geom_bar() + title
 # Regression model
 
 ```{r}
+# write out data before fitting models
+
+saveRDS(object = df, file = './data/data_for_models.RDS')
+```
+
+
+```{r}
 # Q13
 library(MASS)
 library(broom)
