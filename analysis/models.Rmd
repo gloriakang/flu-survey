@@ -239,7 +239,7 @@ mod_res
 ## Logistic Regression Models (Demographic + Survey questions)
 
 ```{r}
-form_demo_svy <- 'as.factor(Q13) ~ as.factor(PPGENDER) + as.factor(ppagect4) + as.factor(PPEDUCAT) + as.factor(PPETHM) + as.factor(income) + as.factor(marital) + as.factor(PPMSACAT) + as.factor(PPREG4) + as.factor(work) + as.factor(Q20) + as.factor(Q15) + as.factor(Q16) + as.factor(Q17) + as.factor(Q14) + as.factor(Q19) + as.factor(Q21)'
+form_demo_svy <- 'as.factor(Q13) ~ as.factor(PPGENDER) + as.factor(ppagect4) + as.factor(PPEDUCAT) + as.factor(PPETHM) + as.factor(income) + as.factor(marital) + as.factor(PPMSACAT) + as.factor(PPREG4) + as.factor(work) + as.factor(Q20) + as.factor(Q15) + as.factor(Q16) + as.factor(Q17) + as.factor(Q14) + as.factor(Q19)'
 form_demo_svy <- as.formula(form_demo_svy)
 ```
 
