@@ -1,0 +1,192 @@
+---
+title: "Analysis"
+author: "Daniel Chen"
+date: "November 13, 2017"
+output:
+    html_document:
+      df_print: kable
+      smart: no
+      toc: yes
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = '..')
+```
+
+```{r}
+library(magrittr)
+library(broom)
+
+rm(list = ls())
+
+```
+
+
+```{r}
+# recode values
+recode_never_somealways <- function(value) {
+  if (is.na(value)) {
+    return(NA)
+  } else if (value == 'No, never') {
+    return(value)
+  } else if (value %in% c('Yes, some years', 'Yes, every year')) {
+    return('Yes, Sometimes or Always')
+  } else {
+    return(NA)
+  }
+}
+```
+
+```{r}
+# get or results from logistic model
+logistic_or <- function(mod) {
+  mod_res <- tidy(mod)
+  mod_res$or <- exp(mod_res$estimate)
+  mod_res$or_std_err <- exp(mod_res$std.error)
+  mod_res$or_lower <- mod_res$or - 1.96 * mod_res$or_std_err
+  mod_res$or_upper <- mod_res$or + 1.96 * mod_res$or_std_err
+  return(mod_res)
+}
+```
+
+```{r}
+df <- readRDS('./data/data_for_models.RDS')
+
+df$Q13 <- as.character(df$Q13)
+```
+
+
+# Q13. Do you get the flu vaccine?
+
+```{r}
+table(df$Q13, useNA = 'always') %>%
+  addmargins()
+```
+
+## Recode reponse variable
+
+
+### Never and Every
+```{r}
+dim(df)
+```
+
+
+```{r}
+never_every <- df[df$Q13 %in% c('Yes, every year', 'No, never'), ]
+dim(never_every)
+```
+
+```{r}
+table(never_every$Q13, useNA = 'always') %>%
+  addmargins()
+```
+
+### Never and Sometimes
+
+```{r}
+never_sometimes <- df[df$Q13 %in% c('Yes, some years', 'No, never'), ]
+dim(never_sometimes)
+```
+
+```{r}
+table(never_sometimes$Q13, useNA = 'always') %>%
+  addmargins()
+```
+
+### Never and Sometimes/Always
+
+```{r}
+dim(df)
+```
+
+
+```{r}
+df$q13_never_somealways <- sapply(X = df$Q13, FUN = recode_never_somealways)
+```
+
+```{r}
+dim(df)
+
+testthat::expect_equal(dim(df), c(2168, 53))
+```
+
+```{r}
+# check to make sure the recoding was correct
+table(df$Q13, df$q13_never_somealways, useNA = 'always') %>%
+  addmargins()
+```
+
+
+## Logistic Regression Models
+
+### Never vs Always
+
+```{r}
+# number of missing weights
+sum(is.na(never_every$weight))
+```
+
+```{r}
+sum(is.na(never_every$Q13))
+```
+
+```{r}
+sum(is.na(never_every$Q1))
+```
+
+
+```{r}
+mod <- glm(data = never_every,
+           formula = as.factor(Q13) ~ Q1,
+           family = binomial(link = "logit"),
+           na.action = 'na.exclude')
+```
+
+```{r}
+summary(mod)
+```
+
+```{r}
+mod_res <- logistic_or(mod)
+mod_res
+```
+
+### Never vs Sometimes
+
+```{r}
+mod <- glm(data = never_sometimes,
+           formula = as.factor(Q13) ~ Q1,
+           family = binomial(link = "logit"),
+           na.action = 'na.exclude')
+```
+
+```{r}
+summary(mod)
+```
+
+```{r}
+mod_res <- logistic_or(mod)
+mod_res
+```
+
+
+### Never vs SomeAlways
+
+```{r}
+mod <- glm(data = df,
+           formula = as.factor(q13_never_somealways) ~ Q1,
+           family = binomial(link = "logit"),
+           na.action = 'na.exclude')
+
+summary(mod)
+```
+
+```{r}
+mod_res <- logistic_or(mod)
+mod_res
+```
+
