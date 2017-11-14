@@ -17,6 +17,7 @@ knitr::opts_knit$set(root.dir = '..')
 ```
 
 ```{r}
+library(survey)
 library(magrittr)
 library(broom)
 
@@ -56,7 +57,13 @@ logistic_or <- function(mod) {
 df <- readRDS('./data/data_for_models.RDS')
 
 df$Q13 <- as.character(df$Q13)
+df$Q1 <- as.character(df$Q1)
 ```
+
+```{r}
+names(df)
+```
+
 
 
 # Q13. Do you get the flu vaccine?
@@ -123,37 +130,64 @@ table(df$Q13, df$q13_never_somealways, useNA = 'always') %>%
 
 ## Logistic Regression Models
 
+```{r}
+svy_never_every <- svydesign(ids = ~1, weights = ~weight,
+                             data = never_every[!is.na(never_every$weight), ])
+svy_never_sometimes <- svydesign(ids = ~1, weights = ~weight,
+                                 data = never_sometimes[!is.na(never_sometimes$weight), ])
+svy_df <- svydesign(ids = ~1, weights = ~weight,
+                    data = df[!is.na(df$weight), ])
+```
+
+
 ### Never vs Always
 
 ```{r}
-# number of missing weights
-sum(is.na(never_every$weight))
-```
-
-```{r}
-sum(is.na(never_every$Q13))
-```
-
-```{r}
-sum(is.na(never_every$Q1))
+# deomogrpahic variables
+c("PPGENDER", "ppagect4", "PPEDUCAT", "PPETHM", "income", "marital", "PPMSACAT", "PPREG4", "work")
 ```
 
 
 ```{r}
+form <- 'as.factor(Q13) ~ as.factor(PPGENDER) + as.factor(ppagect4) + as.factor(PPEDUCAT) + as.factor(PPETHM) + as.factor(income) + as.factor(marital) + as.factor(PPMSACAT) + as.factor(PPREG4) + as.factor(work)'
+form <- as.formula(form)
+```
+
+
+```{r}
+# unweighted glm
 mod <- glm(data = never_every,
-           formula = as.factor(Q13) ~ Q1,
+           formula = form,
            family = binomial(link = "logit"),
-           na.action = 'na.exclude')
+           na.action = 'na.omit')
 ```
 
 ```{r}
 summary(mod)
-```
-
-```{r}
 mod_res <- logistic_or(mod)
 mod_res
 ```
+
+```{r}
+# documentation says to use qusibinomial
+mod <- survey::svyglm(form,
+                      design = svy_never_every,
+                      family = quasibinomial(link = "logit"))
+summary(mod)
+mod_res <- logistic_or(mod)
+mod_res
+```
+
+```{r}
+# what happens if we just use regular binomial?
+mod <- survey::svyglm(form,
+                      design = svy_never_every,
+                      family = binomial(link = "logit"))
+summary(mod)
+mod_res <- logistic_or(mod)
+mod_res
+```
+
 
 ### Never vs Sometimes
 
