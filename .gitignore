@@ -1,3 +1,6 @@
+analysis/models.html
+data/data_for_models.RDS
+
 .Rhistory
 .DS_Store
 
@@ -14,5 +17,3 @@
 # Temporary files created by R markdown
 *.utf8.md
 *.knit.md
-
-

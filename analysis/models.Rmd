@@ -5,6 +5,7 @@ date: "November 13, 2017"
 output:
   html_document:
     df_print: kable
+    number_sections: yes
     smart: no
     toc: yes
   pdf_document:
@@ -27,6 +28,10 @@ rm(list = ls())
 
 ```
 
+```{r set-options, echo=FALSE, cache=FALSE}
+options(width = 90)
+```
+
 
 ```{r}
 # recode values
@@ -44,6 +49,7 @@ recode_never_somealways <- function(value) {
 ```
 
 ```{r}
+#  '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 p_star <- function(pvalue) {
   if (pvalue <= .001) {
     return('***')
@@ -51,6 +57,8 @@ p_star <- function(pvalue) {
     return('**')
   } else if (pvalue <= .05) {
     return('*')
+  } else if (pvalue <= .1) {
+    return('.')
   } else {
     return('')
   }
@@ -66,17 +74,37 @@ logistic_or <- function(mod) {
   mod_res$or_std_err <- exp(mod_res$std.error)
   mod_res$or_lower <- mod_res$or - 1.96 * mod_res$or_std_err
   mod_res$or_upper <- mod_res$or + 1.96 * mod_res$or_std_err
-  
   mod_res$term <- stringr::str_replace(mod_res$term, 'as.factor', '')
-
+  
   mod_res$sig <- sapply(mod_res$p.value, p_star)
-
-
+  
+  mod_res <- mod_res %>%
+    dplyr::select(term, or:sig, estimate:p.value)
   return(mod_res)
 }
 ```
 
 ```{r}
+fit_all_dat <- function(formula,
+                        d1 = svy_never_every,
+                        d2 = svy_never_sometimes,
+                        d3 = svy_df) {
+  
+  for (d in list(d1, d2, d3)) {
+    mod <- survey::svyglm(formula,
+                          design = d,
+                          family = quasibinomial(link = "logit"))
+    print(summary(mod))
+    mod_res <- logistic_or(mod)
+    print(mod_res)
+    print('********************************************************************')
+  }
+}
+```
+
+
+```{r}
+# this file is created at the end of "analysis-draft.Rmd"
 df <- readRDS('./data/data_for_models.RDS')
 
 df$Q13 <- as.character(df$Q13)
@@ -92,12 +120,18 @@ names(df)
 # Q13. Do you get the flu vaccine?
 
 ```{r}
+# frequency counts of Q13
 table(df$Q13, useNA = 'always') %>%
   addmargins()
 ```
 
 ## Recode reponse variable
 
+Three types of outcomes:
+
+- Never/Every
+- Never/Sometimes
+- Never/SomeAlways
 
 ### Never and Every
 ```{r}
@@ -106,6 +140,7 @@ dim(df)
 
 
 ```{r}
+# subset rows for every and never reponses only
 never_every <- df[df$Q13 %in% c('Yes, every year', 'No, never'), ]
 dim(never_every)
 ```
@@ -118,6 +153,7 @@ table(never_every$Q13, useNA = 'always') %>%
 ### Never and Sometimes
 
 ```{r}
+# subset for some year and never only
 never_sometimes <- df[df$Q13 %in% c('Yes, some years', 'No, never'), ]
 dim(never_sometimes)
 ```
@@ -135,12 +171,14 @@ dim(df)
 
 
 ```{r}
+# recode q13 for never vs some/always
 df$q13_never_somealways <- sapply(X = df$Q13, FUN = recode_never_somealways)
 ```
 
 ```{r}
 dim(df)
 
+# test to see increase in number of columns
 testthat::expect_equal(dim(df), c(2168, 56))
 ```
 
@@ -154,6 +192,7 @@ table(df$Q13, df$q13_never_somealways, useNA = 'always') %>%
 ## Logistic Regression Models (Demographic Only)
 
 ```{r}
+# convert the subsetted data into a survey design using survey package
 svy_never_every <- svydesign(ids = ~1, weights = ~weight,
                              data = never_every[!is.na(never_every$weight), ])
 svy_never_sometimes <- svydesign(ids = ~1, weights = ~weight,
@@ -172,6 +211,7 @@ c("PPGENDER", "ppagect4", "PPEDUCAT", "PPETHM", "income", "marital", "PPMSACAT",
 
 
 ```{r}
+# formula for all demographic variales
 form_demo <- 'as.factor(Q13) ~ as.factor(PPGENDER) + as.factor(ppagect4) + as.factor(PPEDUCAT) + as.factor(PPETHM) + as.factor(income) + as.factor(marital) + as.factor(PPMSACAT) + as.factor(PPREG4) + as.factor(work)'
 form_demo <- as.formula(form_demo)
 ```
@@ -210,8 +250,6 @@ mod_res
 ```
 
 
-
-
 ### Never vs Sometimes
 
 ```{r}
@@ -235,8 +273,7 @@ mod_res <- logistic_or(mod)
 mod_res
 ```
 
-
-## Logistic Regression Models (Demographic + Survey questions)
+## Full Logistic Regression Models (Demographic + Survey questions)
 
 ```{r}
 form_demo_svy <- 'as.factor(Q13) ~ as.factor(PPGENDER) + as.factor(ppagect4) + as.factor(PPEDUCAT) + as.factor(PPETHM) + as.factor(income) + as.factor(marital) + as.factor(PPMSACAT) + as.factor(PPREG4) + as.factor(work) + as.factor(Q20) + as.factor(Q15) + as.factor(Q16) + as.factor(Q17) + as.factor(Q14) + as.factor(Q19)'
@@ -254,7 +291,7 @@ mod_res <- logistic_or(mod)
 mod_res
 ```
 
-### Never vs Sometimes
+### Never vs SomeAlways
 
 ```{r}
 mod <- survey::svyglm(form_demo_svy,
@@ -275,3 +312,34 @@ summary(mod)
 mod_res <- logistic_or(mod)
 mod_res
 ```
+
+## Logistic Regression (demo + Beliefs and perceptions)
+
+The odds of always getting a vaccine for those who feel that the vaccine is somewhat effective are 0.14 times the odds of always getting the vaccine who feel the vaccine is highly effective.
+The population odds of always getting the vaccine for those who feel the vaccine is somewhat effective is at least **LOWER**  and at most **UPPER** times thd odds of always getting a vaccine for those who feel the vaccine is somewhat effective with 95% confidence.
+
+```{r}
+f <- as.formula('as.factor(Q13) ~ as.factor(PPGENDER) + as.factor(ppagect4) + as.factor(PPEDUCAT) + as.factor(PPETHM) + as.factor(income) + as.factor(marital) + as.factor(PPMSACAT) + as.factor(PPREG4) + as.factor(work) + as.factor(Q20)')
+fit_all_dat(f)
+```
+
+
+## Logistic Regression (demo + Social influence and herd immunity)
+
+```{r}
+f <- as.formula('as.factor(Q13) ~ as.factor(PPGENDER) + as.factor(ppagect4) + as.factor(PPEDUCAT) + as.factor(PPETHM) + as.factor(income) + as.factor(marital) + as.factor(PPMSACAT) + as.factor(PPREG4) + as.factor(work) + as.factor(Q15) + as.factor(Q16) + as.factor(Q17)')
+fit_all_dat(f)
+```
+
+## Logistic Regression (demo + Cost and health insurance)
+
+```{r}
+f <- as.formula('as.factor(Q13) ~ as.factor(PPGENDER) + as.factor(ppagect4) + as.factor(PPEDUCAT) + as.factor(PPETHM) + as.factor(income) + as.factor(marital) + as.factor(PPMSACAT) + as.factor(PPREG4) + as.factor(work) + as.factor(Q14) + as.factor(Q19)')
+fit_all_dat(f)
+```
+
+
+
+formula for the full model (easier to copy/paste and edit)
+
+`as.factor(Q13) ~ as.factor(PPGENDER) + as.factor(ppagect4) + as.factor(PPEDUCAT) + as.factor(PPETHM) + as.factor(income) + as.factor(marital) + as.factor(PPMSACAT) + as.factor(PPREG4) + as.factor(work) + as.factor(Q20) + as.factor(Q15) + as.factor(Q16) + as.factor(Q17) + as.factor(Q14) + as.factor(Q19)`
