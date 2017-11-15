@@ -820,22 +820,15 @@ svyby(~Q13, ~Q18_2, des18, svymean, na.rm.all = T)
 svyby(~Q13, ~Q18_3, des18, svymean, na.rm.all = T)
 svyby(~Q13, ~Q18_4, des18, svymean, na.rm.all = T)
 svyby(~Q13, ~Q18_5, des18, svymean, na.rm.all = T)
+svyby(~Q13, ~Q18_6, des18, svymean, na.rm.all = T)
+svyby(~Q13, ~Q18_7, des18, svymean, na.rm.all = T)
+svyby(~Q13, ~Q18_8, des18, svymean, na.rm.all = T)
+svyby(~Q13, ~Q18_9, des18, svymean, na.rm.all = T)
 
-
-
-svychisq(~Q18 + Q13, des18)
-#a <- glm(Q13 ~ Q18, family = quasibinomial(link = "logit"), data = df_sub, weights = weight)
+svychisq(~Q18_9 + Q13, des18)
+#a <- glm(Q13 ~ Q18_1, family = quasibinomial(link = "logit"), data = df_sub, weights = weight)
 #summary(a)
-
-
 ```
-
-```{r}
-
-```
-
-
-
 
 
 # Regression model
