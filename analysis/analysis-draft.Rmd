@@ -76,6 +76,9 @@ df$work <- code(dataf$PPWORK, work.map, "unemployed")
 
 ## check columns
 colnames(df)
+
+
+saveRDS(df, file = './data/subset_recode.RDS')
 ```
 
 ```{r ggplot}
