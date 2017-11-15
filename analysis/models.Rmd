@@ -100,6 +100,20 @@ fit_all_dat <- function(formula,
     print('********************************************************************')
   }
 }
+
+fit_somenever_dat <- function(formula,
+                        dsvy = svy_never_sometimes) {
+  
+  for (d in list(dsvy)) {
+    mod <- survey::svyglm(formula,
+                          design = d,
+                          family = quasibinomial(link = "logit"), control = list(maxit = 50))
+    print(summary(mod))
+    mod_res <- logistic_or(mod)
+    print(mod_res)
+    print('********************************************************************')
+  }
+}
 ```
 
 
@@ -336,6 +350,57 @@ fit_all_dat(f)
 ```{r}
 f <- as.formula('as.factor(Q13) ~ as.factor(PPGENDER) + as.factor(ppagect4) + as.factor(PPEDUCAT) + as.factor(PPETHM) + as.factor(income) + as.factor(marital) + as.factor(PPMSACAT) + as.factor(PPREG4) + as.factor(work) + as.factor(Q14) + as.factor(Q19)')
 fit_all_dat(f)
+```
+
+## Logistic Regression (q18)
+
+```{r}
+# reference outcome
+levels(as.factor(never_sometimes$Q13))
+```
+
+### Demographics + Q18
+```{r}
+f <- as.formula('as.factor(Q13) ~ as.factor(PPGENDER) + as.factor(ppagect4) + as.factor(PPEDUCAT) + as.factor(PPETHM) + as.factor(income) + as.factor(marital) + as.factor(PPMSACAT) + as.factor(PPREG4) + as.factor(work) + as.factor(Q18_1) + as.factor(Q18_2) + as.factor(Q18_3) + as.factor(Q18_4) + as.factor(Q18_5) + as.factor(Q18_6) + as.factor(Q18_7) + as.factor(Q18_8) + as.factor(Q18_9)')
+fit_somenever_dat(f)
+```
+
+### Q18 only
+
+```{r}
+f <- as.formula('as.factor(Q13) ~ as.factor(Q18_1) + as.factor(Q18_2) + as.factor(Q18_3) + as.factor(Q18_4) + as.factor(Q18_5) + as.factor(Q18_6) + as.factor(Q18_7) + as.factor(Q18_8) + as.factor(Q18_9)')
+fit_somenever_dat(f)
+```
+
+### Q18 1-5
+
+```{r}
+f <- as.formula('as.factor(Q13) ~ as.factor(Q18_1) + as.factor(Q18_2) + as.factor(Q18_3) + as.factor(Q18_4) + as.factor(Q18_5)')
+fit_somenever_dat(f)
+```
+
+### releveled
+
+```{r}
+# relvel so things make more sense?
+
+# never_sometimes$Q13_relevel <- as.factor(never_sometimes$Q13)
+# never_sometimes$Q13_relevel <- factor(never_sometimes$Q13, levels = c("Yes, sometimes", "No, never"))
+# 
+# never_sometimes$Q13_relevel <- as.factor(never_sometimes$Q13)
+# never_sometimes$Q13_relevel <- factor(never_sometimes$Q13, levels = c("Yes, sometimes", "No, never"))
+# 
+# never_sometimes$Q13_relevel <- as.factor(never_sometimes$Q13)
+# never_sometimes$Q13_relevel <- factor(never_sometimes$Q13, levels = c("Yes, sometimes", "No, never"))
+# 
+# never_sometimes$Q13_relevel <- as.factor(never_sometimes$Q13)
+# never_sometimes$Q13_relevel <- factor(never_sometimes$Q13, levels = c("Yes, sometimes", "No, never"))
+# 
+# never_sometimes$Q13_relevel <- as.factor(never_sometimes$Q13)
+# never_sometimes$Q13_relevel <- factor(never_sometimes$Q13, levels = c("Yes, sometimes", "No, never"))
+# 
+# svy_never_sometimes <- svydesign(ids = ~1, weights = ~weight,
+#                                  data = never_sometimes[!is.na(never_sometimes$weight), ])
 ```
 
 
