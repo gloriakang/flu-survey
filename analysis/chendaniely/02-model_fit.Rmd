@@ -31,6 +31,7 @@ load('data/model_dataframes.RData')
 svy_never_every     <- svydesign(ids = ~1, weights = ~weight, data = never_every[!is.na(never_every$weight), ])
 svy_never_some      <- svydesign(ids = ~1, weights = ~weight, data = never_some[!is.na(never_some$weight), ])
 svy_never_someevery <- svydesign(ids = ~1, weights = ~weight, data = never_someevery[!is.na(never_someevery$weight), ])
+svy_some_every      <- svydesign(ids = ~1, weights = ~weight, data = some_every[!is.na(some_every$weight), ])
 ```
 
 # Demographic model
@@ -148,6 +149,14 @@ nse_demo_belief_social <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income + 
 print_svy_mod(ne_demo_belief_social)
 ```
 
+## sometimes vs every
+```{r}
+se_demo_belief_social <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income + PPREG4 + work + Q20 + Q15 + Q16 + Q17,
+       design = svy_some_every,
+       family = quasibinomial(link = "logit"))
+print_svy_mod(se_demo_belief_social)
+```
+
 
 ## F statistic
 
@@ -168,13 +177,13 @@ anova(nse_demo_belief_social, nse_demo_belief, test = 'F')
 ```{r}
 AIC(ne_demo, ne_demo_belief, ne_demo_belief_social)
 AIC(ns_demo, ns_demo_belief, ns_demo_belief_social)
-AIC(nse_demo, nse_demo_belief, nse_demo_belief_social)
+AIC(nse_demo, nse_demo_belief, se_demo_belief_social)
 ```
 
 ```{r}
 BIC(ne_demo, ne_demo_belief, ne_demo_belief_social, maximal = ne_demo_belief_social)
 BIC(ns_demo, ns_demo_belief, ns_demo_belief_social, maximal = ns_demo_belief_social)
-BIC(nse_demo, nse_demo_belief, nse_demo_belief_social, maximal = nse_demo_belief_social)
+BIC(nse_demo, nse_demo_belief, se_demo_belief_social, maximal = se_demo_belief_social)
 ```
 
 
