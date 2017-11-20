@@ -84,10 +84,20 @@ never_someevery$Q13 <- never_someevery$Q13_nv_se
 testthat::expect_equal(levels(never_someevery$Q13)[1], "No, never")
 ```
 
+```{r}
+some_every <- df[df$Q13 %in% c('Yes, some years', 'Yes, every year'), ]
+some_every$Q13 <- droplevels(some_every$Q13)
+some_every$Q13 <- fct_relevel(some_every$Q13, 'Yes, some years', after = 0L)
+table(some_every$Q13, useNA = 'always')
+levels(some_every$Q13)
+
+testthat::expect_equal(levels(some_every$Q13)[1], "Yes, some years")
+```
+
 # Save out data
 
 ```{r}
-save(never_every, never_some, never_someevery, file = 'data/model_dataframes.RData')
+save(never_every, never_some, never_someevery, some_every, file = 'data/model_dataframes.RData')
 ```
 
 
