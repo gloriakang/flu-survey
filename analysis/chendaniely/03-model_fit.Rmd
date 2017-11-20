@@ -126,7 +126,7 @@ Keep the belief variable.
 # Social influence and herd immunity (Q15 + Q16 + Q17)
 
 ## Every vs. some
-Q15, Q16, Q17
+### Q15, Q16, Q17
 ```{r}
 se_demo_belief_social <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income + PPREG4 + work + Q20 + Q15 + Q16 + Q17,
        design = svy_some_every,
@@ -166,7 +166,6 @@ BIC(nse_demo, nse_demo_belief, se_demo_belief_social, maximal = se_demo_belief_s
 - Drop Q15
 
 ## Every vs. some
-
 ### Q16
 ```{r}
 se_demo_belief_social <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income + PPREG4 + work + Q20 + Q16,
