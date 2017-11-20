@@ -3,6 +3,7 @@ data/data_for_models.RDS
 *.[Rr][Dd][Aa][Tt][Aa]
 *.[Rr][Dd][Ss]
 *.[Hh][Tt][Mm][Ll]
+*.[Pp][Dd][Ff]
 
 .Rhistory
 .DS_Store
