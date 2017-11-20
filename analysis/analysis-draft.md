@@ -9,107 +9,24 @@ output:
     theme: paper
     toc: yes
     toc_depth: 2
-  html_notebook: 
-    fig_caption: yes
-    toc: yes
-    toc_depth: 2
-  pdf_document: 
-    fig_caption: yes
-    keep_tex: yes
-    toc: yes
-    toc_depth: 2
 editor_options: 
-  chunk_output_type: inline
+  chunk_output_type: console
 ---
 
 
-```r
-knitr::opts_chunk$set(echo = T, cache = T, warning = F, message = F, tidy = T, size = "small")
-rm(list = ls(all.names = TRUE))
 
+
+```r
 library(dplyr)
-```
-
-```
-## 
-## Attaching package: 'dplyr'
-```
-
-```
-## The following objects are masked from 'package:stats':
-## 
-##     filter, lag
-```
-
-```
-## The following objects are masked from 'package:base':
-## 
-##     intersect, setdiff, setequal, union
-```
-
-```r
 library(ggplot2)
 library(gridExtra)
-```
-
-```
-## 
-## Attaching package: 'gridExtra'
-```
-
-```
-## The following object is masked from 'package:dplyr':
-## 
-##     combine
-```
-
-```r
 library(knitr)
 library(rmarkdown)
 library(survey)
-```
-
-```
-## Loading required package: grid
-```
-
-```
-## Loading required package: Matrix
-```
-
-```
-## Loading required package: survival
-```
-
-```
-## 
-## Attaching package: 'survey'
-```
-
-```
-## The following object is masked from 'package:graphics':
-## 
-##     dotchart
-```
-
-```r
 library(tidyr)
-```
 
-```
-## 
-## Attaching package: 'tidyr'
-```
-
-```
-## The following object is masked from 'package:Matrix':
-## 
-##     expand
-```
-
-```r
 ## flu-survey/code/data_prep.R
-load("~/git/flu-survey/data/data_prep.RData")
+load('./data/data_prep.RData')
 
 ## subset columns
 df <- dataf[, c(1,4:27, 28:33, 92:111, 429)]
@@ -185,6 +102,10 @@ colnames(df)
 ## [53] "income"        "marital"       "work"
 ```
 
+```r
+saveRDS(df, file = './data/subset_recode.RDS')
+```
+
 
 ```r
 ## ggplot templates
@@ -197,7 +118,7 @@ ptext2 <- ptext + theme(axis.text.x = element_blank())
 ## create survey object
 options(digits = 4)
 options(survey.lonely.psu = "adjust")
-des <- svydesign(ids = ~1, weights = ~weight, data = df[is.na(df$weight)==F, ])
+des <- svydesign(ids = ~1, weights = ~weight, data = df[!is.na(df$weight), ])
 ```
 
 
@@ -214,7 +135,7 @@ p <- ggplot(q13, aes(Q13, weight = Freq)) + ptext
 p + geom_bar() + ggtitle("Q13. Do you get the flu vaccine?")
 ```
 
-![](analysis-draft_files/figure-html/unnamed-chunk-1-1.png)<!-- -->
+![](analysis-draft_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
 
 ```r
 # raw count
@@ -371,7 +292,7 @@ er <- geom_errorbar(aes(ymin = q[4] - q[7],
 ggplot(q, aes(PPETHM, q[4])) + geom_point() + xlab("") + ylab("Q13No, never") + er + ggtitle(label = "") 
 ```
 
-![](analysis-draft_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+![](analysis-draft_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
 
 ## Gender
 
@@ -463,7 +384,7 @@ er <- geom_errorbar(aes(ymin = q[2] - q[5],
 ggplot(q, aes(PPGENDER, q[2])) + geom_point() + xlab("") + ylab("Q13Yes, every year") + er + ggtitle(label = "")
 ```
 
-![](analysis-draft_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+![](analysis-draft_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
 
 ## Age
 
@@ -590,111 +511,9 @@ er <- geom_errorbar(aes(ymin = q[2] - q[5],
 ggplot(q, aes(ppagecat, q[2])) + geom_point() + xlab("") + ylab("Q13Yes, every year") + er + ggtitle(label = "")
 ```
 
-![](analysis-draft_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
-
-
-```r
-## Q13 and ppagect4
-svychisq(~Q13 + ppagect4, des)
-```
-
-```
-## 
-## 	Pearson's X^2: Rao & Scott adjustment
-## 
-## data:  svychisq(~Q13 + ppagect4, des)
-## F = 25, ndf = 5.8, ddf = 13000.0, p-value <2e-16
-```
-
-```r
-a <- glm(Q13 ~ ppagect4, family = quasibinomial(link = "logit"), data = df, weights = weight)
-summary(a)
-```
-
-```
-## 
-## Call:
-## glm(formula = Q13 ~ ppagect4, family = quasibinomial(link = "logit"), 
-##     data = df, weights = weight)
-## 
-## Deviance Residuals: 
-##    Min      1Q  Median      3Q     Max  
-## -2.701  -1.021   0.793   0.966   2.087  
-## 
-## Coefficients:
-##               Estimate Std. Error t value Pr(>|t|)    
-## (Intercept)      1.124      0.109   10.31  < 2e-16 ***
-## ppagect430-44   -0.232      0.145   -1.60     0.11    
-## ppagect445-59   -0.662      0.139   -4.77  1.9e-06 ***
-## ppagect460+     -1.517      0.138  -11.01  < 2e-16 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## (Dispersion parameter for quasibinomial family taken to be 0.999)
-## 
-##     Null deviance: 2867.8  on 2149  degrees of freedom
-## Residual deviance: 2700.4  on 2146  degrees of freedom
-##   (18 observations deleted due to missingness)
-## AIC: NA
-## 
-## Number of Fisher Scoring iterations: 4
-```
-
-```r
-# weighted table
-(q <- svyby(~Q13, ~ppagect4, des, svymean, na.rm = T))
-```
-
-```
-##       ppagect4 Q13Yes, every year Q13Yes, some years Q13No, never
-## 18-29    18-29             0.2452             0.3004       0.4544
-## 30-44    30-44             0.2907             0.2381       0.4712
-## 45-59    45-59             0.3864             0.2039       0.4097
-## 60+        60+             0.5968             0.1150       0.2882
-##       se.Q13Yes, every year se.Q13Yes, some years se.Q13No, never
-## 18-29               0.02501               0.02697         0.02928
-## 30-44               0.02184               0.02063         0.02441
-## 45-59               0.02019               0.01649         0.02047
-## 60+                 0.01949               0.01248         0.01815
-```
-
-```r
-# unweighted table
-as.data.frame(with(df, addmargins(table(ppagect4, Q13))))
-```
-
-```
-##    ppagect4             Q13 Freq
-## 1     18-29 Yes, every year   80
-## 2     30-44 Yes, every year  140
-## 3     45-59 Yes, every year  252
-## 4       60+ Yes, every year  436
-## 5       Sum Yes, every year  908
-## 6     18-29 Yes, some years   95
-## 7     30-44 Yes, some years  111
-## 8     45-59 Yes, some years  135
-## 9       60+ Yes, some years   82
-## 10      Sum Yes, some years  423
-## 11    18-29       No, never  143
-## 12    30-44       No, never  216
-## 13    45-59       No, never  260
-## 14      60+       No, never  200
-## 15      Sum       No, never  819
-## 16    18-29             Sum  318
-## 17    30-44             Sum  467
-## 18    45-59             Sum  647
-## 19      60+             Sum  718
-## 20      Sum             Sum 2150
-```
-
-```r
-# plot: Yes, every year
-er <- geom_errorbar(aes(ymin = q[2] - q[5],
-                        ymax = q[2] + q[5]), width = .25)
-ggplot(q, aes(ppagect4, q[2])) + geom_point() + xlab("") + ylab("Q13Yes, every year") + er + ggtitle(label = "")
-```
-
 ![](analysis-draft_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
+
+
 
 ## Education
 
@@ -815,7 +634,7 @@ er <- geom_errorbar(aes(ymin = q[2] - q[5],
 ggplot(q, aes(PPEDUCAT, q[2])) + geom_point() + xlab("") + ylab("Q13Yes, every year") + er + ggtitle(label = "")
 ```
 
-![](analysis-draft_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
+![](analysis-draft_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
 
 ## Housing type
 
@@ -954,7 +773,7 @@ er <- geom_errorbar(aes(ymin = q[2] - q[5],
 ggplot(q, aes(income, q[2])) + geom_point() + xlab("") + ylab("Q13Yes, every year") + er + ggtitle(label = "") 
 ```
 
-![](analysis-draft_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
+![](analysis-draft_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
 
 ## Marital status
 
@@ -1046,7 +865,7 @@ er <- geom_errorbar(aes(ymin = q[2] - q[5],
 ggplot(q, aes(marital, q[2])) + geom_point() + xlab("") + ylab("Q13Yes, every year") + er + ggtitle(label = "") 
 ```
 
-![](analysis-draft_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
+![](analysis-draft_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
 
 ## Metro status
 
@@ -1138,7 +957,7 @@ er <- geom_errorbar(aes(ymin = q[2] - q[5],
 ggplot(q, aes(PPMSACAT, q[2])) + geom_point() + xlab("") + ylab("Q13Yes, every year") + er + ggtitle(label = "")
 ```
 
-![](analysis-draft_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
+![](analysis-draft_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
 
 ## Region
 
@@ -1357,7 +1176,7 @@ er <- geom_errorbar(aes(ymin = q[2] - q[5],
 ggplot(q, aes(PPREG4, q[2])) + geom_point() + xlab("") + ylab("Q13Yes, every year") + er + ggtitle(label = "") 
 ```
 
-![](analysis-draft_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
+![](analysis-draft_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
 
 ```r
 er2 <- geom_errorbar(aes(ymin = q2[2] - q2[5],
@@ -1365,7 +1184,7 @@ er2 <- geom_errorbar(aes(ymin = q2[2] - q2[5],
 ggplot(q2, aes(ppreg9, q2[2])) + geom_point() + xlab("") + ylab("Q13Yes, every year") + er2 + ggtitle(label = "") 
 ```
 
-![](analysis-draft_files/figure-html/unnamed-chunk-12-2.png)<!-- -->
+![](analysis-draft_files/figure-html/unnamed-chunk-13-2.png)<!-- -->
 
 ## Rental Status
 
@@ -1461,7 +1280,7 @@ er <- geom_errorbar(aes(ymin = q[2] - q[5],
 ggplot(q, aes(work, q[2])) + geom_point() + xlab("") + ylab("Q13Yes, every year") + er + ggtitle(label = "") 
 ```
 
-![](analysis-draft_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
+![](analysis-draft_files/figure-html/unnamed-chunk-15-1.png)<!-- -->
 
 ## Internet status
 
@@ -1553,12 +1372,7 @@ er <- geom_errorbar(aes(ymin = q[2] - q[5],
 ggplot(q, aes(PPNET, q[2])) + geom_point() + xlab("") + ylab("Q13Yes, every year") + er + ggtitle(label = "Internet status")
 ```
 
-![](analysis-draft_files/figure-html/unnamed-chunk-15-1.png)<!-- -->
-
-
-# TESTING
-
-
+![](analysis-draft_files/figure-html/unnamed-chunk-16-1.png)<!-- -->
 
 
 # Q14. How much do you pay to get an influenza vaccine?
@@ -1589,35 +1403,20 @@ with(df, addmargins(table(Q14)))
 ##          1330
 ```
 
+```r
+# bivariate
+ggplot(q14, aes(Q14, fill = Q13, weight = Freq)) + ptext + geom_bar() + title
+```
+
+![](analysis-draft_files/figure-html/unnamed-chunk-17-2.png)<!-- -->
+
 
 ```r
-#### Need to subset Q13 by Yes, every year and Yes, some years
-
 ## Q14 by Q13: vaccination status
+#head(df[c('CaseID','Q13','Q14')])
+#nrow(df)
 
-# dropping NAs
-head(df[c('CaseID','Q13','Q14')])
-```
-
-```
-##   CaseID             Q13           Q14
-## 1      2 Yes, every year    Don_t know
-## 2      3            <NA>          <NA>
-## 3      4 Yes, every year            $0
-## 4      5 Yes, some years Less than $30
-## 5      6 Yes, every year            $0
-## 6      7 Yes, some years            $0
-```
-
-```r
-nrow(df)
-```
-
-```
-## [1] 2168
-```
-
-```r
+## drop NAs from variables of interest
 df_sub <- df[!is.na(df$Q14) & !is.na(df$Q13), ]
 head(df_sub[c('CaseID','Q13','Q14')])
 ```
@@ -1641,7 +1440,7 @@ nrow(df_sub)
 ```
 
 ```r
-# count
+## count
 with(df_sub, addmargins(table(Q14, Q13)))
 ```
 
@@ -1657,9 +1456,9 @@ with(df_sub, addmargins(table(Q14, Q13)))
 ```
 
 ```r
-# dropping "More than $60" and "No, never"
-# need to drop factor instead...
-df_sub <- df_sub[!df_sub$Q14=="More than $60" & !df_sub$Q13=="No, never", ]
+## drop where too few observations
+#df_sub <- df_sub[!df_sub$Q14=="More than $60" & !df_sub$Q13=="No, never", ]
+df_sub <- df_sub[!df_sub$Q14=="More than $60", ]
 nrow(df_sub)
 ```
 
@@ -1668,60 +1467,91 @@ nrow(df_sub)
 ```
 
 ```r
-## update survey object
-options(digits = 4)
-options(survey.lonely.psu = "adjust")
-des14 <- svydesign(ids = ~1, weights = ~weight, data = df_sub)
+## drop unused levels
+df_sub <- droplevels(df_sub)
 
-# updated unweighted count
+## updated count
 with(df_sub, addmargins(table(Q14, Q13)))
 ```
 
 ```
 ##                Q13
-## Q14             Yes, every year Yes, some years No, never  Sum
-##   $0                        723             247         0  970
-##   Less than $30             118             104         0  222
-##   $30 to $60                 28              26         0   54
-##   More than $60               0               0         0    0
-##   Don_t know                 34              46         0   80
-##   Sum                       903             423         0 1326
+## Q14             Yes, every year Yes, some years  Sum
+##   $0                        723             247  970
+##   Less than $30             118             104  222
+##   $30 to $60                 28              26   54
+##   Don_t know                 34              46   80
+##   Sum                       903             423 1326
 ```
 
 ```r
-# weighted table
-#svytable(~Q14 + Q13, des14, round = T)
-svyby(~Q14, ~Q13, des14, svymean, na.rm = T)
+## update survey object
+options(digits = 4)
+options(survey.lonely.psu = "adjust")
+des14 <- svydesign(ids = ~1, weights = ~weight, data = df_sub)
+
+## weighted table
+#svytable(~Q14 + Q13, des14, round = T)  # weighted counts
+svyby(~Q13, ~Q14, des14, svymean, na.rm.all = T)
 ```
 
 ```
-##                             Q13  Q14$0 Q14Less than $30 Q14$30 to $60
-## Yes, every year Yes, every year 0.7980           0.1345        0.0320
-## Yes, some years Yes, some years 0.5793           0.2339        0.0684
-##                 Q14More than $60 Q14Don_t know se.Q14$0
-## Yes, every year                0       0.03544  0.01455
-## Yes, some years                0       0.11830  0.02579
-##                 se.Q14Less than $30 se.Q14$30 to $60 se.Q14More than $60
-## Yes, every year             0.01263         0.006192                   0
-## Yes, some years             0.02171         0.013796                   0
-##                 se.Q14Don_t know
-## Yes, every year         0.006346
-## Yes, some years         0.017462
+##                         Q14 Q13Yes, every year Q13Yes, some years
+## $0                       $0             0.7192             0.2808
+## Less than $30 Less than $30             0.5167             0.4833
+## $30 to $60       $30 to $60             0.4652             0.5348
+## Don_t know       Don_t know             0.3578             0.6422
+##               se.Q13Yes, every year se.Q13Yes, some years
+## $0                          0.01592               0.01592
+## Less than $30               0.03654               0.03654
+## $30 to $60                  0.07151               0.07151
+## Don_t know                  0.05539               0.05539
 ```
 
 ```r
-## need to drop factor before running?
-#svychisq(~Q14 + Q13, des14)
-#a <- glm(Q14 ~ Q13, family = quasibinomial(link = "logit"), data = df_sub, weights = weight)
-#summary(a)
-
-# bivariate
-title <- ggtitle("Q14. How much do you pay to get an influenza vaccine?")
-p <- ggplot(q14, aes(Q14, fill = Q13, weight = Freq)) + ptext + geom_bar() + title
-p
+svychisq(~Q14 + Q13, des14)
 ```
 
-![](analysis-draft_files/figure-html/unnamed-chunk-18-1.png)<!-- -->
+```
+## 
+## 	Pearson's X^2: Rao & Scott adjustment
+## 
+## data:  svychisq(~Q14 + Q13, des14)
+## F = 22, ndf = 3, ddf = 4000, p-value = 4e-14
+```
+
+```r
+a <- glm(Q13 ~ Q14, family = quasibinomial(link = "logit"), data = df_sub, weights = weight)
+summary(a)
+```
+
+```
+## 
+## Call:
+## glm(formula = Q13 ~ Q14, family = quasibinomial(link = "logit"), 
+##     data = df_sub, weights = weight)
+## 
+## Deviance Residuals: 
+##    Min      1Q  Median      3Q     Max  
+## -1.851  -0.854  -0.690   1.098   2.568  
+## 
+## Coefficients:
+##                  Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)        -0.941      0.072  -13.05  < 2e-16 ***
+## Q14Less than $30    0.874      0.152    5.75  1.1e-08 ***
+## Q14$30 to $60       1.080      0.271    3.99  6.9e-05 ***
+## Q14Don_t know       1.526      0.237    6.43  1.8e-10 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for quasibinomial family taken to be 0.9669)
+## 
+##     Null deviance: 1654.8  on 1325  degrees of freedom
+## Residual deviance: 1581.4  on 1322  degrees of freedom
+## AIC: NA
+## 
+## Number of Fisher Scoring iterations: 4
+```
 
 
 # Q20. How effective do you think the influenza vaccine is in protecting people from becoming sick with influenza?
@@ -1753,32 +1583,20 @@ with(df, addmargins(table(Q20)))
 ##                             228                            2149
 ```
 
+```r
+# bivariate
+ggplot(q20, aes(Q20, fill = Q13, weight = Freq)) + ptext + geom_bar() + title
+```
+
+![](analysis-draft_files/figure-html/unnamed-chunk-19-2.png)<!-- -->
+
 
 ```r
-### Q20 by Q13: vaccination status ###
-# dropping NAs
-head(df[c('CaseID','Q13','Q20')])
-```
+## Q20 by Q13: vaccination status
+#head(df[c('CaseID','Q13','Q20')])
+#nrow(df)
 
-```
-##   CaseID             Q13                             Q20
-## 1      2 Yes, every year                      Don_t know
-## 2      3            <NA>                            <NA>
-## 3      4 Yes, every year                  Very effective
-## 4      5 Yes, some years It varies from season to season
-## 5      6 Yes, every year              Somewhat effective
-## 6      7 Yes, some years It varies from season to season
-```
-
-```r
-nrow(df)
-```
-
-```
-## [1] 2168
-```
-
-```r
+## drop NAs from variables of interest
 df_sub <- df[!is.na(df$Q20) & !is.na(df$Q13), ]
 head(df_sub[c('CaseID','Q13','Q20')])
 ```
@@ -1802,45 +1620,36 @@ nrow(df_sub)
 ```
 
 ```r
+## count
+with(df_sub, addmargins(table(Q20, Q13)))
+```
+
+```
+##                                  Q13
+## Q20                               Yes, every year Yes, some years
+##   Very effective                              304              45
+##   Somewhat effective                          435             240
+##   It varies from season to season             141              94
+##   Not effective                                 6              16
+##   Don_t know                                   19              27
+##   Sum                                         905             422
+##                                  Q13
+## Q20                               No, never  Sum
+##   Very effective                         34  383
+##   Somewhat effective                    285  960
+##   It varies from season to season       198  433
+##   Not effective                         120  142
+##   Don_t know                            180  226
+##   Sum                                   817 2144
+```
+
+```r
 ## update survey object
 options(digits = 4)
 options(survey.lonely.psu = "adjust")
 des20 <- svydesign(ids = ~1, weights = ~weight, data = df_sub)
 
-# raw count
-as.data.frame(with(df_sub, addmargins(table(Q20, Q13))))
-```
-
-```
-##                                Q20             Q13 Freq
-## 1                   Very effective Yes, every year  304
-## 2               Somewhat effective Yes, every year  435
-## 3  It varies from season to season Yes, every year  141
-## 4                    Not effective Yes, every year    6
-## 5                       Don_t know Yes, every year   19
-## 6                              Sum Yes, every year  905
-## 7                   Very effective Yes, some years   45
-## 8               Somewhat effective Yes, some years  240
-## 9  It varies from season to season Yes, some years   94
-## 10                   Not effective Yes, some years   16
-## 11                      Don_t know Yes, some years   27
-## 12                             Sum Yes, some years  422
-## 13                  Very effective       No, never   34
-## 14              Somewhat effective       No, never  285
-## 15 It varies from season to season       No, never  198
-## 16                   Not effective       No, never  120
-## 17                      Don_t know       No, never  180
-## 18                             Sum       No, never  817
-## 19                  Very effective             Sum  383
-## 20              Somewhat effective             Sum  960
-## 21 It varies from season to season             Sum  433
-## 22                   Not effective             Sum  142
-## 23                      Don_t know             Sum  226
-## 24                             Sum             Sum 2144
-```
-
-```r
-# weighted table
+## weighted table
 svyby(~Q13, ~Q20, des20, svymean, na.rm = T)
 ```
 
@@ -1885,14 +1694,44 @@ svychisq(~Q20 + Q13, des20)
 ```
 
 ```r
-#a <- glm(Q20 ~ Q13, family = quasibinomial(link = "logit"), data = df_sub, weights = weight)
-#summary(a)
-
-# bivariate
-ggplot(q20, aes(Q20, fill = Q13, weight = Freq)) + ptext + geom_bar() + title
+a <- glm(Q13 ~ Q20, family = quasibinomial(link = "logit"), data = df_sub, weights = weight)
+summary(a)
 ```
 
-![](analysis-draft_files/figure-html/unnamed-chunk-20-1.png)<!-- -->
+```
+## 
+## Call:
+## glm(formula = Q13 ~ Q20, family = quasibinomial(link = "logit"), 
+##     data = df_sub, weights = weight)
+## 
+## Deviance Residuals: 
+##    Min      1Q  Median      3Q     Max  
+## -3.237  -1.038   0.377   0.897   2.720  
+## 
+## Coefficients:
+##                                    Estimate Std. Error t value Pr(>|t|)
+## (Intercept)                          -1.150      0.119    -9.7   <2e-16
+## Q20Somewhat effective                 1.491      0.136    10.9   <2e-16
+## Q20It varies from season to season    1.942      0.159    12.2   <2e-16
+## Q20Not effective                      4.223      0.411    10.3   <2e-16
+## Q20Don_t know                         3.619      0.257    14.1   <2e-16
+##                                       
+## (Intercept)                        ***
+## Q20Somewhat effective              ***
+## Q20It varies from season to season ***
+## Q20Not effective                   ***
+## Q20Don_t know                      ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for quasibinomial family taken to be 0.9987)
+## 
+##     Null deviance: 2856.7  on 2143  degrees of freedom
+## Residual deviance: 2386.3  on 2139  degrees of freedom
+## AIC: NA
+## 
+## Number of Fisher Scoring iterations: 5
+```
 
 
 # Q15. Are you more likely to get a vaccine if others around you get a vaccine?
@@ -1901,8 +1740,9 @@ ggplot(q20, aes(Q20, fill = Q13, weight = Freq)) + ptext + geom_bar() + title
 ```r
 ## Q15. Are you more likely to get a vaccine if others around you get a vaccine?
 q15 <- as.data.frame(svytable(
-  ~Q15 + Q13 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT, des14, round = T))
+  ~Q15 + Q13 + PPGENDER + ppagecat + PPETHM + income + PPEDUCAT, des, round = T))
 
+# univariate
 title <- ggtitle("Q15. Are you more likely to get a vaccine if others around you get a vaccine?")
 p <- ggplot(q15, aes(Q15, weight = Freq)) + ptext
 p + geom_bar() + title
@@ -1910,43 +1750,32 @@ p + geom_bar() + title
 
 ![](analysis-draft_files/figure-html/unnamed-chunk-21-1.png)<!-- -->
 
+```r
+# bivariate
+ggplot(q15, aes(Q15, fill = Q13, weight = Freq)) + ptext + geom_bar() + title
+```
+
+![](analysis-draft_files/figure-html/unnamed-chunk-21-2.png)<!-- -->
+
 
 ```r
-## dropping NAs
-head(df[c('CaseID','Q15','Q20')])
-```
+## Q15 by Q13: vaccination status
+#head(df[c('CaseID','Q13','Q15')])
+#nrow(df)
 
-```
-##   CaseID           Q15                             Q20
-## 1      2 No, no effect                      Don_t know
-## 2      3          <NA>                            <NA>
-## 3      4 No, no effect                  Very effective
-## 4      5 No, no effect It varies from season to season
-## 5      6 No, no effect              Somewhat effective
-## 6      7 No, no effect It varies from season to season
-```
-
-```r
-nrow(df)
-```
-
-```
-## [1] 2168
-```
-
-```r
+## drop NAs from variables of interest
 df_sub <- df[!is.na(df$Q15) & !is.na(df$Q13), ]
-head(df_sub[c('CaseID','Q15','Q20')])
+head(df_sub[c('CaseID','Q13','Q15')])
 ```
 
 ```
-##   CaseID           Q15                             Q20
-## 1      2 No, no effect                      Don_t know
-## 3      4 No, no effect                  Very effective
-## 4      5 No, no effect It varies from season to season
-## 5      6 No, no effect              Somewhat effective
-## 6      7 No, no effect It varies from season to season
-## 8      9 No, no effect                            <NA>
+##   CaseID             Q13           Q15
+## 1      2 Yes, every year No, no effect
+## 3      4 Yes, every year No, no effect
+## 4      5 Yes, some years No, no effect
+## 5      6 Yes, every year No, no effect
+## 6      7 Yes, some years No, no effect
+## 8      9 Yes, every year No, no effect
 ```
 
 ```r
@@ -1958,38 +1787,45 @@ nrow(df_sub)
 ```
 
 ```r
+## count
+with(df_sub, addmargins(table(Q15, Q13)))
+```
+
+```
+##                   Q13
+## Q15                Yes, every year Yes, some years No, never  Sum
+##   Yes, more likely             254             127         0  381
+##   No, no effect                620             258         0  878
+##   No, less likely               33              37         0   70
+##   Sum                          907             422         0 1329
+```
+
+```r
+## drop unused levels
+df_sub <- droplevels(df_sub)
+
+## updated count
+with(df_sub, addmargins(table(Q15, Q13)))
+```
+
+```
+##                   Q13
+## Q15                Yes, every year Yes, some years  Sum
+##   Yes, more likely             254             127  381
+##   No, no effect                620             258  878
+##   No, less likely               33              37   70
+##   Sum                          907             422 1329
+```
+
+```r
 ## update survey object
 options(digits = 4)
 options(survey.lonely.psu = "adjust")
 des15 <- svydesign(ids = ~1, weights = ~weight, data = df_sub)
 
-# raw count
-as.data.frame(with(df, addmargins(table(Q15, Q13))))
-```
-
-```
-##                 Q15             Q13 Freq
-## 1  Yes, more likely Yes, every year  254
-## 2     No, no effect Yes, every year  620
-## 3   No, less likely Yes, every year   33
-## 4               Sum Yes, every year  907
-## 5  Yes, more likely Yes, some years  127
-## 6     No, no effect Yes, some years  258
-## 7   No, less likely Yes, some years   37
-## 8               Sum Yes, some years  422
-## 9  Yes, more likely       No, never    0
-## 10    No, no effect       No, never    0
-## 11  No, less likely       No, never    0
-## 12              Sum       No, never    0
-## 13 Yes, more likely             Sum  381
-## 14    No, no effect             Sum  878
-## 15  No, less likely             Sum   70
-## 16              Sum             Sum 1329
-```
-
-```r
-#svychisq(~Q15 + Q13, des15)
-svyby(~Q13, ~Q15, des15, svymean, na.rm = T)
+## weighted table
+#svytable(~Q15 + Q13, des15, round = T)  # weighted counts
+svyby(~Q13, ~Q15, des15, svymean, na.rm.all = T)
 ```
 
 ```
@@ -1997,25 +1833,55 @@ svyby(~Q13, ~Q15, des15, svymean, na.rm = T)
 ## Yes, more likely Yes, more likely             0.6418             0.3582
 ## No, no effect       No, no effect             0.6813             0.3187
 ## No, less likely   No, less likely             0.4305             0.5695
-##                  Q13No, never se.Q13Yes, every year se.Q13Yes, some years
-## Yes, more likely            0               0.02698               0.02698
-## No, no effect               0               0.01704               0.01704
-## No, less likely             0               0.06219               0.06219
-##                  se.Q13No, never
-## Yes, more likely               0
-## No, no effect                  0
-## No, less likely                0
+##                  se.Q13Yes, every year se.Q13Yes, some years
+## Yes, more likely               0.02698               0.02698
+## No, no effect                  0.01704               0.01704
+## No, less likely                0.06219               0.06219
 ```
 
 ```r
-#a <- glm(Q15 ~ Q13, family = quasibinomial(link = "logit"), data = df, weights = weight)
-#summary(a)
-
-# bivariate
-ggplot(q15, aes(Q15, fill = Q13, weight = Freq)) + ptext + geom_bar() + title
+svychisq(~Q15 + Q13, des15)
 ```
 
-![](analysis-draft_files/figure-html/unnamed-chunk-22-1.png)<!-- -->
+```
+## 
+## 	Pearson's X^2: Rao & Scott adjustment
+## 
+## data:  svychisq(~Q15 + Q13, des15)
+## F = 8.6, ndf = 2, ddf = 2600, p-value = 2e-04
+```
+
+```r
+a <- glm(Q13 ~ Q15, family = quasibinomial(link = "logit"), data = df_sub, weights = weight)
+summary(a)
+```
+
+```
+## 
+## Call:
+## glm(formula = Q13 ~ Q15, family = quasibinomial(link = "logit"), 
+##     data = df_sub, weights = weight)
+## 
+## Deviance Residuals: 
+##    Min      1Q  Median      3Q     Max  
+## -1.772  -0.872  -0.738   1.247   2.308  
+## 
+## Coefficients:
+##                    Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)          -0.583      0.102   -5.71  1.4e-08 ***
+## Q15No, no effect     -0.177      0.127   -1.40  0.16303    
+## Q15No, less likely    0.863      0.238    3.63  0.00029 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for quasibinomial family taken to be 0.9671)
+## 
+##     Null deviance: 1657.1  on 1328  degrees of freedom
+## Residual deviance: 1636.4  on 1326  degrees of freedom
+## AIC: NA
+## 
+## Number of Fisher Scoring iterations: 4
+```
 
 # Q16. Are you more likely to get a vaccine if others around you do not get a vaccine?
 
@@ -2023,8 +1889,9 @@ ggplot(q15, aes(Q15, fill = Q13, weight = Freq)) + ptext + geom_bar() + title
 ```r
 ## Q16. Are you more likely to get a vaccine if others around you do not get a vaccine?
 q16 <- as.data.frame(svytable(
-  ~Q16 + Q13 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT, des, round = T))
+  ~Q16 + Q13 + PPGENDER + ppagecat + PPETHM + income + PPEDUCAT, des, round = T))
 
+# univariate
 title <- ggtitle("Q16. Are you more likely to get a vaccine if others around you do not get a vaccine?")
 p <- ggplot(q16, aes(Q16, weight = Freq)) + ptext
 p + geom_bar() + title
@@ -2032,140 +1899,15 @@ p + geom_bar() + title
 
 ![](analysis-draft_files/figure-html/unnamed-chunk-23-1.png)<!-- -->
 
-
 ```r
-# dropping NAs
-head(df[c('CaseID','Q13','Q20')])
+# counts
+with(df, addmargins(table(Q16)))
 ```
 
 ```
-##   CaseID             Q13                             Q20
-## 1      2 Yes, every year                      Don_t know
-## 2      3            <NA>                            <NA>
-## 3      4 Yes, every year                  Very effective
-## 4      5 Yes, some years It varies from season to season
-## 5      6 Yes, every year              Somewhat effective
-## 6      7 Yes, some years It varies from season to season
-```
-
-```r
-nrow(df)
-```
-
-```
-## [1] 2168
-```
-
-```r
-df_sub <- df[!is.na(df$Q20) & !is.na(df$Q13), ]
-head(df_sub[c('CaseID','Q13','Q20')])
-```
-
-```
-##   CaseID             Q13                             Q20
-## 1      2 Yes, every year                      Don_t know
-## 3      4 Yes, every year                  Very effective
-## 4      5 Yes, some years It varies from season to season
-## 5      6 Yes, every year              Somewhat effective
-## 6      7 Yes, some years It varies from season to season
-## 7      8       No, never              Somewhat effective
-```
-
-```r
-nrow(df_sub)
-```
-
-```
-## [1] 2144
-```
-
-```r
-# raw count
-as.data.frame(with(df, addmargins(table(Q16, Q13))))
-```
-
-```
-##                 Q16             Q13 Freq
-## 1  Yes, more likely Yes, every year  252
-## 2     No, no effect Yes, every year  610
-## 3   No, less likely Yes, every year   37
-## 4               Sum Yes, every year  899
-## 5  Yes, more likely Yes, some years   61
-## 6     No, no effect Yes, some years  294
-## 7   No, less likely Yes, some years   64
-## 8               Sum Yes, some years  419
-## 9  Yes, more likely       No, never    0
-## 10    No, no effect       No, never    0
-## 11  No, less likely       No, never    0
-## 12              Sum       No, never    0
-## 13 Yes, more likely             Sum  313
-## 14    No, no effect             Sum  904
-## 15  No, less likely             Sum  101
-## 16              Sum             Sum 1318
-```
-
-```r
-##
-#svychisq(~Q16 + Q13, des)
-#svyby(~Q16, ~Q13, des, svymean, na.rm = T)
-a <- glm(Q16 ~ Q13, family = quasibinomial(link = "logit"), data = df, weights = weight)
-summary(a)
-```
-
-```
-## 
-## Call:
-## glm(formula = Q16 ~ Q13, family = quasibinomial(link = "logit"), 
-##     data = df, weights = weight)
-## 
-## Deviance Residuals: 
-##    Min      1Q  Median      3Q     Max  
-## -3.105   0.439   0.659   0.771   1.367  
-## 
-## Coefficients:
-##                    Estimate Std. Error t value Pr(>|t|)    
-## (Intercept)          0.8358     0.0743   11.24  < 2e-16 ***
-## Q13Yes, some years   0.8518     0.1486    5.73  1.2e-08 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## (Dispersion parameter for quasibinomial family taken to be 0.9663)
-## 
-##     Null deviance: 1434.2  on 1317  degrees of freedom
-## Residual deviance: 1399.5  on 1316  degrees of freedom
-##   (850 observations deleted due to missingness)
-## AIC: NA
-## 
-## Number of Fisher Scoring iterations: 4
-```
-
-```r
-###
-svytable(~Q16 + Q13, des14, round = T)
-```
-
-```
-##                   Q13
-## Q16                Yes, every year Yes, some years No, never
-##   Yes, more likely             249              69         0
-##   No, no effect                535             295         0
-##   No, less likely               40              79         0
-```
-
-```r
-svyby(~Q16, ~Q13, des14, svymean, na.rm=T)
-```
-
-```
-##                             Q13 Q16Yes, more likely Q16No, no effect
-## Yes, every year Yes, every year              0.3021           0.6495
-## Yes, some years Yes, some years              0.1561           0.6664
-##                 Q16No, less likely se.Q16Yes, more likely
-## Yes, every year            0.04838                0.01693
-## Yes, some years            0.17749                0.01971
-##                 se.Q16No, no effect se.Q16No, less likely
-## Yes, every year             0.01754              0.008286
-## Yes, some years             0.02552              0.021335
+## Q16
+## Yes, more likely    No, no effect  No, less likely              Sum 
+##              313              904              101             1318
 ```
 
 ```r
@@ -2173,7 +1915,133 @@ svyby(~Q16, ~Q13, des14, svymean, na.rm=T)
 ggplot(q16, aes(Q16, fill = Q13, weight = Freq)) + ptext + geom_bar() + title
 ```
 
-![](analysis-draft_files/figure-html/unnamed-chunk-24-1.png)<!-- -->
+![](analysis-draft_files/figure-html/unnamed-chunk-23-2.png)<!-- -->
+
+
+```r
+## Q16 by Q13: vaccination status
+#head(df[c('CaseID','Q13','Q16')])
+#nrow(df)
+
+## drop NAs from variables of interest
+df_sub <- df[!is.na(df$Q16) & !is.na(df$Q13), ]
+head(df_sub[c('CaseID','Q13','Q16')])
+```
+
+```
+##   CaseID             Q13           Q16
+## 1      2 Yes, every year No, no effect
+## 3      4 Yes, every year No, no effect
+## 4      5 Yes, some years No, no effect
+## 5      6 Yes, every year No, no effect
+## 6      7 Yes, some years No, no effect
+## 8      9 Yes, every year No, no effect
+```
+
+```r
+nrow(df_sub)
+```
+
+```
+## [1] 1318
+```
+
+```r
+## count
+with(df_sub, addmargins(table(Q16, Q13)))
+```
+
+```
+##                   Q13
+## Q16                Yes, every year Yes, some years No, never  Sum
+##   Yes, more likely             252              61         0  313
+##   No, no effect                610             294         0  904
+##   No, less likely               37              64         0  101
+##   Sum                          899             419         0 1318
+```
+
+```r
+## drop unused levels
+df_sub <- droplevels(df_sub)
+
+## updated count
+with(df_sub, addmargins(table(Q16, Q13)))
+```
+
+```
+##                   Q13
+## Q16                Yes, every year Yes, some years  Sum
+##   Yes, more likely             252              61  313
+##   No, no effect                610             294  904
+##   No, less likely               37              64  101
+##   Sum                          899             419 1318
+```
+
+```r
+## update survey object
+options(digits = 4)
+options(survey.lonely.psu = "adjust")
+des16 <- svydesign(ids = ~1, weights = ~weight, data = df_sub)
+
+## weighted table
+#svytable(~Q16 + Q13, des16, round = T)  # weighted counts
+svyby(~Q13, ~Q16, des16, svymean, na.rm.all = T)
+```
+
+```
+##                               Q16 Q13Yes, every year Q13Yes, some years
+## Yes, more likely Yes, more likely             0.7838             0.2162
+## No, no effect       No, no effect             0.6459             0.3541
+## No, less likely   No, less likely             0.3363             0.6637
+##                  se.Q13Yes, every year se.Q13Yes, some years
+## Yes, more likely               0.02617               0.02617
+## No, no effect                  0.01726               0.01726
+## No, less likely                0.04951               0.04951
+```
+
+```r
+svychisq(~Q16 + Q13, des16)
+```
+
+```
+## 
+## 	Pearson's X^2: Rao & Scott adjustment
+## 
+## data:  svychisq(~Q16 + Q13, des16)
+## F = 30, ndf = 2, ddf = 2600, p-value = 1e-13
+```
+
+```r
+a <- glm(Q13 ~ Q16, family = quasibinomial(link = "logit"), data = df_sub, weights = weight)
+summary(a)
+```
+
+```
+## 
+## Call:
+## glm(formula = Q13 ~ Q16, family = quasibinomial(link = "logit"), 
+##     data = df_sub, weights = weight)
+## 
+## Deviance Residuals: 
+##    Min      1Q  Median      3Q     Max  
+## -2.194  -0.862  -0.727   1.171   2.820  
+## 
+## Coefficients:
+##                    Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)          -1.288      0.134   -9.64  < 2e-16 ***
+## Q16No, no effect      0.687      0.151    4.54  6.2e-06 ***
+## Q16No, less likely    1.968      0.233    8.43  < 2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for quasibinomial family taken to be 0.967)
+## 
+##     Null deviance: 1643.9  on 1317  degrees of freedom
+## Residual deviance: 1568.5  on 1315  degrees of freedom
+## AIC: NA
+## 
+## Number of Fisher Scoring iterations: 4
+```
 
 
 # Q17. Do you get a vaccine to protect yourself, protect others, or protect yourself and others?
@@ -2182,7 +2050,7 @@ ggplot(q16, aes(Q16, fill = Q13, weight = Freq)) + ptext + geom_bar() + title
 ```r
 ## Q17. Do you get a vaccine to protect yourself, protect others, or protect yourself and others?
 q17 <- as.data.frame(svytable(
-  ~Q17 + Q13 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT, des, round = T))
+  ~Q17 + Q13 + PPGENDER + ppagecat + PPETHM + income + PPEDUCAT, des, round = T))
 
 title <- ggtitle("Q17. Do you get a vaccine to protect yourself, protect others, or protect yourself and others?")
 p <- ggplot(q17, aes(Q17, weight = Freq)) + ptext
@@ -2191,143 +2059,17 @@ p + geom_bar() + title
 
 ![](analysis-draft_files/figure-html/unnamed-chunk-25-1.png)<!-- -->
 
-
 ```r
-##
-#svychisq(~Q17 + Q13, des)
-#svyby(~Q17, ~Q13, des, svymean, na.rm = F)
-a <- glm(Q17 ~ Q13, family = quasibinomial(link = "logit"), data = df, weights = weight)
-summary(a)
+# counts
+with(df, addmargins(table(Q17)))
 ```
 
 ```
-## 
-## Call:
-## glm(formula = Q17 ~ Q13, family = quasibinomial(link = "logit"), 
-##     data = df, weights = weight)
-## 
-## Deviance Residuals: 
-##    Min      1Q  Median      3Q     Max  
-## -2.485  -1.244   0.678   0.824   1.417  
-## 
-## Coefficients:
-##                    Estimate Std. Error t value Pr(>|t|)    
-## (Intercept)          1.0409     0.0776   13.41   <2e-16 ***
-## Q13Yes, some years  -0.2917     0.1263   -2.31    0.021 *  
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## (Dispersion parameter for quasibinomial family taken to be 0.9646)
-## 
-##     Null deviance: 1517.0  on 1323  degrees of freedom
-## Residual deviance: 1511.9  on 1322  degrees of freedom
-##   (844 observations deleted due to missingness)
-## AIC: NA
-## 
-## Number of Fisher Scoring iterations: 4
-```
-
-```r
-# raw count
-as.data.frame(with(df, addmargins(table(Q17, Q13))))
-```
-
-```
-##                          Q17             Q13 Freq
-## 1             Protect myself Yes, every year  243
-## 2  Protect myself and others Yes, every year  653
-## 3             Protect others Yes, every year    6
-## 4                        Sum Yes, every year  902
-## 5             Protect myself Yes, some years  138
-## 6  Protect myself and others Yes, some years  268
-## 7             Protect others Yes, some years   16
-## 8                        Sum Yes, some years  422
-## 9             Protect myself       No, never    0
-## 10 Protect myself and others       No, never    0
-## 11            Protect others       No, never    0
-## 12                       Sum       No, never    0
-## 13            Protect myself             Sum  381
-## 14 Protect myself and others             Sum  921
-## 15            Protect others             Sum   22
-## 16                       Sum             Sum 1324
-```
-
-```r
-# dropping NAs
-head(df[c('CaseID','Q13','Q20')])
-```
-
-```
-##   CaseID             Q13                             Q20
-## 1      2 Yes, every year                      Don_t know
-## 2      3            <NA>                            <NA>
-## 3      4 Yes, every year                  Very effective
-## 4      5 Yes, some years It varies from season to season
-## 5      6 Yes, every year              Somewhat effective
-## 6      7 Yes, some years It varies from season to season
-```
-
-```r
-nrow(df)
-```
-
-```
-## [1] 2168
-```
-
-```r
-df_sub <- df[!is.na(df$Q20) & !is.na(df$Q13), ]
-head(df_sub[c('CaseID','Q13','Q20')])
-```
-
-```
-##   CaseID             Q13                             Q20
-## 1      2 Yes, every year                      Don_t know
-## 3      4 Yes, every year                  Very effective
-## 4      5 Yes, some years It varies from season to season
-## 5      6 Yes, every year              Somewhat effective
-## 6      7 Yes, some years It varies from season to season
-## 7      8       No, never              Somewhat effective
-```
-
-```r
-nrow(df_sub)
-```
-
-```
-## [1] 2144
-```
-
-```r
-#####
-svytable(~Q17 + Q13, des14, round = T)
-```
-
-```
-##                            Q13
-## Q17                         Yes, every year Yes, some years No, never
-##   Protect myself                        214             143         0
-##   Protect myself and others             604             282         0
-##   Protect others                          6              21         0
-```
-
-```r
-svyby(~Q17, ~Q13, des14, svymean, na.rm = T)
-```
-
-```
-##                             Q13 Q17Protect myself
-## Yes, every year Yes, every year            0.2602
-## Yes, some years Yes, some years            0.3210
-##                 Q17Protect myself and others Q17Protect others
-## Yes, every year                       0.7330          0.006744
-## Yes, some years                       0.6324          0.046638
-##                 se.Q17Protect myself se.Q17Protect myself and others
-## Yes, every year              0.01545                         0.01561
-## Yes, some years              0.02420                         0.02522
-##                 se.Q17Protect others
-## Yes, every year             0.003131
-## Yes, some years             0.012280
+## Q17
+##            Protect myself Protect myself and others 
+##                       381                       921 
+##            Protect others                       Sum 
+##                        22                      1324
 ```
 
 ```r
@@ -2335,22 +2077,136 @@ svyby(~Q17, ~Q13, des14, svymean, na.rm = T)
 ggplot(q17, aes(Q17, fill = Q13, weight = Freq)) + ptext + geom_bar() + title
 ```
 
-![](analysis-draft_files/figure-html/unnamed-chunk-26-1.png)<!-- -->
-
-
-# Q18. What are the reasons you would not get an influenza vaccine?
+![](analysis-draft_files/figure-html/unnamed-chunk-25-2.png)<!-- -->
 
 
 ```r
-## Q18. What are the reasons you would not get an influenza vaccine?
+## Q17 by Q13: vaccination status
+#head(df[c('CaseID','Q13','Q17')])
+#nrow(df)
 
-title <- ggtitle("Q18. What are the reasons you would not get an influenza vaccine?")
+## drop NAs from variables of interest
+df_sub <- df[!is.na(df$Q17) & !is.na(df$Q13), ]
+head(df_sub[c('CaseID','Q13','Q17')])
+```
 
-##
-#svychisq(~Q18 + Q13, des)
-#svyby(~Q18, ~Q13, des, svymean, na.rm = F)
-#a <- glm(Q18 ~ Q13, family = quasibinomial(link = "logit"), data = df, weights = weight)
-#summary(a)
+```
+##   CaseID             Q13                       Q17
+## 1      2 Yes, every year Protect myself and others
+## 3      4 Yes, every year Protect myself and others
+## 4      5 Yes, some years            Protect myself
+## 5      6 Yes, every year Protect myself and others
+## 6      7 Yes, some years            Protect others
+## 8      9 Yes, every year            Protect myself
+```
+
+```r
+nrow(df_sub)
+```
+
+```
+## [1] 1324
+```
+
+```r
+## count
+with(df_sub, addmargins(table(Q17, Q13)))
+```
+
+```
+##                            Q13
+## Q17                         Yes, every year Yes, some years No, never  Sum
+##   Protect myself                        243             138         0  381
+##   Protect myself and others             653             268         0  921
+##   Protect others                          6              16         0   22
+##   Sum                                   902             422         0 1324
+```
+
+```r
+## drop unused levels
+df_sub <- droplevels(df_sub)
+
+## updated count
+with(df_sub, addmargins(table(Q17, Q13)))
+```
+
+```
+##                            Q13
+## Q17                         Yes, every year Yes, some years  Sum
+##   Protect myself                        243             138  381
+##   Protect myself and others             653             268  921
+##   Protect others                          6              16   22
+##   Sum                                   902             422 1324
+```
+
+```r
+## update survey object
+options(digits = 4)
+options(survey.lonely.psu = "adjust")
+des17 <- svydesign(ids = ~1, weights = ~weight, data = df_sub)
+
+## weighted table
+#svytable(~Q17 + Q13, des17, round = T)  # weighted counts
+svyby(~Q13, ~Q17, des17, svymean, na.rm.all = T)
+```
+
+```
+##                                                 Q17 Q13Yes, every year
+## Protect myself                       Protect myself             0.6022
+## Protect myself and others Protect myself and others             0.6825
+## Protect others                       Protect others             0.2623
+##                           Q13Yes, some years se.Q13Yes, every year
+## Protect myself                        0.3978               0.02723
+## Protect myself and others             0.3175               0.01686
+## Protect others                        0.7377               0.09824
+##                           se.Q13Yes, some years
+## Protect myself                          0.02723
+## Protect myself and others               0.01686
+## Protect others                          0.09824
+```
+
+```r
+svychisq(~Q17 + Q13, des17)
+```
+
+```
+## 
+## 	Pearson's X^2: Rao & Scott adjustment
+## 
+## data:  svychisq(~Q17 + Q13, des17)
+## F = 10, ndf = 2, ddf = 2600, p-value = 3e-05
+```
+
+```r
+a <- glm(Q13 ~ Q17, family = quasibinomial(link = "logit"), data = df_sub, weights = weight)
+summary(a)
+```
+
+```
+## 
+## Call:
+## glm(formula = Q13 ~ Q17, family = quasibinomial(link = "logit"), 
+##     data = df_sub, weights = weight)
+## 
+## Deviance Residuals: 
+##    Min      1Q  Median      3Q     Max  
+## -2.213  -0.883  -0.750   1.226   2.440  
+## 
+## Coefficients:
+##                              Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)                    -0.414      0.106   -3.91  9.5e-05 ***
+## Q17Protect myself and others   -0.351      0.127   -2.75  0.00598 ** 
+## Q17Protect others               1.449      0.434    3.34  0.00087 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for quasibinomial family taken to be 0.9654)
+## 
+##     Null deviance: 1650.5  on 1323  degrees of freedom
+## Residual deviance: 1625.2  on 1321  degrees of freedom
+## AIC: NA
+## 
+## Number of Fisher Scoring iterations: 4
 ```
 
 
@@ -2360,40 +2216,101 @@ title <- ggtitle("Q18. What are the reasons you would not get an influenza vacci
 ```r
 ## Q19. Do you have health insurance?
 q19 <- as.data.frame(svytable(
-  ~Q19 + Q13 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT, des, round = T))
+  ~Q19 + Q13 + PPGENDER + ppagecat + PPETHM + income + PPEDUCAT, des, round = T))
 
+# univariate
 title <- ggtitle("Q19. Do you have health insurance?")
 p <- ggplot(q19, aes(Q19, weight = Freq)) + ptext
 p + geom_bar() + title
 ```
 
-![](analysis-draft_files/figure-html/unnamed-chunk-28-1.png)<!-- -->
-
+![](analysis-draft_files/figure-html/unnamed-chunk-27-1.png)<!-- -->
 
 ```r
-# raw count
-as.data.frame(with(df, addmargins(table(Q19, Q13))))
+# counts
+with(df, addmargins(table(Q19)))
 ```
 
 ```
-##    Q19             Q13 Freq
-## 1  Yes Yes, every year  887
-## 2   No Yes, every year   19
-## 3  Sum Yes, every year  906
-## 4  Yes Yes, some years  396
-## 5   No Yes, some years   24
-## 6  Sum Yes, some years  420
-## 7  Yes       No, never  708
-## 8   No       No, never  110
-## 9  Sum       No, never  818
-## 10 Yes             Sum 1991
-## 11  No             Sum  153
-## 12 Sum             Sum 2144
+## Q19
+##  Yes   No  Sum 
+## 1994  154 2148
 ```
 
 ```r
-# weighted prop
-svyby(~Q13, ~Q19, des, svymean, na.rm = T)
+# bivariate
+ggplot(q19, aes(Q19, fill = Q13, weight = Freq)) + ptext + geom_bar() + title
+```
+
+![](analysis-draft_files/figure-html/unnamed-chunk-27-2.png)<!-- -->
+
+
+```r
+## Q19 by Q13: vaccination status
+#head(df[c('CaseID','Q13','Q19')])
+#nrow(df)
+
+## drop NAs from variables of interest
+df_sub <- df[!is.na(df$Q19) & !is.na(df$Q13), ]
+head(df_sub[c('CaseID','Q13','Q19')])
+```
+
+```
+##   CaseID             Q13 Q19
+## 1      2 Yes, every year Yes
+## 3      4 Yes, every year Yes
+## 4      5 Yes, some years Yes
+## 5      6 Yes, every year Yes
+## 6      7 Yes, some years Yes
+## 7      8       No, never Yes
+```
+
+```r
+nrow(df_sub)
+```
+
+```
+## [1] 2144
+```
+
+```r
+## count
+with(df_sub, addmargins(table(Q19, Q13)))
+```
+
+```
+##      Q13
+## Q19   Yes, every year Yes, some years No, never  Sum
+##   Yes             887             396       708 1991
+##   No               19              24       110  153
+##   Sum             906             420       818 2144
+```
+
+```r
+## drop unused levels
+df_sub <- droplevels(df_sub)
+
+## updated count
+with(df_sub, addmargins(table(Q19, Q13)))
+```
+
+```
+##      Q13
+## Q19   Yes, every year Yes, some years No, never  Sum
+##   Yes             887             396       708 1991
+##   No               19              24       110  153
+##   Sum             906             420       818 2144
+```
+
+```r
+## update survey object
+options(digits = 4)
+options(survey.lonely.psu = "adjust")
+des19 <- svydesign(ids = ~1, weights = ~weight, data = df_sub)
+
+## weighted table
+#svytable(~Q19 + Q13, des19, round = T)  # weighted counts
+svyby(~Q13, ~Q19, des19, svymean, na.rm.all = T)
 ```
 
 ```
@@ -2406,77 +2323,176 @@ svyby(~Q13, ~Q19, des, svymean, na.rm = T)
 ```
 
 ```r
-svychisq(~Q19 + Q13, des)
+svychisq(~Q19 + Q13, des19)
 ```
 
 ```
 ## 
 ## 	Pearson's X^2: Rao & Scott adjustment
 ## 
-## data:  svychisq(~Q19 + Q13, des)
+## data:  svychisq(~Q19 + Q13, des19)
 ## F = 35, ndf = 2, ddf = 4300, p-value = 1e-15
 ```
 
 ```r
-# bivariate
-ggplot(q19, aes(Q19, fill = Q13, weight = Freq)) + ptext + geom_bar() + title
+a <- glm(Q13 ~ Q19, family = quasibinomial(link = "logit"), data = df_sub, weights = weight)
+summary(a)
 ```
 
-![](analysis-draft_files/figure-html/unnamed-chunk-29-1.png)<!-- -->
+```
+## 
+## Call:
+## glm(formula = Q13 ~ Q19, family = quasibinomial(link = "logit"), 
+##     data = df_sub, weights = weight)
+## 
+## Deviance Residuals: 
+##    Min      1Q  Median      3Q     Max  
+## -2.843  -1.149   0.728   1.024   1.677  
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)    0.329      0.046    7.16  1.1e-12 ***
+## Q19No          1.730      0.229    7.55  6.5e-14 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for quasibinomial family taken to be 0.9965)
+## 
+##     Null deviance: 2855.4  on 2143  degrees of freedom
+## Residual deviance: 2773.3  on 2142  degrees of freedom
+## AIC: NA
+## 
+## Number of Fisher Scoring iterations: 4
+```
+
 
 # Q21. Are influenza vaccines covered by your insurance?
 
 
 ```r
-### Subset by Q19 = Yes
-
 ## Q21. Are influenza vaccines covered by your insurance?
-q21 <- as.data.frame(svytable(
-  ~Q21 + Q13 + PPGENDER + ppagect4 + PPETHM + income + PPEDUCAT, des, round = T))
+### subset by Q19 = Yes
+q21 <- as.data.frame(svytable(~Q21 + Q13 + ppagecat + PPGENDER + PPETHM + PPEDUCAT, des, round = T))
 
-title <- ggtitle("Q21. Are influenza vaccines covered by your health insurance?")
+# univariate
+title <- ggtitle("Q21. How much do you pay to get an influenza vaccine?")
 p <- ggplot(q21, aes(Q21, weight = Freq)) + ptext
 p + geom_bar() + title
 ```
 
-![](analysis-draft_files/figure-html/unnamed-chunk-30-1.png)<!-- -->
-
+![](analysis-draft_files/figure-html/unnamed-chunk-29-1.png)<!-- -->
 
 ```r
-# raw count
-as.data.frame(with(df, addmargins(table(Q21, Q13))))
+# counts
+with(df, addmargins(table(Q21)))
 ```
 
 ```
-##                                       Q21             Q13 Freq
-## 1              Yes, the full cost is paid Yes, every year  731
-## 2  Yes, but only part of the cost is paid Yes, every year   61
-## 3                                      No Yes, every year   19
-## 4                              Don_t know Yes, every year   75
-## 5                                     Sum Yes, every year  886
-## 6              Yes, the full cost is paid Yes, some years  249
-## 7  Yes, but only part of the cost is paid Yes, some years   47
-## 8                                      No Yes, some years   13
-## 9                              Don_t know Yes, some years   86
-## 10                                    Sum Yes, some years  395
-## 11             Yes, the full cost is paid       No, never  301
-## 12 Yes, but only part of the cost is paid       No, never   44
-## 13                                     No       No, never   23
-## 14                             Don_t know       No, never  339
-## 15                                    Sum       No, never  707
-## 16             Yes, the full cost is paid             Sum 1281
-## 17 Yes, but only part of the cost is paid             Sum  152
-## 18                                     No             Sum   55
-## 19                             Don_t know             Sum  500
-## 20                                    Sum             Sum 1988
+## Q21
+##             Yes, the full cost is paid 
+##                                   1282 
+## Yes, but only part of the cost is paid 
+##                                    153 
+##                                     No 
+##                                     55 
+##                             Don_t know 
+##                                    500 
+##                                    Sum 
+##                                   1990
 ```
 
 ```r
-# subset data
+# bivariate
+ggplot(q21, aes(Q21, fill = Q13, weight = Freq)) + ptext + geom_bar() + title
+```
+
+![](analysis-draft_files/figure-html/unnamed-chunk-29-2.png)<!-- -->
 
 
-# weighted props
-svyby(~Q13, ~Q21, des, svymean, na.rm = T)
+```r
+## Q21 by Q13: vaccination status
+#head(df[c('CaseID','Q13','Q21')])
+#nrow(df)
+
+## drop NAs from variables of interest
+df_sub <- df[!is.na(df$Q21) & !is.na(df$Q13), ]
+head(df_sub[c('CaseID','Q13','Q21')])
+```
+
+```
+##   CaseID             Q13                                    Q21
+## 1      2 Yes, every year                             Don_t know
+## 3      4 Yes, every year             Yes, the full cost is paid
+## 4      5 Yes, some years Yes, but only part of the cost is paid
+## 5      6 Yes, every year                             Don_t know
+## 6      7 Yes, some years             Yes, the full cost is paid
+## 7      8       No, never             Yes, the full cost is paid
+```
+
+```r
+nrow(df_sub)
+```
+
+```
+## [1] 1988
+```
+
+```r
+## count
+with(df_sub, addmargins(table(Q21, Q13)))
+```
+
+```
+##                                         Q13
+## Q21                                      Yes, every year Yes, some years
+##   Yes, the full cost is paid                         731             249
+##   Yes, but only part of the cost is paid              61              47
+##   No                                                  19              13
+##   Don_t know                                          75              86
+##   Sum                                                886             395
+##                                         Q13
+## Q21                                      No, never  Sum
+##   Yes, the full cost is paid                   301 1281
+##   Yes, but only part of the cost is paid        44  152
+##   No                                            23   55
+##   Don_t know                                   339  500
+##   Sum                                          707 1988
+```
+
+```r
+## drop unused levels
+df_sub <- droplevels(df_sub)
+
+## updated count
+with(df_sub, addmargins(table(Q21, Q13)))
+```
+
+```
+##                                         Q13
+## Q21                                      Yes, every year Yes, some years
+##   Yes, the full cost is paid                         731             249
+##   Yes, but only part of the cost is paid              61              47
+##   No                                                  19              13
+##   Don_t know                                          75              86
+##   Sum                                                886             395
+##                                         Q13
+## Q21                                      No, never  Sum
+##   Yes, the full cost is paid                   301 1281
+##   Yes, but only part of the cost is paid        44  152
+##   No                                            23   55
+##   Don_t know                                   339  500
+##   Sum                                          707 1988
+```
+
+```r
+## update survey object
+options(digits = 4)
+options(survey.lonely.psu = "adjust")
+des21 <- svydesign(ids = ~1, weights = ~weight, data = df_sub)
+
+## weighted table
+#svytable(~Q21 + Q13, des21, round = T)  # weighted counts
+svyby(~Q13, ~Q21, des21, svymean, na.rm.all = T)
 ```
 
 ```
@@ -2498,11 +2514,11 @@ svyby(~Q13, ~Q21, des, svymean, na.rm = T)
 ##                                        se.Q13Yes, every year
 ## Yes, the full cost is paid                           0.01499
 ## Yes, but only part of the cost is paid               0.04132
-## No                                                   0.06976
+## No                                                   0.06977
 ## Don_t know                                           0.01668
 ##                                        se.Q13Yes, some years
 ## Yes, the full cost is paid                           0.01242
-## Yes, but only part of the cost is paid               0.04323
+## Yes, but only part of the cost is paid               0.04324
 ## No                                                   0.06140
 ## Don_t know                                           0.01852
 ##                                        se.Q13No, never
@@ -2513,16 +2529,351 @@ svyby(~Q13, ~Q21, des, svymean, na.rm = T)
 ```
 
 ```r
-#svychisq(~Q21 + Q13, des)
-
-# bivariate
-ggplot(q21, aes(Q21, fill = Q13, weight = Freq)) + ptext + geom_bar() + title
+svychisq(~Q21 + Q13, des21)
 ```
 
-![](analysis-draft_files/figure-html/]-1.png)<!-- -->
+```
+## 
+## 	Pearson's X^2: Rao & Scott adjustment
+## 
+## data:  svychisq(~Q21 + Q13, des21)
+## F = 49, ndf = 6, ddf = 12000, p-value <2e-16
+```
+
+```r
+a <- glm(Q13 ~ Q21, family = quasibinomial(link = "logit"), data = df_sub, weights = weight)
+summary(a)
+```
+
+```
+## 
+## Call:
+## glm(formula = Q13 ~ Q21, family = quasibinomial(link = "logit"), 
+##     data = df_sub, weights = weight)
+## 
+## Deviance Residuals: 
+##    Min      1Q  Median      3Q     Max  
+## -3.091  -1.007   0.487   1.030   2.021  
+## 
+## Coefficients:
+##                                           Estimate Std. Error t value
+## (Intercept)                                -0.1795     0.0569   -3.16
+## Q21Yes, but only part of the cost is paid   0.7439     0.1805    4.12
+## Q21No                                       0.7404     0.2867    2.58
+## Q21Don_t know                               1.9449     0.1350   14.41
+##                                           Pr(>|t|)    
+## (Intercept)                                 0.0016 ** 
+## Q21Yes, but only part of the cost is paid  3.9e-05 ***
+## Q21No                                       0.0099 ** 
+## Q21Don_t know                              < 2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for quasibinomial family taken to be 0.975)
+## 
+##     Null deviance: 2630.5  on 1987  degrees of freedom
+## Residual deviance: 2368.0  on 1984  degrees of freedom
+## AIC: NA
+## 
+## Number of Fisher Scoring iterations: 4
+```
+
+
+# Q18. What are the reasons you would not get an influenza vaccine?
+
+
+```r
+## Q18. What are the reasons you would not get an influenza vaccine?
+title <- ggtitle("Q18. What are the reasons you would not get an influenza vaccine?")
+```
+
+
+```r
+## Q18 by Q13: vaccination status
+## drop NAs from variables of interest
+df_sub <- df[!is.na(df$Q18_1) & !is.na(df$Q13), ]
+#head(df_sub[c('CaseID','Q13','Q18_1')])
+nrow(df_sub)
+```
+
+```
+## [1] 1242
+```
+
+```r
+## count for Q18_1
+with(df_sub, addmargins(table(Q18_1, Q13)))
+```
+
+```
+##      Q13
+## Q18_1 Yes, every year Yes, some years No, never  Sum
+##   Yes               0              61        49  110
+##   No                0             362       770 1132
+##   Sum               0             423       819 1242
+```
+
+```r
+## drop unused levels
+df_sub <- droplevels(df_sub)
+
+## updated counts for all Q18
+with(df_sub, addmargins(table(Q18_1, Q13)))
+```
+
+```
+##      Q13
+## Q18_1 Yes, some years No, never  Sum
+##   Yes              61        49  110
+##   No              362       770 1132
+##   Sum             423       819 1242
+```
+
+```r
+with(df_sub, addmargins(table(Q18_2, Q13)))
+```
+
+```
+##      Q13
+## Q18_2 Yes, some years No, never  Sum
+##   Yes             143       196  339
+##   No              280       623  903
+##   Sum             423       819 1242
+```
+
+```r
+with(df_sub, addmargins(table(Q18_3, Q13)))
+```
+
+```
+##      Q13
+## Q18_3 Yes, some years No, never  Sum
+##   Yes              75       203  278
+##   No              348       616  964
+##   Sum             423       819 1242
+```
+
+```r
+with(df_sub, addmargins(table(Q18_4, Q13)))
+```
+
+```
+##      Q13
+## Q18_4 Yes, some years No, never  Sum
+##   Yes              14        29   43
+##   No              409       790 1199
+##   Sum             423       819 1242
+```
+
+```r
+with(df_sub, addmargins(table(Q18_5, Q13)))
+```
+
+```
+##      Q13
+## Q18_5 Yes, some years No, never  Sum
+##   Yes              65       219  284
+##   No              358       600  958
+##   Sum             423       819 1242
+```
+
+```r
+with(df_sub, addmargins(table(Q18_6, Q13)))
+```
+
+```
+##      Q13
+## Q18_6 Yes, some years No, never  Sum
+##   Yes              23        35   58
+##   No              400       784 1184
+##   Sum             423       819 1242
+```
+
+```r
+with(df_sub, addmargins(table(Q18_7, Q13)))
+```
+
+```
+##      Q13
+## Q18_7 Yes, some years No, never  Sum
+##   Yes              70       196  266
+##   No              353       623  976
+##   Sum             423       819 1242
+```
+
+```r
+with(df_sub, addmargins(table(Q18_8, Q13)))
+```
+
+```
+##      Q13
+## Q18_8 Yes, some years No, never  Sum
+##   Yes             183       181  364
+##   No              240       638  878
+##   Sum             423       819 1242
+```
+
+```r
+with(df_sub, addmargins(table(Q18_9, Q13)))
+```
+
+```
+##      Q13
+## Q18_9 Yes, some years No, never  Sum
+##   Yes              10        16   26
+##   No              413       803 1216
+##   Sum             423       819 1242
+```
+
+```r
+## update survey object
+options(digits = 4)
+options(survey.lonely.psu = "adjust")
+des18 <- svydesign(ids = ~1, weights = ~weight, data = df_sub)
+
+## weighted tables
+svyby(~Q13, ~Q18_1, des18, svymean, na.rm.all = T)
+```
+
+```
+##     Q18_1 Q13Yes, some years Q13No, never se.Q13Yes, some years
+## Yes   Yes             0.5400       0.4600               0.05164
+## No     No             0.3204       0.6796               0.01490
+##     se.Q13No, never
+## Yes         0.05164
+## No          0.01490
+```
+
+```r
+svyby(~Q13, ~Q18_2, des18, svymean, na.rm.all = T)
+```
+
+```
+##     Q18_2 Q13Yes, some years Q13No, never se.Q13Yes, some years
+## Yes   Yes              0.434        0.566               0.02893
+## No     No              0.311        0.689               0.01655
+##     se.Q13No, never
+## Yes         0.02893
+## No          0.01655
+```
+
+```r
+svyby(~Q13, ~Q18_3, des18, svymean, na.rm.all = T)
+```
+
+```
+##     Q18_3 Q13Yes, some years Q13No, never se.Q13Yes, some years
+## Yes   Yes             0.2519       0.7481               0.02715
+## No     No             0.3653       0.6347               0.01670
+##     se.Q13No, never
+## Yes         0.02715
+## No          0.01670
+```
+
+```r
+svyby(~Q13, ~Q18_4, des18, svymean, na.rm.all = T)
+```
+
+```
+##     Q18_4 Q13Yes, some years Q13No, never se.Q13Yes, some years
+## Yes   Yes             0.3538       0.6462               0.08066
+## No     No             0.3415       0.6585               0.01469
+##     se.Q13No, never
+## Yes         0.08066
+## No          0.01469
+```
+
+```r
+svyby(~Q13, ~Q18_5, des18, svymean, na.rm.all = T)
+```
+
+```
+##     Q18_5 Q13Yes, some years Q13No, never se.Q13Yes, some years
+## Yes   Yes             0.2215       0.7785               0.02573
+## No     No             0.3756       0.6244               0.01687
+##     se.Q13No, never
+## Yes         0.02573
+## No          0.01687
+```
+
+```r
+svyby(~Q13, ~Q18_6, des18, svymean, na.rm.all = T)
+```
+
+```
+##     Q18_6 Q13Yes, some years Q13No, never se.Q13Yes, some years
+## Yes   Yes             0.4037       0.5963               0.06903
+## No     No             0.3393       0.6607               0.01481
+##     se.Q13No, never
+## Yes         0.06903
+## No          0.01481
+```
+
+```r
+svyby(~Q13, ~Q18_7, des18, svymean, na.rm.all = T)
+```
+
+```
+##     Q18_7 Q13Yes, some years Q13No, never se.Q13Yes, some years
+## Yes   Yes             0.2620       0.7380               0.02941
+## No     No             0.3658       0.6342               0.01656
+##     se.Q13No, never
+## Yes         0.02941
+## No          0.01656
+```
+
+```r
+svyby(~Q13, ~Q18_8, des18, svymean, na.rm.all = T)
+```
+
+```
+##     Q18_8 Q13Yes, some years Q13No, never se.Q13Yes, some years
+## Yes   Yes             0.4800       0.5200               0.02797
+## No     No             0.2854       0.7146               0.01662
+##     se.Q13No, never
+## Yes         0.02797
+## No          0.01662
+```
+
+```r
+svyby(~Q13, ~Q18_9, des18, svymean, na.rm.all = T)
+```
+
+```
+##     Q18_9 Q13Yes, some years Q13No, never se.Q13Yes, some years
+## Yes   Yes             0.4334       0.5666               0.10243
+## No     No             0.3395       0.6605               0.01459
+##     se.Q13No, never
+## Yes         0.10243
+## No          0.01459
+```
+
+```r
+svychisq(~Q18_9 + Q13, des18)
+```
+
+```
+## 
+## 	Pearson's X^2: Rao & Scott adjustment
+## 
+## data:  svychisq(~Q18_9 + Q13, des18)
+## F = 0.9, ndf = 1, ddf = 1200, p-value = 0.3
+```
+
+```r
+#a <- glm(Q13 ~ Q18_1, family = quasibinomial(link = "logit"), data = df_sub, weights = weight)
+#summary(a)
+```
 
 
 # Regression model
+
+
+```r
+# write out data before fitting models
+
+saveRDS(object = df, file = './data/data_for_models.RDS')
+```
 
 
 ```r

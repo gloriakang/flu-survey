@@ -6,6 +6,7 @@ output:
   html_document: 
     df_print: kable
     number_sections: yes
+    theme: paper
     toc: yes
 editor_options: 
   chunk_output_type: console

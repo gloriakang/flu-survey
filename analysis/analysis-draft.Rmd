@@ -9,24 +9,17 @@ output:
     theme: paper
     toc: yes
     toc_depth: 2
-  html_notebook: 
-    fig_caption: yes
-    toc: yes
-    toc_depth: 2
-  pdf_document: 
-    fig_caption: yes
-    keep_tex: yes
-    toc: yes
-    toc_depth: 2
 editor_options: 
   chunk_output_type: console
 ---
 
-```{r setup}
+```{r setup, include=FALSE}
+rm(list = ls(all.names = TRUE))
 knitr::opts_knit$set(root.dir = '..')
 knitr::opts_chunk$set(echo = T, cache = T, warning = F, message = F, tidy = T, size = "small")
-rm(list = ls(all.names = TRUE))
+```
 
+```{r}
 library(dplyr)
 library(ggplot2)
 library(gridExtra)
