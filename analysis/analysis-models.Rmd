@@ -1,7 +1,5 @@
 ---
-title: "Model Fit"
-author: "Daniel Chen"
-date: "November 15, 2017"
+title: "Models"
 output:
   html_document:
     df_print: kable
@@ -23,9 +21,9 @@ rm(list = ls())
 ```{r}
 library(survey)
 
-source('analysis/chendaniely/model_utils.R')
+source('flu-survey/analysis/chendaniely/model_utils.R')
 
-load('data/model_dataframes.RData')
+load('flu-survey/data/model_dataframes.RData')
 
 svy_never_every     <- svydesign(ids = ~1, weights = ~weight, data = never_every[!is.na(never_every$weight), ])
 svy_never_some      <- svydesign(ids = ~1, weights = ~weight, data = never_some[!is.na(never_some$weight), ])
