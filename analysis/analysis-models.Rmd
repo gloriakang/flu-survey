@@ -239,7 +239,7 @@ print_svy_mod(se_demo_belief_cost)
 
 ```{r}
 library(forcats)
-df <- readRDS('./data/subset_recode.RDS')
+df <- readRDS('flu-survey/data/subset_recode.RDS')
 never_some_flipped <- df[df$Q13 %in% c('Yes, some years', 'No, never'), ]
 never_some_flipped$Q13 <- droplevels(never_some$Q13)
 never_some_flipped$Q13 <- fct_relevel(never_some$Q13, 'Yes, some years', after = 0L)
