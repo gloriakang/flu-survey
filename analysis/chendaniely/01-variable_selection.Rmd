@@ -190,3 +190,110 @@ PPETHM
 income
 marital
 work
+
+# Bootstrap LASSO
+
+```{r}
+total <- 100
+
+pb <- txtProgressBar(min = 0, max = total, style = 3)
+
+all_kept_variables <- list()
+
+for (i in 1:total) {
+  boot_never_every <- sample(x = 1:nrow(never_every), size = nrow(never_every), replace = TRUE)
+  boot_never_every <- never_every[boot_never_every, ]
+  
+  boot_never_some <- sample(x = 1:nrow(never_some), size = nrow(never_some), replace = TRUE)
+  boot_never_some <- never_some[boot_never_some, ]
+  
+  boot_never_someevery <- sample(x = 1:nrow(never_someevery), size = nrow(never_someevery), replace = TRUE)
+  boot_never_someevery <- never_someevery[boot_never_someevery, ]
+  
+  
+  x  <- build.x(Q13 ~ PPGENDER + ppagecat + PPEDUCAT + PPETHM + income + marital +
+                  PPMSACAT + PPREG4 + work - 1,
+                data = boot_never_every, contrasts = FALSE)
+  y <- build.y(Q13 ~ PPGENDER + ppagecat + PPEDUCAT + PPETHM + income + marital +
+                 PPMSACAT + PPREG4 + work,
+               data = boot_never_every)
+  boot_never_every_cv <- cv.glmnet(x = x, y = y, family = "binomial", nfolds = 10, weights = boot_never_every$weight)
+  
+  x  <- build.x(Q13 ~ PPGENDER + ppagecat + PPEDUCAT + PPETHM + income + marital +
+                  PPMSACAT + PPREG4 + work - 1,
+                data = boot_never_some, contrasts = FALSE)
+  y <- build.y(Q13 ~ PPGENDER + ppagecat + PPEDUCAT + PPETHM + income + marital +
+                 PPMSACAT + PPREG4 + work,
+               data = boot_never_some)
+  boot_never_some_cv <- cv.glmnet(x = x, y = y, family = "binomial", nfolds = 10, weights = boot_never_some$weight)
+  
+  x  <- build.x(Q13 ~ PPGENDER + ppagecat + PPEDUCAT + PPETHM + income + marital +
+                  PPMSACAT + PPREG4 + work - 1,
+                data = boot_never_someevery, contrasts = FALSE)
+  y <- build.y(Q13 ~ PPGENDER + ppagecat + PPEDUCAT + PPETHM + income + marital +
+                 PPMSACAT + PPREG4 + work,
+               data = boot_never_someevery)
+  boot_never_someevery_cv <- cv.glmnet(x = x, y = y, family = "binomial", nfolds = 10, weights = boot_never_someevery$weight)
+  
+  coef_cv <- cbind(coef(boot_never_every_cv, s = 'lambda.min'),
+                   coef(boot_never_some_cv, s = 'lambda.min'),
+                   coef(boot_never_someevery_cv, s = 'lambda.min'),
+                   coef(boot_never_every_cv, s = 'lambda.1se'),
+                   coef(boot_never_some_cv, s = 'lambda.1se'),
+                   coef(boot_never_someevery_cv, s = 'lambda.1se')
+  )
+  
+  coef_cv <- as.data.frame(as.matrix(coef_cv))
+  
+  coef_cv <- round(coef_cv, digits = 4)
+  coef_cv[coef_cv == 0] <- '.'
+  
+  colnames(coef_cv) <- c('ne_min', 'ns_min', 'nse_min',
+                         'ne_1se', 'ns_1se', 'nse_1se')
+  
+  kept_variable <- coef_cv > 0
+  all_kept_variables[[i]] <- kept_variable
+  
+  setTxtProgressBar(pb, i)
+}
+```
+
+## Looking at results
+
+
+### Raw Counts
+
+```{r}
+var_counts <- Reduce("+", all_kept_variables)
+var_counts
+```
+
+
+### Counts > 50
+```{r}
+var_counts > 50
+```
+
+### Proportion
+
+```{r}
+var_prop <- var_counts / total
+var_prop
+```
+
+### Conclusion
+
+drop:
+
+- PPGENDER
+- PPETHM
+- PPMSACAT
+- marital
+
+keep:
+
+- ppagecat
+- PPEDUCAT
+- income
+- PPREG4
+- work
