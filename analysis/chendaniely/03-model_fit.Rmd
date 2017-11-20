@@ -91,8 +91,7 @@ nse_demo_belief <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income + PPREG4 
 print_svy_mod(nse_demo_belief)
 ```
 
-
-## F statistic
+### F statistic
 
 ```{r}
 anova(ne_demo, ne_demo_belief, test = 'F')
@@ -106,7 +105,7 @@ anova(ns_demo, ns_demo_belief, test = 'F')
 anova(nse_demo, nse_demo_belief, test = 'F')
 ```
 
-## AIC/BIC
+### AIC/BIC
 
 ```{r}
 AIC(ne_demo, ne_demo_belief)
@@ -123,10 +122,11 @@ BIC(nse_demo, nse_demo_belief, maximal = nse_demo_belief)
 Keep the belief variable.
 
 
-# Social influence and herd immunity (Q15, 16, 17)
 
-## Every vs. Some
-Dem + Q13 + Q20 + Q15, Q16, Q17
+# Social influence and herd immunity (Q15 + Q16 + Q17)
+
+## Every vs. some
+Q15, Q16, Q17
 ```{r}
 se_demo_belief_social <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income + PPREG4 + work + Q20 + Q15 + Q16 + Q17,
        design = svy_some_every,
@@ -134,104 +134,111 @@ se_demo_belief_social <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income + P
 print_svy_mod(se_demo_belief_social)
 ```
 
-## F statistic
+### F statistic
 
 ```{r}
-#anova(se_demo_belief_social, se_demo_belief, test = 'F')
+#anova(ne_demo_belief_social, ne_demo_belief, test = 'F')
+```
+```{r}
+#anova(ns_demo_belief_social, ns_demo_belief, test = 'F')
+```
+```{r}
+#anova(nse_demo_belief_social, nse_demo_belief, test = 'F')
 ```
 
-## AIC/BIC
+### AIC/BIC
 
 ```{r}
-AIC(ne_demo, ne_demo_belief, ne_demo_belief_social)
-AIC(ns_demo, ns_demo_belief, ns_demo_belief_social)
+#AIC(ne_demo, ne_demo_belief, ne_demo_belief_social)
+#AIC(ns_demo, ns_demo_belief, ns_demo_belief_social)
 AIC(nse_demo, nse_demo_belief, se_demo_belief_social)
 ```
 
 ```{r}
-BIC(ne_demo, ne_demo_belief, ne_demo_belief_social, maximal = ne_demo_belief_social)
-BIC(ns_demo, ns_demo_belief, ns_demo_belief_social, maximal = ns_demo_belief_social)
+#BIC(ne_demo, ne_demo_belief, ne_demo_belief_social, maximal = ne_demo_belief_social)
+#BIC(ns_demo, ns_demo_belief, ns_demo_belief_social, maximal = ns_demo_belief_social)
 BIC(nse_demo, nse_demo_belief, se_demo_belief_social, maximal = se_demo_belief_social)
 ```
 
 
-Drop the Social influence and herd immunity variables.
 
 # Social influence and herd immunity Sub
+- Drop Q15
 
-## every vs. never
+## Every vs. some
+
+### Q16
 ```{r}
-ne_demo_belief_social <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income + PPREG4 + work + Q20 + Q17,
+se_demo_belief_social <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income + PPREG4 + work + Q20 + Q16,
        design = svy_some_every,
        family = quasibinomial(link = "logit"))
-print_svy_mod(ne_demo_belief_social)
+print_svy_mod(se_demo_belief_social)
 ```
 
-## sometimes vs. never
+### Q16 + Q17
 ```{r}
-ns_demo_belief_social <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income + PPREG4 + work + Q20 + Q15 + Q17,
+se_demo_belief_social <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income + PPREG4 + work + Q20 + Q16 + Q17,
        design = svy_some_every,
        family = quasibinomial(link = "logit"))
-print_svy_mod(ne_demo_belief_social)
+print_svy_mod(se_demo_belief_social)
 ```
 
-## sometimes+every vs. never
+
+# Cost and health insurance (Q14, Q19, Q21)
+- Run Q19 and Q21 separately
+
+## Every vs. some
+### Q14
 ```{r}
-nse_demo_belief_social <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income + PPREG4 + work + Q20 + Q15 +Q16 + Q17,
+se_demo_belief_cost <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income + PPREG4 + work + Q20 + Q14,
        design = svy_some_every,
        family = quasibinomial(link = "logit"))
-print_svy_mod(ne_demo_belief_social)
+print_svy_mod(se_demo_belief_cost)
 ```
 
-
-# Cost and health insurance
-
-## every vs. never
+### Q19
 ```{r}
-ne_demo_belief_cost <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income + PPREG4 + work + Q20 + Q14 + Q19,
-       design = svy_never_every,
+se_demo_belief_cost <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income + PPREG4 + work + Q20 + Q19,
+       design = svy_some_every,
        family = quasibinomial(link = "logit"))
-print_svy_mod(ne_demo_belief_social)
+print_svy_mod(se_demo_belief_cost)
 ```
 
-## sometimes vs. never
+### Q21
 ```{r}
-ns_demo_belief_cost <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income + PPREG4 + work + Q20 + Q14 + Q19,
-       design = svy_never_some,
+se_demo_belief_cost <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income + PPREG4 + work + Q20 + Q21,
+       design = svy_some_every,
        family = quasibinomial(link = "logit"))
-print_svy_mod(ne_demo_belief_social)
+print_svy_mod(se_demo_belief_cost)
 ```
 
-## sometimes+every vs. never
+### Q14 + Q19
 ```{r}
-nse_demo_belief_cost <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income + PPREG4 + work + Q20 + Q14 + Q19,
-       design = svy_never_someevery,
+se_demo_belief_cost <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income + PPREG4 + work + Q20 + Q14 + Q19,
+       design = svy_some_every,
        family = quasibinomial(link = "logit"))
-print_svy_mod(ne_demo_belief_social)
+print_svy_mod(se_demo_belief_cost)
 ```
 
 
-## AIC/BIC
+### AIC/BIC
 
 ```{r}
-AIC(ne_demo, ne_demo_belief, ne_demo_belief_social, ne_demo_belief_cost)
-AIC(ns_demo, ns_demo_belief, ns_demo_belief_social, ns_demo_belief_cost)
-AIC(nse_demo, nse_demo_belief, nse_demo_belief_social, nse_demo_belief_cost)
+#AIC(ne_demo, ne_demo_belief, ne_demo_belief_social, ne_demo_belief_cost)
+#AIC(ns_demo, ns_demo_belief, ns_demo_belief_social, ns_demo_belief_cost)
+#AIC(nse_demo, nse_demo_belief, nse_demo_belief_social, nse_demo_belief_cost)
 ```
 
 ```{r}
-BIC(ne_demo, ne_demo_belief, ne_demo_belief_cost, maximal = ne_demo_belief_cost)
-BIC(ns_demo, ns_demo_belief, ns_demo_belief_cost, maximal = ns_demo_belief_cost)
-BIC(nse_demo, nse_demo_belief, nse_demo_belief_cost, maximal = nse_demo_belief_cost)
+#BIC(ne_demo, ne_demo_belief, ne_demo_belief_cost, maximal = ne_demo_belief_cost)
+#BIC(ns_demo, ns_demo_belief, ns_demo_belief_cost, maximal = ns_demo_belief_cost)
+#BIC(nse_demo, nse_demo_belief, nse_demo_belief_cost, maximal = nse_demo_belief_cost)
 ```
 
 
-Drop the cost variables.
 
-
-# Reasons to **not** get a vaccine
-
-Flip the response and Q18 variables
+# Barriers: Reasons to **not** get a vaccine
+- Flip the response and Q18 variables
 
 ```{r}
 library(forcats)
@@ -278,34 +285,34 @@ svy_never_some_flipped <- svydesign(ids = ~1, weights = ~weight, data = never_so
 lapply(never_some_flipped[, 37:46], table)
 ```
 
-
 ```{r}
 table(df$Q18_1, df$Q13)
 ```
 
-The reference response is "Yes, Sometimes."
+- The reference response is "Yes, Some years."
+- The model is modeling NOT getting a vaccine.
 
-The model is modeling NOT getting a vaccine.
-
-## never vs. sometimes
+## Never vs. some
+### Q18: 1-9
+- p-value < 0.05 for Q18: 1, 2, 3, 5, 8
 ```{r}
-ns_demo_belief_barriers <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income + PPREG4 + work + Q20 + Q18_1 + Q18_2 + Q18_3 + Q18_4 + Q18_5 + Q18_6 + Q18_7 + Q18_8 + Q18_9 + Q18_10,
+ns_demo_belief_barriers <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income + PPREG4 + work + Q20 + Q18_1 + Q18_2 + Q18_3 + Q18_4 + Q18_5 + Q18_6 + Q18_7 + Q18_8 + Q18_9,
        design = svy_never_some_flipped,
        family = quasibinomial(link = "logit"))
 print_svy_mod(ns_demo_belief_barriers)
 ```
 
-## 
 ```{r}
-ns_demo_belief_barriers <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income + PPREG4 + work + Q20 + Q18_1 + Q18_2 + Q18_3 + Q18_4 + Q18_5 + Q18_6 + Q18_7 + Q18_8 + Q18_9 + Q18_10 + PPEDUCAT*Q20,
-       design = svy_never_some_flipped,
-       family = quasibinomial(link = "logit"))
-print_svy_mod(ns_demo_belief_barriers)
+#ns_demo_belief_barriers <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income + PPREG4 + work + Q20 + Q18_1 + Q18_2 + #Q18_3 + Q18_4 + Q18_5 + Q18_6 + Q18_7 + Q18_8 + Q18_9 + Q18_10 + PPEDUCAT*Q20,
+#       design = svy_never_some_flipped,
+#       family = quasibinomial(link = "logit"))
+#print_svy_mod(ns_demo_belief_barriers)
 ```
 
-##
+
+### Q18 + Q19
 ```{r}
-ns_demo_belief_barriers <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income + PPREG4 + work + Q20 + Q18_3 + Q18_5,
+ns_demo_belief_barriers <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income + PPREG4 + work + Q20 + Q18_1 + Q18_2 + Q18_3 + Q18_5 + Q18_7 + Q18_8 + Q19,
        design = svy_never_some_flipped,
        family = quasibinomial(link = "logit"))
 print_svy_mod(ns_demo_belief_barriers)
