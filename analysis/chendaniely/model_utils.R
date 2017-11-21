@@ -27,14 +27,14 @@ p_star <- function(pvalue) {
 logistic_or <- function(mod) {
   mod_res <- broom::tidy(mod)
   mod_res$or <- exp(mod_res$estimate)
-  mod_res$or_std_err <- exp(mod_res$std.error)
-  mod_res$or_lower <- mod_res$or - 1.96 * mod_res$or_std_err
-  mod_res$or_upper <- mod_res$or + 1.96 * mod_res$or_std_err
+  # mod_res$or_std_err <- exp(mod_res$std.error)
+  mod_res$or_lower <- exp(mod_res$estimate - 1.96 * mod_res$std.error)
+  mod_res$or_upper <- exp(mod_res$estimate + 1.96 * mod_res$std.error)
   mod_res$term <- stringr::str_replace(mod_res$term, 'as.factor', '')
   
   mod_res$sig <- sapply(mod_res$p.value, p_star)
   
-  mod_res <- dplyr::select(mod_res, term, or, sig, or_std_err:or_upper, estimate:p.value)
+  mod_res <- dplyr::select(mod_res, term, or, sig, or_lower:or_upper, estimate:p.value)
   return(mod_res)
 }
 
