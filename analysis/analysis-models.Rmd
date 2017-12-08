@@ -233,7 +233,7 @@ print_svy_mod(se_demo_belief_cost)
 ```
 
 
-### Q13, Q20, Q16, Q17, Q14, Q19
+## Q13, Q20, Q16, Q17, Q14, Q19
 
 ```{r}
 se_model <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income + PPREG4 + work + Q20 + Q16 + Q17 + Q14 + Q19,
