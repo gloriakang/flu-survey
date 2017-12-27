@@ -3,13 +3,10 @@ title: "Models"
 output:
   html_document:
     df_print: kable
-    number_sections: yes
     theme: paper
     toc: yes
-  pdf_document:
-    toc: yes
 editor_options:
-  chunk_output_type: console
+  chunk_output_type: inline
 ---
 
 ```{r setup, include=FALSE}
@@ -134,12 +131,12 @@ AIC(ns_demo, ns_demo_belief)
 #BIC(nse_demo, nse_demo_belief, maximal = nse_demo_belief)
 ```
 
->> Note: Keep the efficacy (Q20) variable.
+> Note: Keep the efficacy (Q20) variable.
 
 
 
 # 2. Social influence (Q15, Q16, Q17)
->> Note: There is no 'never' group
+> Note: There is no 'never' group
 
 ## (Dv, Q20, Q15,16,17)
 
@@ -153,8 +150,8 @@ se_demo_belief_social <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income + P
 print_svy_mod(se_demo_belief_social)
 ```
 
-**F statistic**
->> Note: There is no 'never' group
+**F statistic**  
+> Note: There is no 'never' group
 
 ```{r}
 #anova(ne_demo_belief_social, ne_demo_belief, test = 'F')
@@ -166,8 +163,8 @@ print_svy_mod(se_demo_belief_social)
 #anova(nse_demo_belief_social, nse_demo_belief, test = 'F')
 ```
 
-** AIC/BIC **
->> Note: There is no 'never' group
+** AIC/BIC **  
+> Note: There is no 'never' group
 
 ```{r}
 #AIC(ne_demo, ne_demo_belief, ne_demo_belief_social)
@@ -180,7 +177,7 @@ print_svy_mod(se_demo_belief_social)
 #BIC(nse_demo, nse_demo_belief, se_demo_belief_social, maximal = se_demo_belief_social)
 ```
 
->> Note: Drop Q15.
+> Note: Drop Q15.
 
 
 # 2.1 Social influence subset
@@ -212,7 +209,7 @@ print_svy_mod(se_demo_belief_social)
 
 
 # 3. Cost and health insurance (Q14, Q19, Q21)
->> Note: Run Q19 and Q21 separately
+> Note: Run Q19 and Q21 separately
 
 ## (Dv, Q20, Q14)
 
@@ -282,7 +279,7 @@ print_svy_mod(se_demo_belief_cost)
 
 
 # 4. Barriers: Reasons to **not** get a vaccine
->> Note: Flip the response and Q18 variables
+> Note: Flip the response and Q18 variables
 
 ```{r}
 library(forcats)
@@ -333,7 +330,7 @@ lapply(never_some_flipped[, 37:46], table)
 table(df$Q18_1, df$Q13)
 ```
 
->> Note: The reference response is "Yes, Some years." The model is modeling NOT getting a vaccine.
+> Note: The reference response is "Yes, Some years." The model is modeling NOT getting a vaccine.
 
 
 ## (Dv, Q18_1,2,3,4,5,6,7,8,9)
@@ -348,8 +345,8 @@ ns_demo_belief_barriers <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income +
 print_svy_mod(ns_demo_belief_barriers)
 ```
 
->> Note: p-value < 0.05 for Q18_1, 2, 3, 5, 8
->> Only including the above Q18 subset
+> Note: p-value < 0.05 for Q18_1, 2, 3, 5, 8
+> Only including the above Q18 subset
 
 
 # 4.1 Barriers subset + efficacy (Q18, Q20)
