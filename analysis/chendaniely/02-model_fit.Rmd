@@ -3,12 +3,12 @@ title: "Model Fit"
 author: "Daniel Chen"
 date: "November 15, 2017"
 output:
-  pdf_document:
-    toc: yes
   html_document:
     df_print: kable
     number_sections: yes
     theme: paper
+    toc: yes
+  pdf_document:
     toc: yes
 editor_options:
   chunk_output_type: console
@@ -124,32 +124,33 @@ Keep the belief variable.
 
 
 # Social influence and herd immunity (Q15, 16, 17)
+# Note: this is wrong, corrected in 'analysis-models.Rmd'
 
 ## every vs. never
 ```{r}
-ne_demo_belief_social <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income + PPREG4 + work + Q20 + Q15 + Q16 + Q17,
-       design = svy_never_every,
-       family = quasibinomial(link = "logit"))
-print_svy_mod(ne_demo_belief_social)
+# ne_demo_belief_social <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income + PPREG4 + work + Q20 + Q15 + Q16 + Q17,
+#        design = svy_never_every,
+#        family = quasibinomial(link = "logit"))
+# print_svy_mod(ne_demo_belief_social)
 ```
 
 ## sometimes vs. never
 ```{r}
-ns_demo_belief_social <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income + PPREG4 + work + Q20 + Q15 + Q16 + Q17,
-       design = svy_never_some,
-       family = quasibinomial(link = "logit"))
-print_svy_mod(ne_demo_belief_social)
+# ns_demo_belief_social <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income + PPREG4 + work + Q20 + Q15 + Q16 + Q17,
+#        design = svy_never_some,
+#        family = quasibinomial(link = "logit"))
+# print_svy_mod(ne_demo_belief_social)
 ```
 
 ## sometimes+every vs. never
 ```{r}
-nse_demo_belief_social <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income + PPREG4 + work + Q20 + Q15 + Q16 + Q17,
-       design = svy_never_someevery,
-       family = quasibinomial(link = "logit"))
-print_svy_mod(ne_demo_belief_social)
+# nse_demo_belief_social <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income + PPREG4 + work + Q20 + Q15 + Q16 + Q17,
+#        design = svy_never_someevery,
+#        family = quasibinomial(link = "logit"))
+# print_svy_mod(ne_demo_belief_social)
 ```
 
-## sometimes vs every
+## sometimes vs. every
 ```{r}
 se_demo_belief_social <- svyglm(formula = Q13 ~ ppagecat + PPEDUCAT + income + PPREG4 + work + Q20 + Q15 + Q16 + Q17,
        design = svy_some_every,
@@ -161,15 +162,15 @@ print_svy_mod(se_demo_belief_social)
 ## F statistic
 
 ```{r}
-anova(ne_demo_belief_social, ne_demo_belief, test = 'F')
+#anova(ne_demo_belief_social, ne_demo_belief, test = 'F')
 ```
 
 ```{r}
-anova(ns_demo_belief_social, ns_demo_belief, test = 'F')
+#anova(ns_demo_belief_social, ns_demo_belief, test = 'F')
 ```
 
 ```{r}
-anova(nse_demo_belief_social, nse_demo_belief, test = 'F')
+#anova(nse_demo_belief_social, nse_demo_belief, test = 'F')
 ```
 
 ## AIC/BIC
